@@ -1,19 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "QScreen"
-#include "QString"
-#include "QMenu"
-#include "QMenuBar"
-#include "QAction"
-#include "QLabel"
 #include "cameralmenu.h"
-#include "QGridLayout"
-#include "QPushButton"
 #include "cameral.h"
-#include "QList"
-#include "QDebug"
-#include "QLabel"
-#include "QFont"
+#include "login.h"
+#include "public.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -51,33 +41,30 @@ MainWindow::~MainWindow()
 
 void MainWindow::CreateMenu()
 {
-    // 获取菜单栏
     QMenuBar *menuBar = this->menuBar();
 
+    menuExecute = menuBar->addMenu("执行");
+    menuRecord = menuBar->addMenu("记录");
+    menuTools = menuBar->addMenu("工具");
+    menuUser = menuBar->addMenu("用户");
 
-    // 创建 "执行" 菜单
-    QMenu *menuExecute = menuBar->addMenu("执行");
-    QMenu *menuRecord = menuBar->addMenu("记录");
-    QMenu *menuTool = menuBar->addMenu("工具");
-    QMenu *menuUser = menuBar->addMenu("用户");
-
-    // 添加子菜单 "开始"
     QMenu *menuStart = menuExecute->addMenu("运行全部检测");
     QMenu *menuStop = menuExecute->addMenu("停止全部检测");
 
     QMenu *menuLog = menuRecord->addMenu("日志");
     QMenu *menuData = menuRecord->addMenu("数据");
 
-    QMenu *menuBlock = menuTool->addMenu("屏蔽输出");
-    QMenu *menuLight = menuTool->addMenu("光源与IO");
-    QMenu *menuSelfStart = menuTool->addMenu("开机自启动");
-    QMenu *menuSystemPara = menuTool->addMenu("系统参数");
-    QMenu *menuSModeCancel = menuTool->addMenu("SModeCancel");
-    QMenu *menuSModeAutostart = menuTool->addMenu("SMode_Autostart");
-    QMenu *menuForceMode = menuTool->addMenu("ForceMode");
+    QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
+    QMenu *menuLight = menuTools->addMenu("光源与IO");
+    QMenu *menuSelfStart = menuTools->addMenu("开机自启动");
+    QMenu *menuSystemPara = menuTools->addMenu("系统参数");
+    QMenu *menuSModeCancel = menuTools->addMenu("SModeCancel");
+    QMenu *menuSModeAutostart = menuTools->addMenu("SMode_Autostart");
+    QMenu *menuForceMode = menuTools->addMenu("ForceMode");
 
-    QMenu *menuLogin = menuUser->addMenu("登录");
-    QMenu *Logout= menuUser->addMenu("注销");
+    loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
+
+    QMenu *menuLogout = menuUser->addMenu("注销");
 
     QMenu *menuBlockCameral1 = menuBlock->addMenu("屏蔽正引脚输出");
     QMenu *menuBlockCameral2 = menuBlock->addMenu("屏蔽座板输出");
@@ -88,8 +75,25 @@ void MainWindow::CreateMenu()
     QMenu *menuBlockCameral7 = menuBlock->addMenu("屏蔽载带座板输出");
     QMenu *menuBlockPLC = menuBlock->addMenu("启动PLC链接");
 
+    // 连接信号并检查连接状态
+    bool connected = connect(loginAction, &QAction::triggered, this, [this]() {
+        qDebug() << "登录动作触发";
+        Login loginDialog(nullptr);
+        if (loginDialog.exec() == QDialog::Accepted) {
+            QString password = loginDialog.GetPassword();
+            qDebug() << "输入的密码:" << password;
+            if (!password.isEmpty()) {
+                loginAction->setEnabled(false); // 禁用登录项
+                show(); // 显示主窗口
+            } else {
+                qDebug() << "密码为空，登录失败";
+            }
+        } else {
+            qDebug() << "登录取消";
+        }
+    });
+    qDebug() << "信号连接状态:" << connected; // 调试：确认连接是否成功
 }
-
 
 
 void MainWindow::CreateImageGrid()
@@ -144,10 +148,9 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
 
     // 创建固定文本标签
     QLabel *fixedText = new QLabel(fixedTextName, container);
-    fixedText->setStyleSheet("background-color: transparent; color: black; font-size: 20px; border: none;");
+    fixedText->setStyleSheet("background-color: transparent; color: black; font-size: 20px;");
     fixedText->setAttribute(Qt::WA_TransparentForMouseEvents);
     fixedText->setAlignment(Qt::AlignCenter);
-
 
     // 创建 CameraMenu 并设置菜单选项
     CameraMenu *cameraMenu = new CameraMenu(container);
@@ -161,32 +164,38 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
     cameraMenu->addMenuOption("全屏", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 全屏 被点击"; });
     cameraMenu->addMenuOption("录像", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 录像 被点击"; });
 
-    // 保证箭头按钮背景不变
+    // 设置菜单按钮（箭头）样式：无边框，与文本高度一致
     cameraMenu->getMenuButton()->setStyleSheet(
         "background-color: transparent; "
-        "font-size: 15px; "
-        "padding: 2px 5px;"  // 调整内边距，使按钮更紧凑
-        "border: 1px solid black;"  // 设置边框，避免外框过大
+        "font-size: 20px; "  // 与 fixedText 字体大小一致
+        "padding: 0px; "     // 移除内边距以对齐高度
+        "border: none;"
     );
-    // 设置按钮最小尺寸，避免按钮变成点
-    cameraMenu->getMenuButton()->setMinimumSize(50, 40);  // 设置最小尺寸
+    cameraMenu->getMenuButton()->setFixedHeight(fixedText->sizeHint().height()); // 固定高度与文本一致
+    cameraMenu->getMenuButton()->setMinimumWidth(40); // 设置最小宽度，避免太窄
 
-    // 修改菜单项的背景颜色，修复悬停时透明的问题
+    // 修改菜单项的背景颜色
     cameraMenu->setStyleSheet(
         "QMenu { background-color: white; border: 1px solid black; }"
         "QMenu::item { background-color: lightgray; color: black; }"
         "QMenu::item:hover { background-color: lightblue; }"
     );
 
-    // 创建覆盖层布局，包含固定文本和菜单按钮
-    QHBoxLayout *overlayLayout = new QHBoxLayout();
-    overlayLayout->addStretch();
-    overlayLayout->addWidget(fixedText);
-    overlayLayout->addWidget(cameraMenu->getMenuButton());
-    overlayLayout->setSpacing(2);  // 增加间隔
-    overlayLayout->setContentsMargins(0, 0, 2, 2);  // 增加右边和底部的边距
+    // 创建水平布局，保持箭头和固定文本并排
+    QHBoxLayout *textButtonLayout = new QHBoxLayout();
+    textButtonLayout->addWidget(fixedText);
+    textButtonLayout->addWidget(cameraMenu->getMenuButton());
+    textButtonLayout->setSpacing(2);
 
+    // 创建覆盖层布局，将水平布局整体上移
+    QVBoxLayout *overlayLayout = new QVBoxLayout();
+    overlayLayout->addLayout(textButtonLayout);
+    overlayLayout->addStretch();
+    overlayLayout->setContentsMargins(0, 0, 2, 2);
+
+    // 设置 overlayWidget 无边框
     QWidget *overlayWidget = new QWidget(container);
+    overlayWidget->setStyleSheet("background-color: transparent; border: none;");
     overlayWidget->setLayout(overlayLayout);
 
     // 创建容器布局
@@ -197,6 +206,8 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
 
     return container;
 }
+
+
 
 
 QString MainWindow::CameralName(int &i)

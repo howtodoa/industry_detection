@@ -15,10 +15,16 @@ CONFIG += c++11
 SOURCES += main.cpp\
         mainwindow.cpp \
     cameral.cpp \
-    cameralmenu.cpp
+    cameralmenu.cpp \
+    public.cpp \
+    login.cpp \
+    role.cpp
 
 HEADERS  += mainwindow.h \
     cameral.h \
-    cameralmenu.h
+    cameralmenu.h \
+    public.h \
+    login.h \
+    role.h
 
 FORMS    += mainwindow.ui
