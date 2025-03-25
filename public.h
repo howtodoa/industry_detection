@@ -14,6 +14,9 @@
 #include "QMenuBar"
 #include "QAction"
 #include "QLabel"
+#include "QDir"
+#include "QFileDialog"
+#include "QDesktopServices"
 
 
 

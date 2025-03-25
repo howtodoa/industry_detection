@@ -51,8 +51,7 @@ void MainWindow::CreateMenu()
     QMenu *menuStart = menuExecute->addMenu("运行全部检测");
     QMenu *menuStop = menuExecute->addMenu("停止全部检测");
 
-    QMenu *menuLog = menuRecord->addMenu("日志");
-    QMenu *menuData = menuRecord->addMenu("数据");
+
 
     QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
     QMenu *menuLight = menuTools->addMenu("光源与IO");
@@ -62,7 +61,6 @@ void MainWindow::CreateMenu()
     QMenu *menuSModeAutostart = menuTools->addMenu("SMode_Autostart");
     QMenu *menuForceMode = menuTools->addMenu("ForceMode");
 
-    loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
 
     QMenu *menuLogout = menuUser->addMenu("注销");
 
@@ -75,24 +73,85 @@ void MainWindow::CreateMenu()
     QMenu *menuBlockCameral7 = menuBlock->addMenu("屏蔽载带座板输出");
     QMenu *menuBlockPLC = menuBlock->addMenu("启动PLC链接");
 
-    // 连接信号并检查连接状态
-    bool connected = connect(loginAction, &QAction::triggered, this, [this]() {
+    QAction *loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
+    QAction *LogAction = menuRecord->addAction("日志");
+    QAction *DataAction = menuRecord->addAction("数据");
+
+
+    connect(loginAction, &QAction::triggered, this, [this, loginAction]() {
         qDebug() << "登录动作触发";
-        Login loginDialog(nullptr);
-        if (loginDialog.exec() == QDialog::Accepted) {
-            QString password = loginDialog.GetPassword();
+        Login *loginDialog = new Login(this);  // 使用指针，父对象设为主窗口
+        loginDialog->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动删除
+        connect(loginDialog, &QDialog::accepted, this, [this, loginDialog, loginAction]() {
+            QString password = loginDialog->GetPassword();
             qDebug() << "输入的密码:" << password;
             if (!password.isEmpty()) {
-                loginAction->setEnabled(false); // 禁用登录项
+                loginAction->setEnabled(true); // 禁用登录项
                 show(); // 显示主窗口
             } else {
                 qDebug() << "密码为空，登录失败";
             }
-        } else {
+        });
+        connect(loginDialog, &QDialog::rejected, this, [loginDialog]() {
             qDebug() << "登录取消";
-        }
+        });
+        loginDialog->show();  // 非模态显示
     });
-    qDebug() << "信号连接状态:" << connected; // 调试：确认连接是否成功
+
+    connect(LogAction, &QAction::triggered, this, [this, LogAction]() {
+                QString logFolderPath = "D:/Qt/Qt5.3.1/Tools/QtCreator/bin/Industry_Detection/log";
+
+                QDir dir(logFolderPath);
+                if (!dir.exists()) {
+                    qDebug() << "错误: log 文件夹不存在于路径:" << logFolderPath;
+                    return;
+                }
+
+                QString selectedFile = QFileDialog::getOpenFileName(
+                    this,
+                    "选择日志文件",
+                    logFolderPath,
+                    "Text Files (*.txt)"
+                );
+
+                if (!selectedFile.isEmpty()) {
+                    qDebug() << "用户选择的文件:" << selectedFile;
+                    bool opened = QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
+                    if (!opened) {
+                        qDebug() << "无法打开文件:" << selectedFile;
+                    }
+                } else {
+                    qDebug() << "用户取消了文件选择";
+                }
+    });
+
+    connect(DataAction, &QAction::triggered, this, [this, DataAction]() {
+                QString logFolderPath = "D:/Qt/Qt5.3.1/Tools/QtCreator/bin/Industry_Detection/Data";
+
+                QDir dir(logFolderPath);
+                if (!dir.exists()) {
+                    qDebug() << "错误: log 文件夹不存在于路径:" << logFolderPath;
+                    return;
+                }
+
+                QString selectedFile = QFileDialog::getOpenFileName(
+                    this,
+                    "选择日志文件",
+                    logFolderPath,
+                    "Text Files (*.txt)"
+                );
+
+                if (!selectedFile.isEmpty()) {
+                    qDebug() << "用户选择的文件:" << selectedFile;
+                    bool opened = QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
+                    if (!opened) {
+                        qDebug() << "无法打开文件:" << selectedFile;
+                    }
+                } else {
+                    qDebug() << "用户取消了文件选择";
+                }
+    });
+
 }
 
 

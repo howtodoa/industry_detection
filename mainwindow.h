@@ -28,7 +28,7 @@ private:
     QMenu *menuRecord;  // "记录"菜单
     QMenu *menuTools;   // "工具"菜单
     QMenu *menuUser;    // "用户"菜单
-    QAction *loginAction; // 登录动作
+   // QAction *loginAction; // 登录动作
     QList<QWidget*> cameraLabels;
 };
 

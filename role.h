@@ -22,6 +22,16 @@ class Operater : public Role
 
 };
 
+class Machine : public Role
+{
+
+};
+
+class Manufacturer : public Role
+{
+
+};
+
 
 
 
