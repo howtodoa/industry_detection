@@ -14,6 +14,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "F:/Industry_Detection/login.cpp" "CMakeFiles/Industry_Detection.dir/login.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/login.cpp.obj.d"
   "F:/Industry_Detection/main.cpp" "CMakeFiles/Industry_Detection.dir/main.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/main.cpp.obj.d"
   "F:/Industry_Detection/mainwindow.cpp" "CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj.d"
+  "F:/Industry_Detection/parawidget.cpp" "CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj.d"
   "F:/Industry_Detection/public.cpp" "CMakeFiles/Industry_Detection.dir/public.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/public.cpp.obj.d"
   "F:/Industry_Detection/role.cpp" "CMakeFiles/Industry_Detection.dir/role.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/role.cpp.obj.d"
   "F:/Industry_Detection/virtualbox.cpp" "CMakeFiles/Industry_Detection.dir/virtualbox.cpp.obj" "gcc" "CMakeFiles/Industry_Detection.dir/virtualbox.cpp.obj.d"

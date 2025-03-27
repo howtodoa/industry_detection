@@ -11,10 +11,14 @@ class Login : public QDialog
     Q_OBJECT
 public:
     explicit Login(QWidget *parent = nullptr);
+    ~Login();
     QString GetPassword() const;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
+
+signals:
+    void loginSuccess(QString &role);
 
 private slots:
     void showVirtualKeyboard();

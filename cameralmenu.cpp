@@ -18,6 +18,12 @@ CameraMenu::CameraMenu(QWidget *parent)
     });
 }
 
+CameraMenu::~CameraMenu()
+{
+    delete menuButton; // 菜单按钮
+    delete menu;
+}
+
 void CameraMenu::addMenuOption(const QString &optionName, const std::function<void()> &callback)
 {
     QAction *action = menu->addAction(optionName);

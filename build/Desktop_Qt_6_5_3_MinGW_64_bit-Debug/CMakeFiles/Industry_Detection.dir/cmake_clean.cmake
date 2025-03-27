@@ -11,6 +11,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Industry_Detection.dir/main.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj"
   "CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj.d"
+  "CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj"
+  "CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/public.cpp.obj"
   "CMakeFiles/Industry_Detection.dir/public.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/role.cpp.obj"

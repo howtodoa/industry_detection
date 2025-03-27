@@ -7,7 +7,10 @@ VirtualBox::VirtualBox(QWidget *parent) : QWidget(parent) {
     setLayout(mainLayout);
 }
 
-VirtualBox::~VirtualBox() {}
+VirtualBox::~VirtualBox()
+{
+    delete mainLayout;
+}
 
 void VirtualBox::createKeyboard() {
     const QString keys[] = {

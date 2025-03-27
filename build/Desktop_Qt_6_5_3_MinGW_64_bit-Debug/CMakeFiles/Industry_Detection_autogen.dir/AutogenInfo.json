@@ -970,6 +970,12 @@
 			null
 		],
 		[
+			"F:/Industry_Detection/parawidget.h",
+			"MU",
+			"EWIEGA46WW/moc_parawidget.cpp",
+			null
+		],
+		[
 			"F:/Industry_Detection/public.h",
 			"MU",
 			"EWIEGA46WW/moc_public.cpp",
@@ -1070,6 +1076,7 @@
 		[ "F:/Industry_Detection/login.cpp", "MU", null ],
 		[ "F:/Industry_Detection/main.cpp", "MU", null ],
 		[ "F:/Industry_Detection/mainwindow.cpp", "MU", null ],
+		[ "F:/Industry_Detection/parawidget.cpp", "MU", null ],
 		[ "F:/Industry_Detection/public.cpp", "MU", null ],
 		[ "F:/Industry_Detection/role.cpp", "MU", null ],
 		[ "F:/Industry_Detection/virtualbox.cpp", "MU", null ]

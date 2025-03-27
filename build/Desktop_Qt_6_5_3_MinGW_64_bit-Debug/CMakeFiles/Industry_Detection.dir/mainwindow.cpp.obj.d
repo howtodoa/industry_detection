@@ -364,6 +364,8 @@ CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMainWindow \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qmainwindow.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qtabwidget.h \
+ F:\Industry_Detection\role.h F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qobject.h \
  F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/include/ui_mainwindow.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/QVariant \
  F:/QT/6.5.3/mingw_64/include/QtCore/qvariant.h \
@@ -401,32 +403,7 @@ CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/qdebug.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QToolButton \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qtoolbutton.h \
- F:\Industry_Detection\cameral.h \
- F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
- F:/QT/6.5.3/mingw_64/include/QtCore/qobject.h \
- F:\Industry_Detection\login.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/QDialog \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qdialog.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/QLineEdit \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qlineedit.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qtextcursor.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qtextformat.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qpen.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qtextoption.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/QComboBox \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qcombobox.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractitemdelegate.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qstyleoption.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractspinbox.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qvalidator.h \
- F:/QT/6.5.3/mingw_64/include/QtCore/qregularexpression.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qslider.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractslider.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qstyle.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qtabbar.h \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qrubberband.h \
- F:/QT/6.5.3/mingw_64/include/QtCore/qabstractitemmodel.h \
- F:\Industry_Detection\virtualbox.h F:\Industry_Detection\public.h \
+ F:\Industry_Detection\cameral.h F:\Industry_Detection\public.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/QList \
  F:/QT/6.5.3/mingw_64/include/QtCore/qlist.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/QFont \
@@ -442,9 +419,11 @@ CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/QSizeF \
  F:/QT/6.5.3/mingw_64/include/QtGui/QTransform \
  F:/QT/6.5.3/mingw_64/include/QtGui/qtransform.h \
- F:/QT/6.5.3/mingw_64/include/QtCore/QString \
- F:/QT/6.5.3/mingw_64/include/QtCore/qstring.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMenuBar \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QStatusBar \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QTimer \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qtimer.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qbasictimer.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/QDir \
  F:/QT/6.5.3/mingw_64/include/QtCore/qdir.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qfile.h \
@@ -487,4 +466,31 @@ CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/qdir.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qdialog.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/QDesktopServices \
- F:/QT/6.5.3/mingw_64/include/QtGui/qdesktopservices.h
+ F:/QT/6.5.3/mingw_64/include/QtGui/qdesktopservices.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QString \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qstring.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QVector \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qvector.h \
+ F:\Industry_Detection\login.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QDialog \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qdialog.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QLineEdit \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qlineedit.h \
+ F:/QT/6.5.3/mingw_64/include/QtGui/qtextcursor.h \
+ F:/QT/6.5.3/mingw_64/include/QtGui/qtextformat.h \
+ F:/QT/6.5.3/mingw_64/include/QtGui/qpen.h \
+ F:/QT/6.5.3/mingw_64/include/QtGui/qtextoption.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QComboBox \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qcombobox.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractitemdelegate.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qstyleoption.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractspinbox.h \
+ F:/QT/6.5.3/mingw_64/include/QtGui/qvalidator.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qregularexpression.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qslider.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qabstractslider.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qstyle.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qtabbar.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qrubberband.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qabstractitemmodel.h \
+ F:\Industry_Detection\virtualbox.h F:\Industry_Detection\parawidget.h

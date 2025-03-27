@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QMainWindow>
+#include "role.h"
 
 namespace Ui {
 class MainWindow;
@@ -21,7 +22,7 @@ public:
     QString CameralName(int &i);
     QWidget* CreateEighthFrame();
     void setLabel(QVBoxLayout *layout, int row, int col);
-
+    Role role;
 private:
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单
@@ -30,6 +31,10 @@ private:
     QMenu *menuUser;    // "用户"菜单
    // QAction *loginAction; // 登录动作
     QList<QWidget*> cameraLabels;
+
+
+private slots:
+
 };
 
 #endif // MAINWINDOW_H

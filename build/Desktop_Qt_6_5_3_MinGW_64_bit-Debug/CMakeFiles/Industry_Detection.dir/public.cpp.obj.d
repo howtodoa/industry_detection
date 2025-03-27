@@ -383,8 +383,6 @@ CMakeFiles/Industry_Detection.dir/public.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtGui/QTransform \
  F:/QT/6.5.3/mingw_64/include/QtGui/qtransform.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qnativeinterface.h \
- F:/QT/6.5.3/mingw_64/include/QtCore/QString \
- F:/QT/6.5.3/mingw_64/include/QtCore/qstring.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMenu \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qmenu.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMenuBar \
@@ -392,6 +390,11 @@ CMakeFiles/Industry_Detection.dir/public.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qmenu.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/QAction \
  F:/QT/6.5.3/mingw_64/include/QtGui/qaction.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QStatusBar \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qstatusbar.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QTimer \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qtimer.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qbasictimer.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/QDir \
  F:/QT/6.5.3/mingw_64/include/QtCore/qdir.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qfile.h \
@@ -435,4 +438,8 @@ CMakeFiles/Industry_Detection.dir/public.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/qdir.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qdialog.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/QDesktopServices \
- F:/QT/6.5.3/mingw_64/include/QtGui/qdesktopservices.h
+ F:/QT/6.5.3/mingw_64/include/QtGui/qdesktopservices.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QString \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qstring.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QVector \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qvector.h

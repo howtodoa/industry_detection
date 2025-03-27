@@ -408,6 +408,8 @@ CMakeFiles/Industry_Detection.dir/login.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/QTimer \
  F:/QT/6.5.3/mingw_64/include/QtCore/qtimer.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qbasictimer.h \
+ F:\Industry_Detection\role.h F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qobject.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMessageBox \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qmessagebox.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qdialog.h

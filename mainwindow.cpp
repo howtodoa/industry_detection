@@ -4,6 +4,7 @@
 #include "cameral.h"
 #include "login.h"
 #include "public.h"
+#include "parawidget.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,6 +36,14 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete menuExecute; // "执行"菜单
+    delete menuRecord;  // "记录"菜单
+    delete menuTools;   // "工具"菜单
+    delete menuUser;    // "用户"菜单
+    for (QWidget* widget : cameraLabels) {
+        delete widget;
+    }
+
 }
 
 
@@ -47,6 +56,8 @@ void MainWindow::CreateMenu()
     menuRecord = menuBar->addMenu("记录");
     menuTools = menuBar->addMenu("工具");
     menuUser = menuBar->addMenu("用户");
+
+
 
     QMenu *menuStart = menuExecute->addMenu("运行全部检测");
     QMenu *menuStop = menuExecute->addMenu("停止全部检测");
@@ -78,24 +89,60 @@ void MainWindow::CreateMenu()
     QAction *DataAction = menuRecord->addAction("数据");
 
 
-    connect(loginAction, &QAction::triggered, this, [this, loginAction]() {
+    // 获取或创建状态栏
+    QStatusBar *statusBar = this->statusBar();
+    if (!statusBar) {
+        statusBar = new QStatusBar(this);
+        setStatusBar(statusBar);
+    }
+    statusBar->setMinimumHeight(25); // 设置最小高度，确保可见
+    statusBar->show(); // 确保显示
+
+    // 创建运行时间和角色的 QLabel
+    QLabel *runtimeLabel = new QLabel("运行时间: 00:00:00", this);
+    QLabel *roleLabel = new QLabel(role.GetCurrentRole(), this);
+    runtimeLabel->setStyleSheet("QLabel { color: black; }");
+    roleLabel->setStyleSheet("QLabel { color: black; }");
+
+    // 将 QLabel 添加到状态栏左侧
+    statusBar->addWidget(runtimeLabel); // 靠左显示
+    statusBar->addWidget(roleLabel);
+
+    // 设置定时器更新运行时间
+    QTimer *timer = new QTimer(this);
+    QDateTime startTime = QDateTime::currentDateTime();
+    connect(timer, &QTimer::timeout, this, [runtimeLabel, startTime]() {
+        QDateTime currentTime = QDateTime::currentDateTime();
+        int seconds = startTime.secsTo(currentTime);
+        int hours = seconds / 3600;
+        int minutes = (seconds % 3600) / 60;
+        int secs = seconds % 60;
+        runtimeLabel->setText(QString("运行时间: %1:%2:%3")
+                                  .arg(hours, 2, 10, QChar('0'))
+                                  .arg(minutes, 2, 10, QChar('0'))
+                                  .arg(secs, 2, 10, QChar('0')));
+    });
+    timer->start(100);
+
+    // 连接登录动作以更新角色信息
+    connect(loginAction, &QAction::triggered, this, [this, loginAction, roleLabel]() {
         qDebug() << "登录动作触发";
-        Login *loginDialog = new Login(this);  // 使用指针，父对象设为主窗口
-        loginDialog->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动删除
-        connect(loginDialog, &QDialog::accepted, this, [this, loginDialog, loginAction]() {
+        Login *loginDialog = new Login(this);
+        loginDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(loginDialog, &Login::loginSuccess, this, &Role::ChangeRole);
+        connect(loginDialog, &QDialog::accepted, this, [this, loginDialog, loginAction, roleLabel]() {
             QString password = loginDialog->GetPassword();
+
             qDebug() << "输入的密码:" << password;
             if (!password.isEmpty()) {
-                loginAction->setEnabled(true); // 禁用登录项
-                show(); // 显示主窗口
+
+                roleLabel->setText(role.GetCurrentRole());
+                show();
             } else {
                 qDebug() << "密码为空，登录失败";
             }
         });
-        connect(loginDialog, &QDialog::rejected, this, [loginDialog]() {
-            qDebug() << "登录取消";
-        });
-        loginDialog->show();  // 非模态显示
+        loginDialog->show();
     });
 
     connect(LogAction, &QAction::triggered, this, [this, LogAction]() {
@@ -213,12 +260,28 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
 
     // 创建 CameraMenu 并设置菜单选项
     CameraMenu *cameraMenu = new CameraMenu(container);
+
+    // 初始化 Cameral 对象
+    Cameral *cameral = new Cameral(container); // 以 container 作为父对象
+    // 设置默认值（已在 Cameral 构造函数中初始化为 0，这里可根据需要调整）
+    cameral->rangeParams = {10.0f, 5.0f, 12.0f, 20.0f, 5.0f, 3.0f, 15.0f, 8.0f, 18.0f, 25.0f, 10.0f, 8.0f};
+    cameral->cameralParams = {"Camera" + QString::number(i + 1), "SN" + QString::number(i + 1),
+                              "192.168.1." + QString::number(i + 1), 1, i + 1, 50, 100, 200};
+    cameral->algoParams = {"Algorithm" + QString::number(i + 1), {"参数一", "参数二"}, {"100", "200"}};
+
+    // 添加菜单选项
     cameraMenu->addMenuOption("运行", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 运行 被点击"; });
     cameraMenu->addMenuOption("停止", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 停止 被点击"; });
     cameraMenu->addMenuOption("OK", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 OK 被点击"; });
     cameraMenu->addMenuOption("NG", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 NG 被点击"; });
     cameraMenu->addMenuOption("错误", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 错误 被点击"; });
-    cameraMenu->addMenuOption("参数", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 参数 被点击"; });
+    cameraMenu->addMenuOption("参数", [cameral]() {
+        // 将 Cameral 的三个参数传入 ParaWidget
+        ParaWidget* parawidget = new ParaWidget(&cameral->rangeParams,
+                                                &cameral->cameralParams,
+                                                &cameral->algoParams);
+        parawidget->show(); // 显示窗口
+    });
     cameraMenu->addMenuOption("相机", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 相机 被点击"; });
     cameraMenu->addMenuOption("全屏", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 全屏 被点击"; });
     cameraMenu->addMenuOption("录像", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 录像 被点击"; });
@@ -229,7 +292,7 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
         "font-size: 20px; "  // 与 fixedText 字体大小一致
         "padding: 0px; "     // 移除内边距以对齐高度
         "border: none;"
-    );
+        );
     cameraMenu->getMenuButton()->setFixedHeight(fixedText->sizeHint().height()); // 固定高度与文本一致
     cameraMenu->getMenuButton()->setMinimumWidth(40); // 设置最小宽度，避免太窄
 
@@ -238,7 +301,7 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
         "QMenu { background-color: white; border: 1px solid black; }"
         "QMenu::item { background-color: lightgray; color: black; }"
         "QMenu::item:hover { background-color: lightblue; }"
-    );
+        );
 
     // 创建水平布局，保持箭头和固定文本并排
     QHBoxLayout *textButtonLayout = new QHBoxLayout();
@@ -265,8 +328,6 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
 
     return container;
 }
-
-
 
 
 QString MainWindow::CameralName(int &i)

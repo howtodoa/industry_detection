@@ -1,5 +1,7 @@
 F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/EWIEGA46WW/moc_mainwindow.cpp: F:/Industry_Detection/mainwindow.h \
   F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/moc_predefs.h \
+  F:/Industry_Detection/role.h \
+  F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
   F:/QT/6.5.3/mingw_64/include/QtCore/q20memory.h \
   F:/QT/6.5.3/mingw_64/include/QtCore/q20type_traits.h \
   F:/QT/6.5.3/mingw_64/include/QtCore/qalgorithms.h \

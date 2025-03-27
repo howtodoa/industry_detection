@@ -14,7 +14,7 @@ class CameraMenu : public QWidget {
 
 public:
     explicit CameraMenu(QWidget *parent = nullptr);
-
+    ~CameraMenu();
     // 获取菜单按钮
     QPushButton* getMenuButton() const { return menuButton; }
 

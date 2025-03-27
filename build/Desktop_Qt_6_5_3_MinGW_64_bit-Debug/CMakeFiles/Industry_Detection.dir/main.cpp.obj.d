@@ -405,4 +405,6 @@ CMakeFiles/Industry_Detection.dir/main.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtGui/qpicture.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qiodevice.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QMainWindow \
- F:/QT/6.5.3/mingw_64/include/QtWidgets/qmainwindow.h
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qmainwindow.h \
+ F:\Industry_Detection\role.h F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qobject.h

@@ -285,6 +285,30 @@ mainwindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/mainwindow.cpp.s
 .PHONY : mainwindow.cpp.s
 
+parawidget.obj: parawidget.cpp.obj
+.PHONY : parawidget.obj
+
+# target to build an object file
+parawidget.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj
+.PHONY : parawidget.cpp.obj
+
+parawidget.i: parawidget.cpp.i
+.PHONY : parawidget.i
+
+# target to preprocess a source file
+parawidget.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/parawidget.cpp.i
+.PHONY : parawidget.cpp.i
+
+parawidget.s: parawidget.cpp.s
+.PHONY : parawidget.s
+
+# target to generate assembly for a file
+parawidget.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/parawidget.cpp.s
+.PHONY : parawidget.cpp.s
+
 public.obj: public.cpp.obj
 .PHONY : public.obj
 
@@ -385,6 +409,9 @@ help:
 	@echo ... mainwindow.obj
 	@echo ... mainwindow.i
 	@echo ... mainwindow.s
+	@echo ... parawidget.obj
+	@echo ... parawidget.i
+	@echo ... parawidget.s
 	@echo ... public.obj
 	@echo ... public.i
 	@echo ... public.s

@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QApplication>
 #include <QTimer>
+#include "role.h"
 #include <QComboBox>
 #include <QMessageBox>
 Login::Login(QWidget *parent) : QDialog(parent)
@@ -81,7 +82,15 @@ Login::Login(QWidget *parent) : QDialog(parent)
     });
 }
 
+Login::~Login()
+{
+    delete passwordEdit;
+    delete virtualKeyboard;
+    delete roleComboBox;
+}
 // 登录验证接口
+
+
 bool Login::validateLogin(const QString &role, const QString &password)
 {
     // 示例验证：验证角色和密码是否正确
@@ -92,13 +101,13 @@ bool Login::validateLogin(const QString &role, const QString &password)
     }
 
     // 假设的角色和密码验证
-    if (role == "厂商" && password == "password1") {
+    if (role == "厂商" && password == "123456") {
         return true;
     }
-    if (role == "机修" && password == "password2") {
+    if (role == "机修" && password == "123456") {
         return true;
     }
-    if (role == "操作员" && password == "password3") {
+    if (role == "操作员" && password == "123456") {
         return true;
     }
 
@@ -118,10 +127,12 @@ void Login::onOkButtonClicked()
     // 调用登录验证函数
     if (validateLogin(selectedRole, password)) {
         virtualKeyboard->hide();  // 隐藏虚拟键盘
+        Role::ChangeRole(selectedRole);
         accept();  // 登录成功，接受对话框
     } else {
         // 验证失败，提示错误信息
         QMessageBox::warning(this, "登录失败", "角色或密码错误，请重新输入！");
+        close();
     }
 }
 
@@ -158,7 +169,7 @@ void Login::showVirtualKeyboard()
 
 void Login::handleKeyPress(const QString &key)
 {
-     qDebug() << "handleKeyPress called with key:" << key;
+    qDebug() << "handleKeyPress called with key:" << key;
     passwordEdit->setText(passwordEdit->text() + key);
 
 }

@@ -3,5 +3,6 @@
 #include "EWIEGA46WW/moc_cameralmenu.cpp"
 #include "EWIEGA46WW/moc_login.cpp"
 #include "EWIEGA46WW/moc_mainwindow.cpp"
+#include "EWIEGA46WW/moc_parawidget.cpp"
 #include "EWIEGA46WW/moc_role.cpp"
 #include "EWIEGA46WW/moc_virtualbox.cpp"
