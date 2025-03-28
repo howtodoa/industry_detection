@@ -47,7 +47,8 @@ set(UI_FILES
 # 创建可执行文件
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
     virtualbox.h virtualbox.cpp
-    parawidget.h parawidget.cpp)
+    parawidget.h parawidget.cpp
+    fileoperator.h fileoperator.cpp)
 
 # 链接 Qt 库
 if(Qt6_FOUND)

@@ -5,6 +5,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Industry_Detection.dir/cameral.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/cameralmenu.cpp.obj"
   "CMakeFiles/Industry_Detection.dir/cameralmenu.cpp.obj.d"
+  "CMakeFiles/Industry_Detection.dir/fileoperator.cpp.obj"
+  "CMakeFiles/Industry_Detection.dir/fileoperator.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/login.cpp.obj"
   "CMakeFiles/Industry_Detection.dir/login.cpp.obj.d"
   "CMakeFiles/Industry_Detection.dir/main.cpp.obj"

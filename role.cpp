@@ -11,7 +11,7 @@ Role::Role(const QString &role) : QObject(nullptr)
 
 Role::~Role()
 {
-    // 无需清理静态变量，生命周期由程序控制
+
 }
 
 void Role::ChangePassword(const QString &str)

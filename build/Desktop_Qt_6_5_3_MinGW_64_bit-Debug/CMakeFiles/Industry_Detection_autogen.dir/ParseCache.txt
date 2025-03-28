@@ -2162,15 +2162,18 @@ F:/Industry_Detection/parawidget.h
  mmc:Q_OBJECT
  mdp:F:/Industry_Detection/parawidget.h
  mdp:F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/moc_predefs.h
+ mdp:F:/Industry_Detection/fileoperator.h
  mdp:F:/Industry_Detection/public.h
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QDebug
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QDir
+ mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QFile
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QList
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QObject
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QRect
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QSize
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QSizeF
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QString
+ mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QTextStream
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QTimer
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/QVector
  mdp:F:/QT/6.5.3/mingw_64/include/QtCore/q20memory.h
@@ -2583,3 +2586,5 @@ F:/Industry_Detection/parawidget.h
  mdp:F:/QT/Tools/mingw1120_64/x86_64-w64-mingw32/include/wchar.h
  mdp:F:/QT/Tools/mingw1120_64/x86_64-w64-mingw32/include/wctype.h
 F:/Industry_Detection/parawidget.cpp
+F:/Industry_Detection/fileoperator.h
+F:/Industry_Detection/fileoperator.cpp

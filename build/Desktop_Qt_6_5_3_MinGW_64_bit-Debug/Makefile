@@ -213,6 +213,30 @@ cameralmenu.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/cameralmenu.cpp.s
 .PHONY : cameralmenu.cpp.s
 
+fileoperator.obj: fileoperator.cpp.obj
+.PHONY : fileoperator.obj
+
+# target to build an object file
+fileoperator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/fileoperator.cpp.obj
+.PHONY : fileoperator.cpp.obj
+
+fileoperator.i: fileoperator.cpp.i
+.PHONY : fileoperator.i
+
+# target to preprocess a source file
+fileoperator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/fileoperator.cpp.i
+.PHONY : fileoperator.cpp.i
+
+fileoperator.s: fileoperator.cpp.s
+.PHONY : fileoperator.s
+
+# target to generate assembly for a file
+fileoperator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Industry_Detection.dir\build.make CMakeFiles/Industry_Detection.dir/fileoperator.cpp.s
+.PHONY : fileoperator.cpp.s
+
 login.obj: login.cpp.obj
 .PHONY : login.obj
 
@@ -400,6 +424,9 @@ help:
 	@echo ... cameralmenu.obj
 	@echo ... cameralmenu.i
 	@echo ... cameralmenu.s
+	@echo ... fileoperator.obj
+	@echo ... fileoperator.i
+	@echo ... fileoperator.s
 	@echo ... login.obj
 	@echo ... login.i
 	@echo ... login.s

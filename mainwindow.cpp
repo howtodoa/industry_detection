@@ -146,7 +146,7 @@ void MainWindow::CreateMenu()
     });
 
     connect(LogAction, &QAction::triggered, this, [this, LogAction]() {
-                QString logFolderPath = "D:/Qt/Qt5.3.1/Tools/QtCreator/bin/Industry_Detection/log";
+                QString logFolderPath = "F:/Industry_Detection/log";
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
@@ -173,7 +173,7 @@ void MainWindow::CreateMenu()
     });
 
     connect(DataAction, &QAction::triggered, this, [this, DataAction]() {
-                QString logFolderPath = "D:/Qt/Qt5.3.1/Tools/QtCreator/bin/Industry_Detection/Data";
+                QString logFolderPath = "F:/Industry_Detection/data";
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
@@ -277,9 +277,9 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
     cameraMenu->addMenuOption("错误", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 错误 被点击"; });
     cameraMenu->addMenuOption("参数", [cameral]() {
         // 将 Cameral 的三个参数传入 ParaWidget
-        ParaWidget* parawidget = new ParaWidget(&cameral->rangeParams,
-                                                &cameral->cameralParams,
-                                                &cameral->algoParams);
+        ParaWidget* parawidget = new ParaWidget(cameral->rangeParams,
+                                                cameral->cameralParams,
+                                                cameral->algoParams);
         parawidget->show(); // 显示窗口
     });
     cameraMenu->addMenuOption("相机", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 相机 被点击"; });

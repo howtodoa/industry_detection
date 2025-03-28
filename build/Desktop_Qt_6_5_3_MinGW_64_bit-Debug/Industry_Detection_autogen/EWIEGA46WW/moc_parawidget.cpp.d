@@ -1,14 +1,17 @@
 F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/EWIEGA46WW/moc_parawidget.cpp: F:/Industry_Detection/parawidget.h \
   F:/Industry_Detection/build/Desktop_Qt_6_5_3_MinGW_64_bit-Debug/Industry_Detection_autogen/moc_predefs.h \
+  F:/Industry_Detection/fileoperator.h \
   F:/Industry_Detection/public.h \
   F:/QT/6.5.3/mingw_64/include/QtCore/QDebug \
   F:/QT/6.5.3/mingw_64/include/QtCore/QDir \
+  F:/QT/6.5.3/mingw_64/include/QtCore/QFile \
   F:/QT/6.5.3/mingw_64/include/QtCore/QList \
   F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
   F:/QT/6.5.3/mingw_64/include/QtCore/QRect \
   F:/QT/6.5.3/mingw_64/include/QtCore/QSize \
   F:/QT/6.5.3/mingw_64/include/QtCore/QSizeF \
   F:/QT/6.5.3/mingw_64/include/QtCore/QString \
+  F:/QT/6.5.3/mingw_64/include/QtCore/QTextStream \
   F:/QT/6.5.3/mingw_64/include/QtCore/QTimer \
   F:/QT/6.5.3/mingw_64/include/QtCore/QVector \
   F:/QT/6.5.3/mingw_64/include/QtCore/q20memory.h \

@@ -484,7 +484,11 @@ CMakeFiles/Industry_Detection.dir/Industry_Detection_autogen/mocs_compilation.cp
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qmainwindow.h \
  F:/Industry_Detection/role.h \
  F:\Industry_Detection\build\Desktop_Qt_6_5_3_MinGW_64_bit-Debug\Industry_Detection_autogen\EWIEGA46WW/moc_parawidget.cpp \
- F:/Industry_Detection/parawidget.h \
+ F:/Industry_Detection/parawidget.h F:/Industry_Detection/fileoperator.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QFile \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qfile.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QTextStream \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qtextstream.h \
  F:\Industry_Detection\build\Desktop_Qt_6_5_3_MinGW_64_bit-Debug\Industry_Detection_autogen\EWIEGA46WW/moc_role.cpp \
  F:/Industry_Detection/role.h \
  F:\Industry_Detection\build\Desktop_Qt_6_5_3_MinGW_64_bit-Debug\Industry_Detection_autogen\EWIEGA46WW/moc_virtualbox.cpp \

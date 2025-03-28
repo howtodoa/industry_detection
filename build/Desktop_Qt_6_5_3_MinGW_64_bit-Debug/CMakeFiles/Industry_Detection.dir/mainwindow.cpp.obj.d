@@ -493,4 +493,9 @@ CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qtabbar.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qrubberband.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/qabstractitemmodel.h \
- F:\Industry_Detection\virtualbox.h F:\Industry_Detection\parawidget.h
+ F:\Industry_Detection\virtualbox.h F:\Industry_Detection\parawidget.h \
+ F:\Industry_Detection\fileoperator.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QFile \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qfile.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QTextStream \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qtextstream.h

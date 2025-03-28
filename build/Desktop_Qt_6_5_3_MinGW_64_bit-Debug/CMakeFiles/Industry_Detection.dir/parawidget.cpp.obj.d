@@ -445,6 +445,12 @@ CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtCore/qstring.h \
  F:/QT/6.5.3/mingw_64/include/QtCore/QVector \
  F:/QT/6.5.3/mingw_64/include/QtCore/qvector.h \
+ F:\Industry_Detection\fileoperator.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QFile \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qfile.h \
+ F:/QT/6.5.3/mingw_64/include/QtCore/QTextStream \
+ F:/QT/6.5.3/mingw_64/include/QtCore/qtextstream.h \
+ F:\Industry_Detection\role.h F:/QT/6.5.3/mingw_64/include/QtCore/QObject \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QVBoxLayout \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/qboxlayout.h \
  F:/QT/6.5.3/mingw_64/include/QtWidgets/QTabWidget \
@@ -454,4 +460,6 @@ CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj: \
  F:/QT/6.5.3/mingw_64/include/QtGui/qtextcursor.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/qtextformat.h \
  F:/QT/6.5.3/mingw_64/include/QtGui/qpen.h \
- F:/QT/6.5.3/mingw_64/include/QtGui/qtextoption.h
+ F:/QT/6.5.3/mingw_64/include/QtGui/qtextoption.h \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/QMessageBox \
+ F:/QT/6.5.3/mingw_64/include/QtWidgets/qmessagebox.h
