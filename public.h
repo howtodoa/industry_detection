@@ -146,4 +146,9 @@ public:
     }
 };
 
+struct SystemPara
+{
+
+};
+
 #endif // PUBLIC_H

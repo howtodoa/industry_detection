@@ -27,6 +27,9 @@ set(SOURCES
     public.cpp
     login.cpp
     role.cpp
+    virtualbox.cpp
+    parawidget.cpp
+    fileoperator.cpp
 )
 
 # 定义头文件
@@ -37,6 +40,10 @@ set(HEADERS
     public.h
     login.h
     role.h
+    virtualbox.h
+    parawidget.h
+    fileoperator.h
+  //  "include/MZ_ADOConn.h"  # 相对路径，指向项目中的 include 目录
 )
 
 # 定义 UI 文件
@@ -45,16 +52,28 @@ set(UI_FILES
 )
 
 # 创建可执行文件
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
-    virtualbox.h virtualbox.cpp
-    parawidget.h parawidget.cpp
-    fileoperator.h fileoperator.cpp)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES})
 
-# 链接 Qt 库
+# 添加头文件路径
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
+# 链接 Qt 库和 MZ_ADOConnect.lib
 if(Qt6_FOUND)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::VirtualKeyboard)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt6::VirtualKeyboard
+        "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"  # 相对路径，指向项目中的 lib 目录
+    )
 else()
-    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::VirtualKeyboard)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Widgets
+        Qt5::VirtualKeyboard
+        "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
+    )
 endif()
 
 # 设置输出目录（可选）

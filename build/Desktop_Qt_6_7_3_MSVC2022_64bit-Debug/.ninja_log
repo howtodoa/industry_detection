@@ -1,0 +1,24 @@
+# ninja log v5
+19	193	7657093215031758	Industry_Detection_autogen/timestamp	70f8b08222291a0d
+19	193	7657093215031758	Industry_Detection_autogen/mocs_compilation.cpp	70f8b08222291a0d
+19	193	7657093215031758	F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/mocs_compilation.cpp	70f8b08222291a0d
+846	4661	7657084638531812	CMakeFiles/Industry_Detection.dir/login.cpp.obj	78a79588cccd9c04
+834	4205	7657084633932625	CMakeFiles/Industry_Detection.dir/cameralmenu.cpp.obj	4098740cd21f17b6
+19	193	7657093215031758	F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/timestamp	70f8b08222291a0d
+852	3915	7657084630970095	CMakeFiles/Industry_Detection.dir/role.cpp.obj	ab1f2ca13744c90d
+206	3007	7657093243144972	CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj	3298b8b330e772c0
+866	5375	7657084645708112	CMakeFiles/Industry_Detection.dir/parawidget.cpp.obj	af34c9af0f7980f2
+859	4273	7657084634632087	CMakeFiles/Industry_Detection.dir/virtualbox.cpp.obj	b3f1510ef544a57d
+808	5553	7657084647483374	CMakeFiles/Industry_Detection.dir/Industry_Detection_autogen/mocs_compilation.cpp.obj	1d169c199c6f7578
+827	5038	7657084642321716	CMakeFiles/Industry_Detection.dir/cameral.cpp.obj	a347248ddea5603
+840	5051	7657084642441364	CMakeFiles/Industry_Detection.dir/public.cpp.obj	8e0f65240d78e549
+873	5123	7657084643099617	CMakeFiles/Industry_Detection.dir/fileoperator.cpp.obj	453a39356123691a
+199	2436	7657093237431869	CMakeFiles/Industry_Detection.dir/main.cpp.obj	114450dc1685769c
+3007	3598	7657093247952120	bin/Industry_Detection.exe	c4e3eced51a983fa
+86	4085	7657117950591330	build.ninja	61f04765ea003835
+67	455	7657117956407923	Industry_Detection_autogen/timestamp	70f8b08222291a0d
+67	455	7657117956407923	Industry_Detection_autogen/mocs_compilation.cpp	70f8b08222291a0d
+67	455	7657117956407923	F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/timestamp	70f8b08222291a0d
+67	455	7657117956407923	F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/mocs_compilation.cpp	70f8b08222291a0d
+464	7547	7657118027239606	CMakeFiles/Industry_Detection.dir/mainwindow.cpp.obj	3298b8b330e772c0
+7548	8744	7657118035861956	bin/Industry_Detection.exe	c4e3eced51a983fa
