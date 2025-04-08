@@ -43,7 +43,7 @@ set(HEADERS
     virtualbox.h
     parawidget.h
     fileoperator.h
-  //  "include/MZ_ADOConn.h"  # 相对路径，指向项目中的 include 目录
+    "include/MZ_ClientControl.h"  # 相对路径，指向项目中的 include 目录
 )
 
 # 定义 UI 文件
@@ -52,7 +52,8 @@ set(UI_FILES
 )
 
 # 创建可执行文件
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
+  tcp.h tcp.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
@@ -64,7 +65,7 @@ if(Qt6_FOUND)
         Qt6::Gui
         Qt6::Widgets
         Qt6::VirtualKeyboard
-        "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"  # 相对路径，指向项目中的 lib 目录
+        "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"  # 相对路径，指向项目中的 lib 目录
     )
 else()
     target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -72,7 +73,7 @@ else()
         Qt5::Gui
         Qt5::Widgets
         Qt5::VirtualKeyboard
-        "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
+        "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
     )
 endif()
 

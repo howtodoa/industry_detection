@@ -12,19 +12,19 @@ class ParaWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ParaWidget(QWidget *parent = nullptr); // 默认构造函数
-    explicit ParaWidget(RangePara& rangeParams, CameralPara& cameralParams, AlgorithmPara& algoParams, QWidget *parent = nullptr); // 修改为引用
+    explicit ParaWidget(QWidget *parent = nullptr);
+    explicit ParaWidget(RangePara& rangeParams, CameralPara& cameralParams, AlgorithmPara& algoParams, QWidget *parent = nullptr);
     ~ParaWidget();
 
 private:
-    void setupRangeTab(QTabWidget* tabWidget, RangePara& rangeParams);     // 修改为引用
-    void setupCameralTab(QTabWidget* tabWidget, CameralPara& cameralParams); // 修改为引用
-    void setupAlgorithmTab(QTabWidget* tabWidget, AlgorithmPara& algoParams); // 修改为引用
+    void setupRangeTab(QTabWidget* tabWidget, RangePara& rangeParams);
+    void setupCameralTab(QTabWidget* tabWidget, CameralPara& cameralParams);
+    void setupAlgorithmTab(QTabWidget* tabWidget, AlgorithmPara& algoParams);
 
 private slots:
-    void saveCameralChanges(const QString& filePath, const CameralPara& cam);    // 已为引用，无需改动
-    void saveRangeChanges(const QString& filePath, const RangePara& range);      // 已为引用，无需改动
-    void saveAlgorithmChanges(const QString& filePath, const AlgorithmPara& algo); // 已为引用，无需改动
+    void saveCameralChanges(const QString& filePath, const CameralPara& cam);
+    void saveRangeChanges(const QString& filePath, const RangePara& range);
+    void saveAlgorithmChanges(const QString& filePath, const AlgorithmPara& algo);
     void closeWindow(); // 关闭窗口
 
 signals:

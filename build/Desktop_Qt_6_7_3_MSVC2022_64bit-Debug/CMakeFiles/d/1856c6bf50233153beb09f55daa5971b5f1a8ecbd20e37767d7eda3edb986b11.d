@@ -44,7 +44,7 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.cpp \
   F:/Industry_Detection/fileoperator.h \
-  F:/Industry_Detection/include/MZ_ADOConn.h \
+  F:/Industry_Detection/include/MZ_ClientControl.h \
   F:/Industry_Detection/login.cpp \
   F:/Industry_Detection/login.h \
   F:/Industry_Detection/main.cpp \
@@ -56,6 +56,8 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/public.h \
   F:/Industry_Detection/role.cpp \
   F:/Industry_Detection/role.h \
+  F:/Industry_Detection/tcp.cpp \
+  F:/Industry_Detection/tcp.h \
   F:/Industry_Detection/virtualbox.cpp \
   F:/Industry_Detection/virtualbox.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug \

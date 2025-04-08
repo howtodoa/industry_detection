@@ -373,7 +373,6 @@ F:/Industry_Detection/cameralmenu.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qwidget.h
-F:/Industry_Detection/fileoperator.h
 F:/Industry_Detection/parawidget.h
  mmc:Q_OBJECT
  mdp:F:/Industry_Detection/parawidget.h
@@ -592,7 +591,7 @@ F:/Industry_Detection/parawidget.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qwidget.h
-F:/Industry_Detection/include/MZ_ADOConn.h
+F:/Industry_Detection/fileoperator.h
 F:/Industry_Detection/cameralmenu.cpp
 F:/Industry_Detection/mainwindow.h
  mmc:Q_OBJECT
@@ -761,6 +760,7 @@ F:/Industry_Detection/mainwindow.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qwidget.h
+F:/Industry_Detection/include/MZ_ADOConn.h
 F:/Industry_Detection/login.h
  mmc:Q_OBJECT
  mdp:F:/Industry_Detection/login.h
@@ -949,6 +949,7 @@ F:/Industry_Detection/login.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qwidget.h
 F:/Industry_Detection/public.h
+F:/Industry_Detection/tcp.h
 F:/Industry_Detection/role.h
  mmc:Q_OBJECT
  mdp:F:/Industry_Detection/role.h
@@ -1219,5 +1220,7 @@ F:/Industry_Detection/mainwindow.cpp
  uic:ui_mainwindow.h
 F:/Industry_Detection/parawidget.cpp
 F:/Industry_Detection/public.cpp
+F:/Industry_Detection/tcp.cpp
 F:/Industry_Detection/role.cpp
 F:/Industry_Detection/virtualbox.cpp
+F:/Industry_Detection/include/MZ_ClientControl.h

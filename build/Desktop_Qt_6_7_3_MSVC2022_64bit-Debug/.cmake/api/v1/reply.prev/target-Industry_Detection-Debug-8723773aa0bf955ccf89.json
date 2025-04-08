@@ -596,11 +596,6 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 2,
-				"fragment" : "F:\\Industry_Detection\\lib\\MZ_ADOConnect.lib",
-				"role" : "libraries"
-			},
-			{
 				"backtrace" : 15,
 				"fragment" : "F:\\QT\\6.7.3\\msvc2022_64\\lib\\Qt6Quickd.lib",
 				"role" : "libraries"
@@ -731,29 +726,28 @@
 				17,
 				18,
 				19,
-				20,
-				22
+				21
 			]
 		},
 		{
 			"name" : "Forms",
 			"sourceIndexes" : 
 			[
-				21
+				20
 			]
 		},
 		{
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				23
+				22
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				24
+				23
 			]
 		}
 	],
@@ -869,11 +863,6 @@
 		{
 			"backtrace" : 1,
 			"path" : "fileoperator.h",
-			"sourceGroupIndex" : 1
-		},
-		{
-			"backtrace" : 1,
-			"path" : "include/MZ_ADOConn.h",
 			"sourceGroupIndex" : 1
 		},
 		{
