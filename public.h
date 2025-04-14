@@ -1,24 +1,28 @@
 #ifndef PUBLIC_H
 #define PUBLIC_H
 
-#include "QList"
-#include "QDebug"
-#include "QLabel"
-#include "QFont"
-#include "QGridLayout"
-#include "QPushButton"
-#include "QScreen"
-#include "QMenu"
-#include "QMenuBar"
-#include "QAction"
-#include "QLabel"
-#include "QStatusBar"
-#include "QTimer"
-#include "QDir"
-#include "QFileDialog"
-#include "QDesktopServices"
-#include "QString"
-#include "QVector"
+#include <QList>
+#include <QDebug>
+#include <QLabel>
+#include <QFont>
+#include <QGridLayout>
+#include <QPushButton>
+#include <QScreen>
+#include <QMenu>
+#include <QMenuBar>
+#include <QAction>
+#include <QStatusBar>
+#include <QTimer>
+#include <QDir>
+#include <QFileDialog>
+#include <QDesktopServices>
+#include <QString>
+#include <QLineEdit>
+#include <QVector>
+#include <QVBoxLayout>
+#include <QMessageBox>
+#include <QHBoxLayout>
+
 
 struct RangePara {
 public:
@@ -148,7 +152,9 @@ public:
 
 struct SystemPara
 {
-
+public:
+    static QString data_dir;
+    static QString log_dir;
 };
 
 #endif // PUBLIC_H

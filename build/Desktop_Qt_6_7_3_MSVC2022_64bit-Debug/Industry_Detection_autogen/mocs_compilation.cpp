@@ -5,4 +5,6 @@
 #include "EWIEGA46WW/moc_mainwindow.cpp"
 #include "EWIEGA46WW/moc_parawidget.cpp"
 #include "EWIEGA46WW/moc_role.cpp"
+#include "EWIEGA46WW/moc_syspara.cpp"
+#include "EWIEGA46WW/moc_tcp.cpp"
 #include "EWIEGA46WW/moc_virtualbox.cpp"

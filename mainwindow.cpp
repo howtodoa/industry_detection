@@ -5,6 +5,7 @@
 #include "login.h"
 #include "public.h"
 #include "parawidget.h"
+#include "syspara.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -67,7 +68,6 @@ void MainWindow::CreateMenu()
     QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
     QMenu *menuLight = menuTools->addMenu("光源与IO");
     QMenu *menuSelfStart = menuTools->addMenu("开机自启动");
-    QMenu *menuSystemPara = menuTools->addMenu("系统参数");
     QMenu *menuSModeCancel = menuTools->addMenu("SModeCancel");
     QMenu *menuSModeAutostart = menuTools->addMenu("SMode_Autostart");
     QMenu *menuForceMode = menuTools->addMenu("ForceMode");
@@ -87,7 +87,7 @@ void MainWindow::CreateMenu()
     QAction *loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
     QAction *LogAction = menuRecord->addAction("日志");
     QAction *DataAction = menuRecord->addAction("数据");
-
+    QAction *SystemParaAction = menuTools->addAction("系统参数");
 
     // 获取或创建状态栏
     QStatusBar *statusBar = this->statusBar();
@@ -146,7 +146,7 @@ void MainWindow::CreateMenu()
     });
 
     connect(LogAction, &QAction::triggered, this, [this, LogAction]() {
-                QString logFolderPath = "F:/Industry_Detection/log";
+                QString logFolderPath = SystemPara::log_dir;
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
@@ -173,17 +173,17 @@ void MainWindow::CreateMenu()
     });
 
     connect(DataAction, &QAction::triggered, this, [this, DataAction]() {
-                QString logFolderPath = "F:/Industry_Detection/data";
+                QString logFolderPath = SystemPara::data_dir;
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
-                    qDebug() << "错误: log 文件夹不存在于路径:" << logFolderPath;
+                    qDebug() << "错误: data 文件夹不存在于路径:" << logFolderPath;
                     return;
                 }
 
                 QString selectedFile = QFileDialog::getOpenFileName(
                     this,
-                    "选择日志文件",
+                    "选择数据文件",
                     logFolderPath,
                     "Text Files (*.txt)"
                 );
@@ -197,6 +197,17 @@ void MainWindow::CreateMenu()
                 } else {
                     qDebug() << "用户取消了文件选择";
                 }
+    });
+
+    connect(SystemParaAction, &QAction::triggered, this, [this]() {
+        SysPara *syspara = new SysPara(this);
+        QScreen *screen = QApplication::primaryScreen();
+        QRect screenGeometry = screen->geometry();
+        int x = (screenGeometry.width() - syspara->width()) / 2;
+        int y = (screenGeometry.height() - syspara->height()) / 2;
+        syspara->move(x, y);
+        syspara->show();
+
     });
 
 }
@@ -215,7 +226,7 @@ void MainWindow::CreateImageGrid()
     gridLayout->setSpacing(0); // 移除控件间距
 
     // 创建 8 个框
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 6; ++i) {
         if (i < 7) {
             // 前 7 个框：调用创建函数，传入索引和固定文字
             QWidget *cameraLabel = CreateCameraLabel(i, CameralName(i));

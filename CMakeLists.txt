@@ -53,7 +53,8 @@ set(UI_FILES
 
 # 创建可执行文件
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
-  tcp.h tcp.cpp)
+  tcp.h tcp.cpp
+  syspara.h syspara.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")

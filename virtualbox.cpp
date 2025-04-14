@@ -67,6 +67,13 @@ void VirtualBox::createKeyboard() {
         mainLayout->addWidget(button, row, col);
         connect(button, &QPushButton::clicked, this, [this, i]() { onKeyClicked(i); });
     }
+    //删除键
+    QPushButton *backspaceButton = new QPushButton("⌫");
+    backspaceButton->setFixedSize(50, 50);
+    mainLayout->addWidget(backspaceButton, row, col);
+    connect(backspaceButton, &QPushButton::clicked, this, [this]() {
+        onKeyClicked(-1);
+    });
 }
 
 void VirtualBox::onKeyClicked(int keyId) {
@@ -76,12 +83,15 @@ void VirtualBox::onKeyClicked(int keyId) {
         "A", "S", "D", "F", "G", "H", "J", "K", "L",
         "Z", "X", "C", "V", "B", "N", "M"
     };
-    qDebug()<<"aaa";
-    if (keyId >= 0 && keyId < 36) {
+    if (keyId == -1) {  // 删除键
+        qDebug() << "删除键被按下";
+        emit keyPressed("backspace");
+    }
+    else if (keyId >= 0 && keyId < 36) {
         qDebug() << "按键输入：" << keys[keyId].toLower();
-
-        emit keyPressed(keys[keyId].toLower());  // 统一转换为小写
-    } else {
+        emit keyPressed(keys[keyId].toLower());
+    }
+    else {
         qDebug() << "无效的按键ID：" << keyId;
     }
 }

@@ -170,8 +170,15 @@ void Login::showVirtualKeyboard()
 void Login::handleKeyPress(const QString &key)
 {
     qDebug() << "handleKeyPress called with key:" << key;
-    passwordEdit->setText(passwordEdit->text() + key);
 
+    if (key == "backspace") {
+        QString currentText = passwordEdit->text();
+        if (!currentText.isEmpty()) {
+            passwordEdit->setText(currentText.chopped(1));  // 删除最后一个字符
+        }
+    } else {
+        passwordEdit->setText(passwordEdit->text() + key);  // 追加普通字符
+    }
 }
 
 QString Login::GetPassword() const {

@@ -959,6 +959,12 @@
 			null
 		],
 		[ "F:/Industry_Detection/role.h", "MU", "EWIEGA46WW/moc_role.cpp", null ],
+		[
+			"F:/Industry_Detection/syspara.h",
+			"MU",
+			"EWIEGA46WW/moc_syspara.cpp",
+			null
+		],
 		[ "F:/Industry_Detection/tcp.h", "MU", "EWIEGA46WW/moc_tcp.cpp", null ],
 		[
 			"F:/Industry_Detection/virtualbox.h",
@@ -1048,6 +1054,7 @@
 		[ "F:/Industry_Detection/parawidget.cpp", "MU", null ],
 		[ "F:/Industry_Detection/public.cpp", "MU", null ],
 		[ "F:/Industry_Detection/role.cpp", "MU", null ],
+		[ "F:/Industry_Detection/syspara.cpp", "MU", null ],
 		[ "F:/Industry_Detection/tcp.cpp", "MU", null ],
 		[ "F:/Industry_Detection/virtualbox.cpp", "MU", null ]
 	],

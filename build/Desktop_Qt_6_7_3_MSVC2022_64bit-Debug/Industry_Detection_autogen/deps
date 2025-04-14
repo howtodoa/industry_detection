@@ -45,6 +45,7 @@ Industry_Detection_autogen/timestamp: \
 	F:/Industry_Detection/fileoperator.cpp \
 	F:/Industry_Detection/fileoperator.h \
 	F:/Industry_Detection/include/MZ_ClientControl.h \
+	F:/Industry_Detection/include/PacketHead.h \
 	F:/Industry_Detection/login.cpp \
 	F:/Industry_Detection/login.h \
 	F:/Industry_Detection/main.cpp \
@@ -56,6 +57,8 @@ Industry_Detection_autogen/timestamp: \
 	F:/Industry_Detection/public.h \
 	F:/Industry_Detection/role.cpp \
 	F:/Industry_Detection/role.h \
+	F:/Industry_Detection/syspara.cpp \
+	F:/Industry_Detection/syspara.h \
 	F:/Industry_Detection/tcp.cpp \
 	F:/Industry_Detection/tcp.h \
 	F:/Industry_Detection/virtualbox.cpp \
@@ -258,14 +261,17 @@ Industry_Detection_autogen/timestamp: \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QDialog \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QFileDialog \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QGridLayout \
+	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QHBoxLayout \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLabel \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLineEdit \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMainWindow \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenu \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenuBar \
+	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMessageBox \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QPushButton \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStatusBar \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QToolButton \
+	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QVBoxLayout \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QWidget \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qabstractbutton.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qabstractitemdelegate.h \
@@ -274,6 +280,7 @@ Industry_Detection_autogen/timestamp: \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qboxlayout.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qcombobox.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialog.h \
+	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialogbuttonbox.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qfiledialog.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qframe.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qgridlayout.h \
@@ -284,6 +291,7 @@ Industry_Detection_autogen/timestamp: \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmainwindow.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenu.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenubar.h \
+	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmessagebox.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qpushbutton.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qrubberband.h \
 	F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \

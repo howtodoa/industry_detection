@@ -169,6 +169,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qkeysequence.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpaintdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpalette.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qpen.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpicture.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixelformat.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixmap.h \
@@ -178,7 +179,10 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qrgba64.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qscreen.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qscreen_platform.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextcursor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextdocument.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextformat.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextoption.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtgui-config.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiexports.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiglobal.h \
@@ -187,22 +191,29 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs_win.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QFileDialog \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QGridLayout \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QHBoxLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLabel \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLineEdit \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenu \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenuBar \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMessageBox \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QPushButton \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStatusBar \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QVBoxLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qabstractbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qboxlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialog.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialogbuttonbox.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qfiledialog.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qframe.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qgridlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlabel.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlayoutitem.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlineedit.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenu.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenubar.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmessagebox.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qpushbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstatusbar.h \

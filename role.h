@@ -12,7 +12,7 @@ public:
 
     // 静态方法
     static void ChangePassword(const QString &str);       // 修改密码
-    static void ChangeRole(const QString &newRole);       // 新增：修改角色接口
+    static void ChangeRole(const QString &newRole);       // 修改角色接口
     static bool IsOperator(const QString &role);          // 检查是否为操作员
     static bool IsMaintenance(const QString &role);       // 检查是否为机修
     static bool IsManufacturer(const QString &role);      // 检查是否为厂商
