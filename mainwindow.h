@@ -19,9 +19,11 @@ public:
     void CreateMenu();
     QWidget* CreateCameraLabel(int i, const QString& fixedTextName);
     void CreateImageGrid();
+    void SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<QWidget*>& cameraLabels, QWidget* window);
     QString CameralName(int &i);
     QWidget* CreateEighthFrame();
     void setLabel(QVBoxLayout *layout, int row, int col);
+    void test();
     Role role;
 private:
     Ui::MainWindow *ui;
@@ -30,7 +32,7 @@ private:
     QMenu *menuTools;   // "工具"菜单
     QMenu *menuUser;    // "用户"菜单
    // QAction *loginAction; // 登录动作
-    QList<QWidget*> cameraLabels;
+    QVector<QWidget*> cameraLabels;
 
 
 private slots:

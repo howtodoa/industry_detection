@@ -54,7 +54,9 @@ set(UI_FILES
 # 创建可执行文件
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   tcp.h tcp.cpp
-  syspara.h syspara.cpp)
+  syspara.h syspara.cpp
+  imagedisplay.h imagedisplay.cpp
+  resources.qrc)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
@@ -77,6 +79,8 @@ else()
         "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
     )
 endif()
+
+set(CMAKE_AUTOMOC ON)
 
 # 设置输出目录（可选）
 set_target_properties(${PROJECT_NAME} PROPERTIES

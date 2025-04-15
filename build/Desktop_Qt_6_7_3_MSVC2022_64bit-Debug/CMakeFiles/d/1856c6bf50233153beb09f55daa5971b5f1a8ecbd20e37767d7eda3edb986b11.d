@@ -44,6 +44,8 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.cpp \
   F:/Industry_Detection/fileoperator.h \
+  F:/Industry_Detection/imagedisplay.cpp \
+  F:/Industry_Detection/imagedisplay.h \
   F:/Industry_Detection/include/MZ_ClientControl.h \
   F:/Industry_Detection/include/PacketHead.h \
   F:/Industry_Detection/login.cpp \
@@ -55,6 +57,7 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/parawidget.h \
   F:/Industry_Detection/public.cpp \
   F:/Industry_Detection/public.h \
+  F:/Industry_Detection/resources.qrc \
   F:/Industry_Detection/role.cpp \
   F:/Industry_Detection/role.h \
   F:/Industry_Detection/syspara.cpp \
@@ -217,6 +220,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QAction \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QDesktopServices \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QPixmap \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \

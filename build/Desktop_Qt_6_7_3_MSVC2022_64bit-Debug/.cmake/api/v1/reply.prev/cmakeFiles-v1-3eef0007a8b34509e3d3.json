@@ -3756,6 +3756,9 @@
 		{
 			"isExternal" : true,
 			"path" : "F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardVersionlessTargets.cmake"
+		},
+		{
+			"path" : "resources.qrc"
 		}
 	],
 	"kind" : "cmakeFiles",

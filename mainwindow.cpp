@@ -6,6 +6,7 @@
 #include "public.h"
 #include "parawidget.h"
 #include "syspara.h"
+#include "imagedisplay.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     CreateMenu();
     CreateImageGrid();
+    test();
 
 }
 
@@ -212,6 +214,55 @@ void MainWindow::CreateMenu()
 
 }
 
+void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<QWidget*>& cameraLabels, QWidget* window) {
+    // 输入验证：i 范围 [0, 7]，gridLayout 和 window 非空
+    if (!gridLayout || !window || i < 0 || i > 7) return;
+
+    // 清空旧布局
+    QLayoutItem* item;
+    while ((item = gridLayout->takeAt(0)) != nullptr) {
+        delete item->widget();
+        delete item;
+    }
+    cameraLabels.clear();
+
+    // 固定 2 行 4 列布局
+    int cols = 4;
+
+    // 添加前 i 个相机框
+    for (int idx = 0; idx < i; ++idx) {
+        QWidget* cameraLabel = CreateCameraLabel(idx, CameralName(idx));
+        cameraLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        cameraLabels.append(cameraLabel);
+        gridLayout->addWidget(cameraLabel, idx / cols, idx % cols);
+    }
+
+
+
+    // 添加第八个固定框
+    QWidget* emptyWidget = CreateEighthFrame();
+    emptyWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    gridLayout->addWidget(emptyWidget, i / cols, i % cols);
+
+    // 根据 i 动态调整窗口大小
+    int frameWidth = 200;  // 每个框的基准宽度（可调整）
+    int frameHeight = 150; // 每个框的基准高度（可调整）
+    int spacing = 10;      // 网格间距
+    int margin = 20;       // 窗口边距
+
+    // 计算使用的行列数
+    int usedSlots = i + 1; // i 个相机框 + 第八个固定框
+    int rows = (usedSlots + 3) / 4; // 向上取整，最大 2 行
+    int usedCols = (usedSlots <= 4) ? usedSlots : 4; // 第一行最多 4 列
+
+    // 计算窗口大小
+    int windowWidth = usedCols * frameWidth + (usedCols - 1) * spacing + 2 * margin;
+    int windowHeight = rows * frameHeight + (rows - 1) * spacing + 2 * margin;
+
+    // 调整窗口大小
+    window->resize(windowWidth, windowHeight);
+
+}
 
 void MainWindow::CreateImageGrid()
 {
@@ -225,21 +276,8 @@ void MainWindow::CreateImageGrid()
     gridLayout->setContentsMargins(0, 0, 0, 0); // 移除边距
     gridLayout->setSpacing(0); // 移除控件间距
 
-    // 创建 8 个框
-    for (int i = 0; i < 6; ++i) {
-        if (i < 7) {
-            // 前 7 个框：调用创建函数，传入索引和固定文字
-            QWidget *cameraLabel = CreateCameraLabel(i, CameralName(i));
-            cameraLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 确保可扩展
-            cameraLabels.append(cameraLabel);
-            gridLayout->addWidget(cameraLabel, i / 4, i % 4); // 2 行 4 列布局
-        } else {
-            // 第 8 个框：创建并初始化空框
-            QWidget *emptyWidget = CreateEighthFrame();
-            emptyWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 确保可扩展
-            gridLayout->addWidget(emptyWidget, i / 4, i % 4);
-        }
-    }
+    //根据i创建相机
+   SetupCameraGridLayout(7, gridLayout, cameraLabels, this);
 
     // 设置行列拉伸因子，确保填满空间
     for (int row = 0; row < 2; ++row) {
@@ -336,6 +374,7 @@ QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
     containerLayout->setContentsMargins(0, 0, 0, 0);
     containerLayout->addWidget(imageLabel, 0, 0);
     containerLayout->addWidget(overlayWidget, 0, 0, Qt::AlignRight | Qt::AlignTop);
+
 
     return container;
 }
@@ -442,7 +481,7 @@ QWidget* MainWindow::CreateEighthFrame()
         }
         mainLayout->addLayout(rowLayout);
     }
-setLabel(mainLayout, 1, 1);
+    setLabel(mainLayout, 1, 1);
     return container;
 }
 
@@ -460,4 +499,13 @@ void MainWindow::setLabel(QVBoxLayout *layout, int row, int col)
             }
         }
     }
+}
+
+void MainWindow::test()
+{
+    static ImageDisplay* display = nullptr;
+    if (!display) {
+        display = new ImageDisplay(cameraLabels[0]); // QWidget*
+    }
+    display->setImage(":/images/resources/images/image.jpg");  // 使用绝对路径或者资源路径
 }

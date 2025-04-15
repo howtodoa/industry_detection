@@ -903,7 +903,8 @@
 		"F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardTargets-debug.cmake",
 		"F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardTargets-relwithdebinfo.cmake",
 		"F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardAdditionalTargetInfo.cmake",
-		"F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardVersionlessTargets.cmake"
+		"F:/QT/6.7.3/msvc2022_64/lib/cmake/Qt6VirtualKeyboard/Qt6VirtualKeyboardVersionlessTargets.cmake",
+		"F:/Industry_Detection/resources.qrc"
 	],
 	"CMAKE_SOURCE_DIR" : "F:/Industry_Detection",
 	"DEP_FILE" : "F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/deps",
@@ -926,6 +927,12 @@
 			"F:/Industry_Detection/fileoperator.h",
 			"MU",
 			"EWIEGA46WW/moc_fileoperator.cpp",
+			null
+		],
+		[
+			"F:/Industry_Detection/imagedisplay.h",
+			"MU",
+			"EWIEGA46WW/moc_imagedisplay.cpp",
 			null
 		],
 		[
@@ -1048,6 +1055,7 @@
 		[ "F:/Industry_Detection/cameral.cpp", "MU", null ],
 		[ "F:/Industry_Detection/cameralmenu.cpp", "MU", null ],
 		[ "F:/Industry_Detection/fileoperator.cpp", "MU", null ],
+		[ "F:/Industry_Detection/imagedisplay.cpp", "MU", null ],
 		[ "F:/Industry_Detection/login.cpp", "MU", null ],
 		[ "F:/Industry_Detection/main.cpp", "MU", null ],
 		[ "F:/Industry_Detection/mainwindow.cpp", "MU", null ],
