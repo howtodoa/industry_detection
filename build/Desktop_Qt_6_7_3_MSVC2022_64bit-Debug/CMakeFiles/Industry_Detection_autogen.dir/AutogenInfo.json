@@ -918,6 +918,12 @@
 			null
 		],
 		[
+			"F:/Industry_Detection/cameralabelwidget.h",
+			"MU",
+			"EWIEGA46WW/moc_cameralabelwidget.cpp",
+			null
+		],
+		[
 			"F:/Industry_Detection/cameralmenu.h",
 			"MU",
 			"EWIEGA46WW/moc_cameralmenu.cpp",
@@ -927,12 +933,6 @@
 			"F:/Industry_Detection/fileoperator.h",
 			"MU",
 			"EWIEGA46WW/moc_fileoperator.cpp",
-			null
-		],
-		[
-			"F:/Industry_Detection/imagedisplay.h",
-			"MU",
-			"EWIEGA46WW/moc_imagedisplay.cpp",
 			null
 		],
 		[
@@ -1053,9 +1053,9 @@
 	"SOURCES" : 
 	[
 		[ "F:/Industry_Detection/cameral.cpp", "MU", null ],
+		[ "F:/Industry_Detection/cameralabelwidget.cpp", "MU", null ],
 		[ "F:/Industry_Detection/cameralmenu.cpp", "MU", null ],
 		[ "F:/Industry_Detection/fileoperator.cpp", "MU", null ],
-		[ "F:/Industry_Detection/imagedisplay.cpp", "MU", null ],
 		[ "F:/Industry_Detection/login.cpp", "MU", null ],
 		[ "F:/Industry_Detection/main.cpp", "MU", null ],
 		[ "F:/Industry_Detection/mainwindow.cpp", "MU", null ],

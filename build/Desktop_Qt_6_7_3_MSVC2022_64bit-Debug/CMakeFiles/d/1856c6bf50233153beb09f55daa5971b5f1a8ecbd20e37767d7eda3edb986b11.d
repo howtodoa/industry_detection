@@ -40,12 +40,12 @@ Industry_Detection_autogen/timestamp: \
   CMakeFiles/3.26.3/CMakeSystem.cmake \
   F:/Industry_Detection/cameral.cpp \
   F:/Industry_Detection/cameral.h \
+  F:/Industry_Detection/cameralabelwidget.cpp \
+  F:/Industry_Detection/cameralabelwidget.h \
   F:/Industry_Detection/cameralmenu.cpp \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.cpp \
   F:/Industry_Detection/fileoperator.h \
-  F:/Industry_Detection/imagedisplay.cpp \
-  F:/Industry_Detection/imagedisplay.h \
   F:/Industry_Detection/include/MZ_ClientControl.h \
   F:/Industry_Detection/include/PacketHead.h \
   F:/Industry_Detection/login.cpp \
@@ -220,7 +220,6 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QAction \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QDesktopServices \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
-  F:/QT/6.7.3/msvc2022_64/include/QtGui/QPixmap \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \
@@ -273,6 +272,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenuBar \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMessageBox \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QPushButton \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStackedLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStatusBar \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QToolButton \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QVBoxLayout \
@@ -300,6 +300,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qrubberband.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qslider.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstackedlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstatusbar.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstyle.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstyleoption.h \

@@ -16,6 +16,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QStackedLayout>
 #include <QString>
 #include <QLineEdit>
 #include <QVector>

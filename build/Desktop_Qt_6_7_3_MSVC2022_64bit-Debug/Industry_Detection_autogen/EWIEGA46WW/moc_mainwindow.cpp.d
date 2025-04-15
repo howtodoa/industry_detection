@@ -1,6 +1,23 @@
 F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/EWIEGA46WW/moc_mainwindow.cpp: F:/Industry_Detection/mainwindow.h \
+  F:/Industry_Detection/Cameral.h \
+  F:/Industry_Detection/cameralabelwidget.h \
+  F:/Industry_Detection/cameralmenu.h \
+  F:/Industry_Detection/fileoperator.h \
+  F:/Industry_Detection/parawidget.h \
+  F:/Industry_Detection/public.h \
   F:/Industry_Detection/role.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QFile \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QList \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QObject \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QRect \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QSize \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QSizeF \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QString \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QTextStream \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QTimer \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QVector \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/q20functional.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/q20memory.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/q20type_traits.h \
@@ -14,11 +31,13 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qatomic.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qatomic_cxx11.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbasicatomic.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qbasictimer.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbindingstorage.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbytearray.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbytearrayalgorithms.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbytearraylist.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qbytearrayview.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qcalendar.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qchar.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qcompare.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qcompare_impl.h \
@@ -30,11 +49,22 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qcontainerinfo.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qcontainertools_impl.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qcontiguouscache.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qcoreapplication.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qcoreapplication_platform.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qcoreevent.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qdarwinhelpers.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qdatastream.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qdatetime.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qdeadlinetimer.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qdebug.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qdir.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qelapsedtimer.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qendian.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qeventloop.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qexceptionhandling.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qfile.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qfiledevice.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qfileinfo.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qflags.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qfloat16.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qforeach.h \
@@ -52,6 +82,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qlatin1stringview.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qline.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qlist.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qlocale.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qlogging.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmalloc.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmap.h \
@@ -61,6 +92,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmetatype.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qminmax.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnamespace.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qnativeinterface.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnumeric.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qobject.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qobject_impl.h \
@@ -103,6 +135,8 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtdeprecationmarkers.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtenvironmentvariables.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtextstream.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qtimer.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qtimezone.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtmetamacros.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtnoop.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtpreprocessorsupport.h \
@@ -117,22 +151,33 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qutf8stringview.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qvariant.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qvarlengtharray.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qvector.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qversiontagging.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qxptype_traits.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qyieldcpu.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QAction \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QDesktopServices \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbitmap.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbrush.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcolor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcursor.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qdesktopservices.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfont.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontinfo.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontmetrics.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qguiapplication.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qguiapplication_platform.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qicon.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qimage.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qinputmethod.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qkeysequence.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpaintdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpalette.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qpen.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpicture.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixelformat.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixmap.h \
@@ -140,25 +185,54 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qregion.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qrgb.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qrgba64.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qscreen.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qscreen_platform.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextcursor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextdocument.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextformat.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qtextoption.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtgui-config.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiexports.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiglobal.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtransform.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs_win.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QFileDialog \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QGridLayout \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QHBoxLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLabel \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QLineEdit \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMainWindow \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenu \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenuBar \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMessageBox \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QPushButton \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStackedLayout \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStatusBar \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QToolButton \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QVBoxLayout \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QWidget \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qabstractbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qboxlayout.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialog.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qdialogbuttonbox.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qfiledialog.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qframe.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qgridlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlabel.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlayoutitem.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qlineedit.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmainwindow.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenu.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmenubar.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmessagebox.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qpushbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstackedlayout.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstatusbar.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtabwidget.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtoolbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgets-config.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsglobal.h \

@@ -55,8 +55,9 @@ set(UI_FILES
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   tcp.h tcp.cpp
   syspara.h syspara.cpp
-  imagedisplay.h imagedisplay.cpp
-  resources.qrc)
+
+  resources.qrc
+  cameralabelwidget.h cameralabelwidget.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")

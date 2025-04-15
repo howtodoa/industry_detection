@@ -6,7 +6,8 @@
 #include "public.h"
 #include "parawidget.h"
 #include "syspara.h"
-#include "imagedisplay.h"
+
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -214,14 +215,17 @@ void MainWindow::CreateMenu()
 
 }
 
-void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<QWidget*>& cameraLabels, QWidget* window) {
+void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<CameraLabelWidget*>& cameraLabels, QWidget* window)
+{
     // 输入验证：i 范围 [0, 7]，gridLayout 和 window 非空
-    if (!gridLayout || !window || i < 0 || i > 7) return;
+    if (!gridLayout || !window || i < 0 || i > 7)
+        return;
 
     // 清空旧布局
     QLayoutItem* item;
     while ((item = gridLayout->takeAt(0)) != nullptr) {
-        delete item->widget();
+        if (item->widget())
+            delete item->widget();
         delete item;
     }
     cameraLabels.clear();
@@ -229,15 +233,14 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<Q
     // 固定 2 行 4 列布局
     int cols = 4;
 
-    // 添加前 i 个相机框
+    // 添加前 i 个相机框，使用新设计的 CameraLabelWidget
     for (int idx = 0; idx < i; ++idx) {
-        QWidget* cameraLabel = CreateCameraLabel(idx, CameralName(idx));
+        // CameralName(idx) 为生成固定文本的函数
+        CameraLabelWidget* cameraLabel = new CameraLabelWidget(idx, CameralName(idx), window);
         cameraLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         cameraLabels.append(cameraLabel);
         gridLayout->addWidget(cameraLabel, idx / cols, idx % cols);
     }
-
-
 
     // 添加第八个固定框
     QWidget* emptyWidget = CreateEighthFrame();
@@ -252,7 +255,7 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<Q
 
     // 计算使用的行列数
     int usedSlots = i + 1; // i 个相机框 + 第八个固定框
-    int rows = (usedSlots + 3) / 4; // 向上取整，最大 2 行
+    int rows = (usedSlots + 3) / 4; // 向上取整
     int usedCols = (usedSlots <= 4) ? usedSlots : 4; // 第一行最多 4 列
 
     // 计算窗口大小
@@ -261,122 +264,31 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<Q
 
     // 调整窗口大小
     window->resize(windowWidth, windowHeight);
-
 }
 
 void MainWindow::CreateImageGrid()
 {
-    // 创建中央控件
+    // 创建中央控件，并设置可扩展属性
     QWidget *centralWidget = new QWidget(this);
-    centralWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding); // 确保中央控件可扩展
+    centralWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setCentralWidget(centralWidget);
 
-    // 创建网格布局
+    // 创建网格布局，设置无边距和无间距
     QGridLayout *gridLayout = new QGridLayout(centralWidget);
-    gridLayout->setContentsMargins(0, 0, 0, 0); // 移除边距
-    gridLayout->setSpacing(0); // 移除控件间距
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setSpacing(0);
 
-    //根据i创建相机
-   SetupCameraGridLayout(7, gridLayout, cameraLabels, this);
+    // 根据相机数量创建相机标签（注意：cameraLabels 类型为 QVector<CameraLabelWidget*>）
+    // 使用 centralWidget 作为窗口参数，便于在中央控件中查找子控件
+    SetupCameraGridLayout(7, gridLayout, cameraLabels, centralWidget);
 
-    // 设置行列拉伸因子，确保填满空间
+    // 设置行列拉伸因子，确保网格中的控件均分空间
     for (int row = 0; row < 2; ++row) {
-        gridLayout->setRowStretch(row, 1); // 每行均分高度
+        gridLayout->setRowStretch(row, 1);
     }
     for (int col = 0; col < 4; ++col) {
-        gridLayout->setColumnStretch(col, 1); // 每列均分宽度
+        gridLayout->setColumnStretch(col, 1);
     }
-}
-
-
-
-QWidget* MainWindow::CreateCameraLabel(int i, const QString& fixedTextName)
-{
-    // 创建主容器并设置样式
-    QWidget *container = new QWidget(this);
-    container->setStyleSheet("background-color: lightgray; border: 1px solid gray;");
-
-    // 创建显示图像的标签
-    QLabel *imageLabel = new QLabel(container);
-    imageLabel->setStyleSheet("background-color: lightgray;");
-    imageLabel->setAlignment(Qt::AlignCenter);
-
-    // 创建固定文本标签
-    QLabel *fixedText = new QLabel(fixedTextName, container);
-    fixedText->setStyleSheet("background-color: transparent; color: black; font-size: 20px;");
-    fixedText->setAttribute(Qt::WA_TransparentForMouseEvents);
-    fixedText->setAlignment(Qt::AlignCenter);
-
-    // 创建 CameraMenu 并设置菜单选项
-    CameraMenu *cameraMenu = new CameraMenu(container);
-
-    // 初始化 Cameral 对象
-    Cameral *cameral = new Cameral(container); // 以 container 作为父对象
-    // 设置默认值（已在 Cameral 构造函数中初始化为 0，这里可根据需要调整）
-    cameral->rangeParams = {10.0f, 5.0f, 12.0f, 20.0f, 5.0f, 3.0f, 15.0f, 8.0f, 18.0f, 25.0f, 10.0f, 8.0f};
-    cameral->cameralParams = {"Camera" + QString::number(i + 1), "SN" + QString::number(i + 1),
-                              "192.168.1." + QString::number(i + 1), 1, i + 1, 50, 100, 200};
-    cameral->algoParams = {"Algorithm" + QString::number(i + 1), {"参数一", "参数二"}, {"100", "200"}};
-
-    // 添加菜单选项
-    cameraMenu->addMenuOption("运行", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 运行 被点击"; });
-    cameraMenu->addMenuOption("停止", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 停止 被点击"; });
-    cameraMenu->addMenuOption("OK", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 OK 被点击"; });
-    cameraMenu->addMenuOption("NG", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 NG 被点击"; });
-    cameraMenu->addMenuOption("错误", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 错误 被点击"; });
-    cameraMenu->addMenuOption("参数", [cameral]() {
-        // 将 Cameral 的三个参数传入 ParaWidget
-        ParaWidget* parawidget = new ParaWidget(cameral->rangeParams,
-                                                cameral->cameralParams,
-                                                cameral->algoParams);
-        parawidget->show(); // 显示窗口
-    });
-    cameraMenu->addMenuOption("相机", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 相机 被点击"; });
-    cameraMenu->addMenuOption("全屏", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 全屏 被点击"; });
-    cameraMenu->addMenuOption("录像", [i]() { qDebug() << "摄像头" << i + 1 << "的选项 录像 被点击"; });
-
-    // 设置菜单按钮（箭头）样式：无边框，与文本高度一致
-    cameraMenu->getMenuButton()->setStyleSheet(
-        "background-color: transparent; "
-        "font-size: 20px; "  // 与 fixedText 字体大小一致
-        "padding: 0px; "     // 移除内边距以对齐高度
-        "border: none;"
-        );
-    cameraMenu->getMenuButton()->setFixedHeight(fixedText->sizeHint().height()); // 固定高度与文本一致
-    cameraMenu->getMenuButton()->setMinimumWidth(40); // 设置最小宽度，避免太窄
-
-    // 修改菜单项的背景颜色
-    cameraMenu->setStyleSheet(
-        "QMenu { background-color: white; border: 1px solid black; }"
-        "QMenu::item { background-color: lightgray; color: black; }"
-        "QMenu::item:hover { background-color: lightblue; }"
-        );
-
-    // 创建水平布局，保持箭头和固定文本并排
-    QHBoxLayout *textButtonLayout = new QHBoxLayout();
-    textButtonLayout->addWidget(fixedText);
-    textButtonLayout->addWidget(cameraMenu->getMenuButton());
-    textButtonLayout->setSpacing(2);
-
-    // 创建覆盖层布局，将水平布局整体上移
-    QVBoxLayout *overlayLayout = new QVBoxLayout();
-    overlayLayout->addLayout(textButtonLayout);
-    overlayLayout->addStretch();
-    overlayLayout->setContentsMargins(0, 0, 2, 2);
-
-    // 设置 overlayWidget 无边框
-    QWidget *overlayWidget = new QWidget(container);
-    overlayWidget->setStyleSheet("background-color: transparent; border: none;");
-    overlayWidget->setLayout(overlayLayout);
-
-    // 创建容器布局
-    QGridLayout *containerLayout = new QGridLayout(container);
-    containerLayout->setContentsMargins(0, 0, 0, 0);
-    containerLayout->addWidget(imageLabel, 0, 0);
-    containerLayout->addWidget(overlayWidget, 0, 0, Qt::AlignRight | Qt::AlignTop);
-
-
-    return container;
 }
 
 
@@ -503,9 +415,5 @@ void MainWindow::setLabel(QVBoxLayout *layout, int row, int col)
 
 void MainWindow::test()
 {
-    static ImageDisplay* display = nullptr;
-    if (!display) {
-        display = new ImageDisplay(cameraLabels[0]); // QWidget*
-    }
-    display->setImage(":/images/resources/images/image.jpg");  // 使用绝对路径或者资源路径
+    cameraLabels[0]->displayimg();
 }

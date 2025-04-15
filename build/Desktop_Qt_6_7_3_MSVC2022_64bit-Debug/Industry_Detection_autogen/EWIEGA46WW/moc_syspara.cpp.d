@@ -198,6 +198,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMenuBar \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QMessageBox \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QPushButton \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStackedLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QStatusBar \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QVBoxLayout \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QWidget \
@@ -217,6 +218,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qmessagebox.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qpushbutton.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qsizepolicy.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstackedlayout.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qstatusbar.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgets-config.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qtwidgetsexports.h \

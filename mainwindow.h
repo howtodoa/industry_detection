@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QGridLayout>
 #include <QMainWindow>
+#include "cameralabelwidget.h"
 #include "role.h"
 
 namespace Ui {
@@ -17,9 +18,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void CreateMenu();
-    QWidget* CreateCameraLabel(int i, const QString& fixedTextName);
     void CreateImageGrid();
-    void SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<QWidget*>& cameraLabels, QWidget* window);
+    void SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<CameraLabelWidget*>& cameraLabels, QWidget* window);
     QString CameralName(int &i);
     QWidget* CreateEighthFrame();
     void setLabel(QVBoxLayout *layout, int row, int col);
@@ -32,7 +32,7 @@ private:
     QMenu *menuTools;   // "工具"菜单
     QMenu *menuUser;    // "用户"菜单
    // QAction *loginAction; // 登录动作
-    QVector<QWidget*> cameraLabels;
+    QVector<CameraLabelWidget *> cameraLabels;
 
 
 private slots:
