@@ -3,6 +3,8 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/Industry_Detection/cameralabelwidget.h \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.h \
+  F:/Industry_Detection/include/MZ_ClientControl.h \
+  F:/Industry_Detection/include/PacketHead.h \
   F:/Industry_Detection/parawidget.h \
   F:/Industry_Detection/public.h \
   F:/Industry_Detection/role.h \

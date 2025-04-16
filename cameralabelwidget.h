@@ -1,6 +1,6 @@
 #ifndef CAMERALABELWIDGET_H
 #define CAMERALABELWIDGET_H
-
+#include "MZ_ClientControl.h"
 #include <QWidget>
 #include <QLabel>
 #include <QGridLayout>
@@ -17,8 +17,10 @@ public:
     // 构造函数：index 用于生成唯一的名称、显示文字，parent 为父控件
     explicit CameraLabelWidget(int index, const QString &fixedTextName, QWidget *parent = nullptr);
 
-    void displayimg();
-
+    void displayimg(QPixmap &pixmap);
+    void displayimg(HImage &himage);
+    HImage convertQPixmapToHImage(const QPixmap &pixmap);
+    QPixmap convertHImageToPixmap(const HImage& hImage);
     // 获取内部显示图像的 QLabel，便于外部更新图片
     QLabel* getImageLabel() const { return imageLabel; }
 

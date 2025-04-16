@@ -6,8 +6,7 @@
 #include "public.h"
 #include "parawidget.h"
 #include "syspara.h"
-
-
+#include "MZ_ClientControl.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -415,5 +414,25 @@ void MainWindow::setLabel(QVBoxLayout *layout, int row, int col)
 
 void MainWindow::test()
 {
-    cameraLabels[0]->displayimg();
+    QPixmap pixmap(":/images/resources/images/image.jpg");
+    cameraLabels[0]->displayimg(pixmap);
+
+    HImage hImage;
+    hImage.imageHead.width = 100;
+    hImage.imageHead.height = 100;
+    hImage.imageHead.channels = 4; // RGBA
+    int dataLength = hImage.imageHead.getdatelength();
+    hImage.data = new char[dataLength];
+    for (int y = 0; y < hImage.imageHead.height; ++y) {
+        for (int x = 0; x < hImage.imageHead.width; ++x) {
+            int index = (y * hImage.imageHead.width + x) * 4;
+            bool isWhite = ((x / 10) % 2) == ((y / 10) % 2);
+            hImage.data[index] = isWhite ? 255 : 0;     // R
+            hImage.data[index + 1] = isWhite ? 255 : 0; // G
+            hImage.data[index + 2] = isWhite ? 255 : 0; // B
+            hImage.data[index + 3] = 255;               // A (opaque)
+        }
+    }
+
+    cameraLabels[1]->displayimg(hImage);
 }

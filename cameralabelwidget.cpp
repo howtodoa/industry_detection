@@ -103,16 +103,74 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
     containerLayout->setContentsMargins(0, 0, 0, 0);
     containerLayout->addWidget(imageLabel, 0, 0);
     containerLayout->addWidget(overlayWidget, 0, 0, Qt::AlignRight | Qt::AlignTop);
-   // imageLabel->setPixmap(QPixmap(":/images/resources/images/image.jpg"));
+    // imageLabel->setPixmap(QPixmap(":/images/resources/images/image.jpg"));
 
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     setLayout(containerLayout);
 }
 
-
-void CameraLabelWidget::displayimg()
+void CameraLabelWidget::displayimg(HImage &himage)
 {
-    imageLabel->setPixmap(QPixmap(":/images/resources/images/image.jpg"));
+    QPixmap pixmap = convertHImageToPixmap(himage);
 
+    imageLabel->setPixmap(pixmap);
+}
+
+void CameraLabelWidget::displayimg(QPixmap &pixmap)
+{
+
+    imageLabel->setPixmap(pixmap);
+
+}
+
+QPixmap CameraLabelWidget::convertHImageToPixmap(const HImage& hImage) {
+    const ImageHeader& header = hImage.imageHead;
+    if (!hImage.data || header.width <= 0 || header.height <= 0 || header.channels <= 0) {
+        return QPixmap();
+    }
+    QImage::Format format;
+    switch (header.channels) {
+    case 1: format = QImage::Format_Grayscale8; break;
+    case 3: format = QImage::Format_RGB888; break;
+    case 4: format = QImage::Format_RGBA8888; break;
+    default: return QPixmap();
+    }
+    QImage qImage(
+        reinterpret_cast<const uchar*>(hImage.data),
+        header.width,
+        header.height,
+        header.width * header.channels,
+        format
+        );
+    return QPixmap::fromImage(qImage);
+}
+
+HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap &pixmap) {
+    HImage hImage;
+    if (pixmap.isNull()) {
+        return hImage;
+    }
+    QImage qImage = pixmap.toImage();
+    QImage::Format format = qImage.format();
+    int channels = 0;
+    if (format == QImage::Format_Grayscale8) {
+        channels = 1;
+    } else if (format == QImage::Format_RGB888) {
+        channels = 3;
+    } else if (format == QImage::Format_RGBA8888 || format == QImage::Format_ARGB32) {
+        channels = 4;
+    } else {
+        qImage = qImage.convertToFormat(QImage::Format_RGBA8888);
+        channels = 4;
+    }
+    hImage.imageHead.width = qImage.width();
+    hImage.imageHead.height = qImage.height();
+    hImage.imageHead.channels = channels;
+    int dataLength = hImage.imageHead.getdatelength();
+    if (dataLength > 0) {
+        hImage.data = new char[dataLength];
+        memcpy(hImage.data, qImage.constBits(), dataLength);
+    }
+    return hImage;
 }

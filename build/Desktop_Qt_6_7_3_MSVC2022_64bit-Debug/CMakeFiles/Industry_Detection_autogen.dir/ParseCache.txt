@@ -1079,6 +1079,8 @@ F:/Industry_Detection/mainwindow.h
  mdp:F:/Industry_Detection/cameralabelwidget.h
  mdp:F:/Industry_Detection/cameralmenu.h
  mdp:F:/Industry_Detection/fileoperator.h
+ mdp:F:/Industry_Detection/include/MZ_ClientControl.h
+ mdp:F:/Industry_Detection/include/PacketHead.h
  mdp:F:/Industry_Detection/parawidget.h
  mdp:F:/Industry_Detection/public.h
  mdp:F:/Industry_Detection/role.h
@@ -1824,6 +1826,8 @@ F:/Industry_Detection/cameralabelwidget.h
  mdp:F:/Industry_Detection/cameral.h
  mdp:F:/Industry_Detection/cameralmenu.h
  mdp:F:/Industry_Detection/fileoperator.h
+ mdp:F:/Industry_Detection/include/MZ_ClientControl.h
+ mdp:F:/Industry_Detection/include/PacketHead.h
  mdp:F:/Industry_Detection/parawidget.h
  mdp:F:/Industry_Detection/public.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug
