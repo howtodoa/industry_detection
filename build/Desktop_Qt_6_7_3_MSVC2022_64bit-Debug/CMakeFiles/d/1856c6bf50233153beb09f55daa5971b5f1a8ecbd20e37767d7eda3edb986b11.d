@@ -66,6 +66,8 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/tcp.h \
   F:/Industry_Detection/virtualbox.cpp \
   F:/Industry_Detection/virtualbox.h \
+  F:/Industry_Detection/zoomablelabel.cpp \
+  F:/Industry_Detection/zoomablelabel.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QFile \
@@ -222,12 +224,15 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QWheelEvent \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbitmap.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbrush.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcolor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcursor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qdesktopservices.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qevent.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qeventpoint.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfont.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontinfo.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontmetrics.h \
@@ -235,6 +240,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qguiapplication_platform.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qicon.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qimage.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qinputdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qinputmethod.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qkeysequence.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpaintdevice.h \
@@ -243,6 +249,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpicture.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixelformat.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixmap.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qpointingdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpolygon.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qregion.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qrgb.h \
@@ -258,6 +265,8 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiglobal.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtransform.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qvalidator.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qvector2d.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qvectornd.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs_win.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QComboBox \

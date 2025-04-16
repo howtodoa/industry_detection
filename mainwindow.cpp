@@ -434,5 +434,5 @@ void MainWindow::test()
         }
     }
 
-    cameraLabels[1]->displayimg(hImage);
+    cameraLabels[1]->displayimg(pixmap);
 }

@@ -978,6 +978,12 @@
 			"MU",
 			"EWIEGA46WW/moc_virtualbox.cpp",
 			null
+		],
+		[
+			"F:/Industry_Detection/zoomablelabel.h",
+			"MU",
+			"EWIEGA46WW/moc_zoomablelabel.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
@@ -1064,7 +1070,8 @@
 		[ "F:/Industry_Detection/role.cpp", "MU", null ],
 		[ "F:/Industry_Detection/syspara.cpp", "MU", null ],
 		[ "F:/Industry_Detection/tcp.cpp", "MU", null ],
-		[ "F:/Industry_Detection/virtualbox.cpp", "MU", null ]
+		[ "F:/Industry_Detection/virtualbox.cpp", "MU", null ],
+		[ "F:/Industry_Detection/zoomablelabel.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],

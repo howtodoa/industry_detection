@@ -57,7 +57,9 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   syspara.h syspara.cpp
 
   resources.qrc
-  cameralabelwidget.h cameralabelwidget.cpp)
+  cameralabelwidget.h cameralabelwidget.cpp
+  zoomablelabel.h zoomablelabel.cpp
+  fullscreenwindow.h fullscreenwindow.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")

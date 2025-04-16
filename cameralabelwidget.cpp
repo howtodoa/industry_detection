@@ -1,5 +1,6 @@
 #include "CameraLabelWidget.h"
 #include <QDebug>
+#include "ZoomableLabel.h"  // 包含自定义的 ZoomableLabel 头文件
 
 CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QWidget *parent)
     : QWidget(parent)
@@ -7,12 +8,12 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
     // 设置主容器的样式
     setStyleSheet("background-color: lightgray; border: 1px solid gray;");
 
-    // 创建显示图像的标签，并设置 objectName 以便通过 findChild 查找
-    imageLabel = new QLabel(this);
+    // 创建显示图像的标签，使用 ZoomableLabel 替换原有的 QLabel
+    imageLabel = new ZoomableLabel(this);
     imageLabel->setObjectName("cameraImageLabel");
     imageLabel->setStyleSheet("background-color: lightgray;");
     imageLabel->setAlignment(Qt::AlignCenter);
-    imageLabel->setScaledContents(true);
+    // 不再调用 setScaledContents，缩放逻辑由 ZoomableLabel 内部处理
 
     // 创建固定文本标签
     fixedText = new QLabel(fixedTextName, this);
@@ -57,11 +58,18 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
                                                 cameral->algoParams);
         parawidget->show();
     });
+
     cameraMenu->addMenuOption("相机", [index]() {
         qDebug() << "摄像头" << index + 1 << "的选项 相机 被点击";
     });
-    cameraMenu->addMenuOption("全屏", [index]() {
-        qDebug() << "摄像头" << index + 1 << "的选项 全屏 被点击";
+
+    cameraMenu->addMenuOption("全屏", [this]() {
+        if (!currentPixmap.isNull()) {
+            FullScreenWindow *fullscreenWindow = new FullScreenWindow(currentPixmap);
+            fullscreenWindow->showFullScreen();
+        } else {
+            qDebug() << "当前没有图片可供显示";
+        }
     });
     cameraMenu->addMenuOption("录像", [index]() {
         qDebug() << "摄像头" << index + 1 << "的选项 录像 被点击";
@@ -110,18 +118,17 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
     setLayout(containerLayout);
 }
 
-void CameraLabelWidget::displayimg(HImage &himage)
+void CameraLabelWidget::displayimg(QPixmap &pixmap)
 {
-    QPixmap pixmap = convertHImageToPixmap(himage);
-
+    currentPixmap = pixmap;
     imageLabel->setPixmap(pixmap);
 }
 
-void CameraLabelWidget::displayimg(QPixmap &pixmap)
+void CameraLabelWidget::displayimg(HImage &himage)
 {
-
+    QPixmap pixmap = convertHImageToPixmap(himage);
+    currentPixmap = pixmap;
     imageLabel->setPixmap(pixmap);
-
 }
 
 QPixmap CameraLabelWidget::convertHImageToPixmap(const HImage& hImage) {
