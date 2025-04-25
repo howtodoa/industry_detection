@@ -942,6 +942,12 @@
 			null
 		],
 		[
+			"F:/Industry_Detection/include/MZ_ADOConn.h",
+			"MU",
+			"6YEA5652QU/moc_MZ_ADOConn.cpp",
+			null
+		],
+		[
 			"F:/Industry_Detection/include/MZ_ClientControl.h",
 			"MU",
 			"6YEA5652QU/moc_MZ_ClientControl.cpp",

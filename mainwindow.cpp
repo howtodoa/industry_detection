@@ -6,7 +6,49 @@
 #include "public.h"
 #include "parawidget.h"
 #include "syspara.h"
-#include "MZ_ClientControl.h"
+
+
+#include "cameralabelwidget.h"
+#include "MZ_ADOConn.h"
+#include "tcp_client.h"
+#include "QTimer"
+
+
+
+
+void MainWindow::test()
+{
+
+
+
+    QPixmap pixmap(":/images/resources/images/image.jpg");
+    cameraLabels[4]->displayimg(pixmap);
+
+    int width = 1080;
+    int height = 720;
+    int channels = 3;
+    int imageDataLength = width * height * channels;  // 数据长度
+
+    // 为图片数据创建一个缓冲区，这里用随机数据来模拟图像数据
+    unsigned char* imageData = new unsigned char[imageDataLength];
+    // 填充图像数据（例如：将所有值设为 255 表示白色图像）
+    std::srand(std::time(0));
+
+    // 填充图像数据（生成彩色图像）
+    for (int i = 0; i < imageDataLength; i += 3) {
+        imageData[i] = std::rand() % 256;       // R 通道（0-255）
+        imageData[i + 1] = std::rand() % 256;   // G 通道（0-255）
+        imageData[i + 2] = std::rand() % 256;   // B 通道（0-255）
+    }
+
+    // 创建 HImage 对象
+    HImage disimg(width, height, channels, imageDataLength, imageData);
+
+    delete[] imageData;
+
+    cameraLabels[1]->displayimg(disimg);
+}
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -412,27 +454,3 @@ void MainWindow::setLabel(QVBoxLayout *layout, int row, int col)
     }
 }
 
-void MainWindow::test()
-{
-    QPixmap pixmap(":/images/resources/images/image.jpg");
-    cameraLabels[0]->displayimg(pixmap);
-
-    HImage hImage;
-    hImage.imageHead.width = 100;
-    hImage.imageHead.height = 100;
-    hImage.imageHead.channels = 4; // RGBA
-    int dataLength = hImage.imageHead.getdatelength();
-    hImage.data = new char[dataLength];
-    for (int y = 0; y < hImage.imageHead.height; ++y) {
-        for (int x = 0; x < hImage.imageHead.width; ++x) {
-            int index = (y * hImage.imageHead.width + x) * 4;
-            bool isWhite = ((x / 10) % 2) == ((y / 10) % 2);
-            hImage.data[index] = isWhite ? 255 : 0;     // R
-            hImage.data[index + 1] = isWhite ? 255 : 0; // G
-            hImage.data[index + 2] = isWhite ? 255 : 0; // B
-            hImage.data[index + 3] = 255;               // A (opaque)
-        }
-    }
-
-    cameraLabels[1]->displayimg(pixmap);
-}

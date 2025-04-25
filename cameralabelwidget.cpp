@@ -1,10 +1,104 @@
 #include "CameraLabelWidget.h"
 #include <QDebug>
-#include "ZoomableLabel.h"  // 包含自定义的 ZoomableLabel 头文件
+#include <QLibrary>
+#include <QElapsedTimer>
+#include <qthread.h>
+#include <QPixmap>
+#include "MZ_ADOConn.h"
+#include "ZoomableLabel.h"
+
+HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap &pixmap) {
+    HImage hImage;
+
+    if (pixmap.isNull()) {
+        qDebug() << "convertQPixmapToHImage: pixmap is null";
+        return hImage;
+    }
+
+    QImage qImage = pixmap.toImage();
+
+    // 确保使用 RGB888 格式（适合 JPG 图像）
+    if (qImage.format() != QImage::Format_RGB888) {
+        qImage = qImage.convertToFormat(QImage::Format_RGB888);
+    }
+
+    int width = qImage.width();
+    int height = qImage.height();
+    int channels = 3;  // RGB888
+    int bytesPerLine = qImage.bytesPerLine();
+    int dataSize = bytesPerLine * height;
+
+    // 设置图像头
+    hImage.imageHead.width = width;
+    hImage.imageHead.height = height;
+    hImage.imageHead.channels = channels;
+    hImage.imageHead.length = dataSize;
+
+    // 分配并拷贝数据
+    hImage.data = new unsigned char[dataSize];
+    if (hImage.data != nullptr) {
+        memcpy(hImage.data, qImage.constBits(), dataSize);
+    } else {
+        qDebug() << "convertQPixmapToHImage: memory allocation failed!";
+    }
+
+    return hImage;
+}
+
+
+void CameraLabelWidget::pic_display(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg)
+{
+    qDebug()<<"start";
+    // 使用 QPixmap 从路径加载图像
+    QPixmap pixmap(":/images/image3.jpg");  // 使用 Qt 的资源系统加载图片
+
+    // 调用转换函数将 QPixmap 转换为 HImage
+    HImage img = convertQPixmapToHImage(pixmap);
+qDebug()<<"start1";
+    // 如果转换失败，则返回错误
+    if (img.data == nullptr)
+    {
+        errcode = 1;
+        errmsg = "图片加载或转换失败";
+        return;
+    }
+
+    // 将图像添加到输出图像列表
+    outputImages.m_Images.push_back(img);
+
+    // 设置返回值
+    errcode = 0;  // 没有错误
+    errmsg = "图像生成成功";  // 成功的消息
+    qDebug()<<"start2";
+}
+
+void CameraLabelWidget::pic_handle(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg)
+{
+    qDebug()<<"start";
+
+
+    if(!inputImages.m_Images.empty())
+    {
+        qDebug()<<"empty!";
+        return;
+    }
+    else
+    {
+        qDebug()<<"inputImages.m_Images.size():    "<<inputImages.m_Images.size();
+
+    }
+
+    // 设置返回值
+    errcode = 0;  // 没有错误
+    errmsg = "图像生成成功";  // 成功的消息
+    qDebug()<<"start2";
+}
+
 
 CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QWidget *parent)
     : QWidget(parent)
 {
+
     // 设置主容器的样式
     setStyleSheet("background-color: lightgray; border: 1px solid gray;");
 
@@ -36,14 +130,128 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
                            {"100", "200"} };
 
     // 添加菜单选项（这里只给出一个示例，其他选项类似）
-    cameraMenu->addMenuOption("运行", [index]() {
+    cameraMenu->addMenuOption("运行", [index, this]() {
         qDebug() << "摄像头" << index + 1 << "的选项 运行 被点击";
+        Mz_ClientControl::ClientOperation client;
+
+        CommPorts port;
+        port.isActAsServer = 0;  // 客户端
+        port.PortName = "PIC_PORT";
+        port.localhost_IP.IP = "127.0.0.1";
+        port.localhost_IP.Port = 8000;
+
+        client.InitSDK(port);
+        client.StartWork();
+
+        HValues val1;
+        HValues val2;
+        HImages img;  // 用于接收返回的图像数据
+        int errcode = 0;
+        string errmsg = "";
+
+        val1.m_Values.push_back(HValue(1));
+        val1.m_Values.push_back(HValue(2));
+
+        QElapsedTimer timer;
+        timer.start();
+        HImages primeimges;
+
+       // QPixmap pixmap(":/images/resources/images/test.jpg");
+
+        HImage hImage;
+        hImage.imageHead.width = 640;
+        hImage.imageHead.height = 480;
+        hImage.imageHead.channels = 3;
+        hImage.imageHead.length = 640 * 480 * 3;
+        hImage.data = new unsigned char[hImage.imageHead.length];
+
+        srand(QTime::currentTime().msec()); // 设置种子，只调用一次即可
+
+        for (int i = 0; i < hImage.imageHead.length; ++i) {
+            hImage.data[i] = static_cast<unsigned char>(rand() % 256); // 用 rand() 生成随机数
+        }
+        HImage& himage = hImage;
+        qDebug() << "himage.imageHead.width: " << himage.imageHead.width;
+        qDebug() << "himage.imageHead.height: " << himage.imageHead.height;
+        qDebug() << "himage.imageHead.channels: " << himage.imageHead.channels;
+        qDebug() << "himage.imageHead.length: " << himage.imageHead.length;
+        qDebug() << "himage.data is nullptr? " << (himage.data == nullptr);
+        primeimges.m_Images.push_back(hImage);
+
+        client.DoActionFun(port, "pic_display_handle", val1, primeimges, &val2, &img, &errcode, &errmsg,10000);
+
+
+        qDebug()<<"imag.size:        "<<img.getImageNums();
+
+        qint64 elapsedTime = timer.elapsed(); // 单位为毫秒
+        qDebug() << "DoActionFun 耗时：" << elapsedTime << "ms";
+
+
+
+        if (!img.m_Images.empty()) {
+             HImage& himage = img.m_Images.front();
+            qDebug() << "himage.imageHead.width: " << himage.imageHead.width;
+            qDebug() << "himage.imageHead.height: " << himage.imageHead.height;
+            qDebug() << "himage.imageHead.channels: " << himage.imageHead.channels;
+            qDebug() << "himage.imageHead.length: " << himage.imageHead.length;
+            qDebug() << "himage.data is nullptr? " << (himage.data == nullptr);
+            QPixmap pixmap = convertHImageToPixmap(himage);
+            qDebug()<<"label        ";
+            qDebug() << "pixmap.isNull():" << pixmap.isNull();
+            qDebug() << "pixmap.size():" << pixmap.size();
+            displayimg(pixmap);
+        } else {
+            qDebug() << "接收到的 img.m_Images 是空的，无法获取 front 图像";
+        }
+
     });
     cameraMenu->addMenuOption("停止", [index]() {
         qDebug() << "摄像头" << index + 1 << "的选项 停止 被点击";
     });
-    cameraMenu->addMenuOption("OK", [index]() {
+    cameraMenu->addMenuOption("OK", [index,this]() {
         qDebug() << "摄像头" << index + 1 << "的选项 OK 被点击";
+        Mz_ClientControl::ClientOperation client;
+
+        CommPorts port;
+        port.isActAsServer = 0;  // 客户端
+        port.PortName = "PIC_PORT";
+        port.localhost_IP.IP = "127.0.0.1";
+        port.localhost_IP.Port = 8000;
+
+        client.InitSDK(port);
+        client.StartWork();
+
+        // 调用服务端的 pic_display_produce 函数
+        HValues val1;
+        HValues val2;
+        HImages img;  // 用于接收返回的图像数据
+        int errcode = 0;
+        string errmsg = "";
+
+        // 创建 QElapsedTimer 对象
+        QElapsedTimer timer;
+        timer.start(); // 开始计时
+
+        val1.m_Values.push_back(HValue(1));
+        val1.m_Values.push_back(HValue(2));
+
+        client.DoActionFun(port, "pic_display_produce", val1, HImages(), &val2, &img, &errcode, &errmsg,1000);
+        qDebug()<<"imag.size:"<<img.getImageNums();
+        if(img.m_Images.size()>0)
+            {
+              HImage himage=img.m_Images.front();
+
+            // 计算并输出运行时间
+            qint64 elapsed = timer.elapsed(); // 获取经过的毫秒数
+            qDebug() << "Execution time:" << elapsed << "ms";
+            displayimg(himage);
+        }
+        else
+            {
+            qDebug()<<"empty";
+            return;
+        }
+
     });
     cameraMenu->addMenuOption("NG", [index]() {
         qDebug() << "摄像头" << index + 1 << "的选项 NG 被点击";
@@ -59,8 +267,91 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
         parawidget->show();
     });
 
-    cameraMenu->addMenuOption("相机", [index]() {
+    cameraMenu->addMenuOption("相机", [index,this]() {
         qDebug() << "摄像头" << index + 1 << "的选项 相机 被点击";
+
+#if 1
+        Mz_ClientControl::ClientOperation server;
+
+        CommPorts port;
+        port.isActAsServer = 1;
+        port.PortName = "PIC_PORT";
+        port.localhost_IP.IP = "127.0.0.1";
+        port.localhost_IP.Port = 8000;
+qDebug()<<"get success11111!";
+        server.InitSDK(port);
+
+        Callbackfunc cb;
+        cb.funcname = "pic_display";
+        cb.func = reinterpret_cast<FunctionTableStream>(&CameraLabelWidget::pic_display);
+qDebug()<<"get success22222!";
+        cb.inputImagesnums = 0;
+        cb.inputPramsnums = 0;
+        cb.outputImagesnums = 1;
+        cb.outputPramsnums = 0;
+qDebug()<<"get success3333333!";
+        server.RegsiterFunitFun(cb);
+        server.StartWork();
+        qDebug()<<"get success444444444!";
+ qDebug()<<"get success!";
+       // QThread::msleep(10000);
+// server.StopWork();
+      //  server.FreeSDK();
+        // qDebug()<<"exit";
+
+#else
+
+        Mz_ClientControl::ClientOperation client;
+
+        CommPorts port;
+        port.isActAsServer = 0;  // 客户端
+        port.PortName = "PIC_PORT";
+        port.localhost_IP.IP = "127.0.0.1";
+        port.localhost_IP.Port = 8000;
+
+        client.InitSDK(port);
+        client.StartWork();
+
+
+        // 调用服务端的 get_frame 函数
+        HValues val1;
+        HValues val2;
+        HImages img;  // 用于接收返回的图像数据
+        int errcode = 0;
+        string errmsg = "";
+
+        val1.m_Values.push_back(HValue(1));
+        val1.m_Values.push_back(HValue(2));
+
+        QElapsedTimer timer;
+        timer.start();
+
+        client.DoActionFun(port, "get_frame", val1, HImages(), &val2, &img, &errcode, &errmsg,20000);
+        qDebug()<<"imag.size:        "<<img.getImageNums();
+
+        qint64 elapsedTime = timer.elapsed(); // 单位为毫秒
+        qDebug() << "DoActionFun 耗时：" << elapsedTime << "ms";
+
+        qDebug() << "imag.size:        " << img.getImageNums();
+
+        if (!img.m_Images.empty()) {
+            qDebug()<<"label1        ";
+            HImage himage = img.m_Images.front();
+             qDebug()<<"label2        ";
+            QPixmap pixmap = convertHImageToPixmap(himage);
+               qDebug()<<"label        ";
+            qDebug() << "pixmap.isNull():" << pixmap.isNull();
+            qDebug() << "pixmap.size():" << pixmap.size(); // 应该是 QSize(2448, 2048)
+            displayimg(pixmap);
+        } else {
+            qDebug() << "接收到的 img.m_Images 是空的，无法获取 front 图像";
+        }
+
+      //  client.StopWork();
+     //   client.FreeSDK();
+
+#endif
+
     });
 
     cameraMenu->addMenuOption("全屏", [this]() {
@@ -129,55 +420,34 @@ void CameraLabelWidget::displayimg(HImage &himage)
     QPixmap pixmap = convertHImageToPixmap(himage);
     currentPixmap = pixmap;
     imageLabel->setPixmap(pixmap);
+    qDebug()<<"ccccccccc";
 }
 
 QPixmap CameraLabelWidget::convertHImageToPixmap(const HImage& hImage) {
     const ImageHeader& header = hImage.imageHead;
-    if (!hImage.data || header.width <= 0 || header.height <= 0 || header.channels <= 0) {
-        return QPixmap();
+
+    if (!hImage.data || header.width <= 0 || header.height <= 0 || header.channels <= 0 || header.length <= 0) {
+        return QPixmap(); // 无效图像
     }
+
     QImage::Format format;
     switch (header.channels) {
-    case 1: format = QImage::Format_Grayscale8; break;
-    case 3: format = QImage::Format_RGB888; break;
-    case 4: format = QImage::Format_RGBA8888; break;
-    default: return QPixmap();
+    case 1:
+        format = QImage::Format_Grayscale8;
+        break;
+    case 3:
+        format = QImage::Format_RGB888;
+        break;
+    case 4:
+        format = QImage::Format_RGBA8888;
+        break;
+    default:
+        return QPixmap(); // 不支持的通道数
     }
-    QImage qImage(
-        reinterpret_cast<const uchar*>(hImage.data),
-        header.width,
-        header.height,
-        header.width * header.channels,
-        format
-        );
-    return QPixmap::fromImage(qImage);
-}
 
-HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap &pixmap) {
-    HImage hImage;
-    if (pixmap.isNull()) {
-        return hImage;
-    }
-    QImage qImage = pixmap.toImage();
-    QImage::Format format = qImage.format();
-    int channels = 0;
-    if (format == QImage::Format_Grayscale8) {
-        channels = 1;
-    } else if (format == QImage::Format_RGB888) {
-        channels = 3;
-    } else if (format == QImage::Format_RGBA8888 || format == QImage::Format_ARGB32) {
-        channels = 4;
-    } else {
-        qImage = qImage.convertToFormat(QImage::Format_RGBA8888);
-        channels = 4;
-    }
-    hImage.imageHead.width = qImage.width();
-    hImage.imageHead.height = qImage.height();
-    hImage.imageHead.channels = channels;
-    int dataLength = hImage.imageHead.getdatelength();
-    if (dataLength > 0) {
-        hImage.data = new char[dataLength];
-        memcpy(hImage.data, qImage.constBits(), dataLength);
-    }
-    return hImage;
+
+    QImage image(hImage.data, header.width, header.height, header.width * header.channels, format);
+
+
+    return QPixmap::fromImage(image.copy());
 }

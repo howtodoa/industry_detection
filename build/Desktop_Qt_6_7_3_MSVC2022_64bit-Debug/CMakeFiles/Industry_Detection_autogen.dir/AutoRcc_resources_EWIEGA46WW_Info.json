@@ -7,8 +7,9 @@
 	"INCLUDE_DIR" : "F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/include",
 	"INPUTS" : 
 	[
-		"F:/Industry_Detection/image3.jpg",
 		"F:/Industry_Detection/resources/images/image.jpg",
+		"F:/Industry_Detection/resources/images/test.jpg",
+		"F:/Industry_Detection/resources/images/high.jpg",
 		"F:/Industry_Detection/resources/images/OIP-C.jpg"
 	],
 	"LOCK_FILE" : "F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/CMakeFiles/Industry_Detection_autogen.dir/AutoRcc_resources_EWIEGA46WW_Lock.lock",

@@ -936,6 +936,18 @@
 			null
 		],
 		[
+			"F:/Industry_Detection/fullscreenwindow.h",
+			"MU",
+			"EWIEGA46WW/moc_fullscreenwindow.cpp",
+			null
+		],
+		[
+			"F:/Industry_Detection/include/MZ_ADOConn.h",
+			"MU",
+			"6YEA5652QU/moc_MZ_ADOConn.cpp",
+			null
+		],
+		[
 			"F:/Industry_Detection/include/MZ_ClientControl.h",
 			"MU",
 			"6YEA5652QU/moc_MZ_ClientControl.cpp",
@@ -972,7 +984,12 @@
 			"EWIEGA46WW/moc_syspara.cpp",
 			null
 		],
-		[ "F:/Industry_Detection/tcp.h", "MU", "EWIEGA46WW/moc_tcp.cpp", null ],
+		[
+			"F:/Industry_Detection/tcp_client.h",
+			"MU",
+			"EWIEGA46WW/moc_tcp_client.cpp",
+			null
+		],
 		[
 			"F:/Industry_Detection/virtualbox.h",
 			"MU",
@@ -1062,6 +1079,7 @@
 		[ "F:/Industry_Detection/cameralabelwidget.cpp", "MU", null ],
 		[ "F:/Industry_Detection/cameralmenu.cpp", "MU", null ],
 		[ "F:/Industry_Detection/fileoperator.cpp", "MU", null ],
+		[ "F:/Industry_Detection/fullscreenwindow.cpp", "MU", null ],
 		[ "F:/Industry_Detection/login.cpp", "MU", null ],
 		[ "F:/Industry_Detection/main.cpp", "MU", null ],
 		[ "F:/Industry_Detection/mainwindow.cpp", "MU", null ],
@@ -1069,7 +1087,7 @@
 		[ "F:/Industry_Detection/public.cpp", "MU", null ],
 		[ "F:/Industry_Detection/role.cpp", "MU", null ],
 		[ "F:/Industry_Detection/syspara.cpp", "MU", null ],
-		[ "F:/Industry_Detection/tcp.cpp", "MU", null ],
+		[ "F:/Industry_Detection/tcp_client.cpp", "MU", null ],
 		[ "F:/Industry_Detection/virtualbox.cpp", "MU", null ],
 		[ "F:/Industry_Detection/zoomablelabel.cpp", "MU", null ]
 	],

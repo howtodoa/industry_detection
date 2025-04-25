@@ -46,6 +46,9 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.cpp \
   F:/Industry_Detection/fileoperator.h \
+  F:/Industry_Detection/fullscreenwindow.cpp \
+  F:/Industry_Detection/fullscreenwindow.h \
+  F:/Industry_Detection/include/MZ_ADOConn.h \
   F:/Industry_Detection/include/MZ_ClientControl.h \
   F:/Industry_Detection/include/PacketHead.h \
   F:/Industry_Detection/login.cpp \
@@ -62,8 +65,8 @@ Industry_Detection_autogen/timestamp: \
   F:/Industry_Detection/role.h \
   F:/Industry_Detection/syspara.cpp \
   F:/Industry_Detection/syspara.h \
-  F:/Industry_Detection/tcp.cpp \
-  F:/Industry_Detection/tcp.h \
+  F:/Industry_Detection/tcp_client.cpp \
+  F:/Industry_Detection/tcp_client.h \
   F:/Industry_Detection/virtualbox.cpp \
   F:/Industry_Detection/virtualbox.h \
   F:/Industry_Detection/zoomablelabel.cpp \
@@ -72,7 +75,9 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QFile \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QList \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QMutex \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QObject \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QPoint \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QRect \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QSize \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QSizeF \
@@ -154,6 +159,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmetacontainer.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmetatype.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qminmax.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qmutex.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnamespace.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnativeinterface.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnumeric.h \
@@ -205,6 +211,7 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtnoop.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtpreprocessorsupport.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtresource.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qtsan_impl.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qttranslation.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qttypetraits.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtversion.h \
@@ -222,9 +229,11 @@ Industry_Detection_autogen/timestamp: \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QAction \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QDesktopServices \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QKeyEvent \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QPixmap \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QResizeEvent \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
-  F:/QT/6.7.3/msvc2022_64/include/QtGui/QWheelEvent \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbitmap.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qbrush.h \

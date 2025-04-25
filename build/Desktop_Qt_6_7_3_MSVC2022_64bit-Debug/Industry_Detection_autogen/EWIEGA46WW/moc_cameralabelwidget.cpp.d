@@ -1,16 +1,22 @@
 F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detection_autogen/EWIEGA46WW/moc_cameralabelwidget.cpp: F:/Industry_Detection/cameralabelwidget.h \
   F:/Industry_Detection/Cameral.h \
+  F:/Industry_Detection/ZoomableLabel.h \
   F:/Industry_Detection/cameralmenu.h \
   F:/Industry_Detection/fileoperator.h \
+  F:/Industry_Detection/fullscreenwindow.h \
   F:/Industry_Detection/include/MZ_ClientControl.h \
   F:/Industry_Detection/include/PacketHead.h \
   F:/Industry_Detection/parawidget.h \
   F:/Industry_Detection/public.h \
+  F:/Industry_Detection/tcp_client.h \
+  F:/Industry_Detection/zoomablelabel.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QFile \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QList \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QMutex \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QObject \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/QPoint \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QRect \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QSize \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QSizeF \
@@ -91,6 +97,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmetacontainer.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qmetatype.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qminmax.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qmutex.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnamespace.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnativeinterface.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qnumeric.h \
@@ -141,6 +148,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtnoop.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtpreprocessorsupport.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtresource.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtCore/qtsan_impl.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qttranslation.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qttypetraits.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/qtversion.h \
@@ -158,6 +166,9 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QAction \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QDesktopServices \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QFont \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QKeyEvent \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QPixmap \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/QResizeEvent \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QScreen \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/QTransform \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qaction.h \
@@ -166,6 +177,8 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcolor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qcursor.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qdesktopservices.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qevent.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qeventpoint.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfont.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontinfo.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qfontmetrics.h \
@@ -173,6 +186,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qguiapplication_platform.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qicon.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qimage.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qinputdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qinputmethod.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qkeysequence.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpaintdevice.h \
@@ -181,6 +195,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpicture.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixelformat.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpixmap.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qpointingdevice.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qpolygon.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qregion.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qrgb.h \
@@ -195,6 +210,8 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Debug/Industry_Detec
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiexports.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtguiglobal.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qtransform.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qvector2d.h \
+  F:/QT/6.7.3/msvc2022_64/include/QtGui/qvectornd.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs.h \
   F:/QT/6.7.3/msvc2022_64/include/QtGui/qwindowdefs_win.h \
   F:/QT/6.7.3/msvc2022_64/include/QtWidgets/QFileDialog \

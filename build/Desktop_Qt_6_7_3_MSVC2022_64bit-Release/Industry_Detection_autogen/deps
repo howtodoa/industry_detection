@@ -48,6 +48,7 @@ Industry_Detection_autogen/timestamp: \
 	F:/Industry_Detection/fileoperator.h \
 	F:/Industry_Detection/fullscreenwindow.cpp \
 	F:/Industry_Detection/fullscreenwindow.h \
+	F:/Industry_Detection/include/MZ_ADOConn.h \
 	F:/Industry_Detection/include/MZ_ClientControl.h \
 	F:/Industry_Detection/include/PacketHead.h \
 	F:/Industry_Detection/login.cpp \

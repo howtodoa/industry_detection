@@ -238,6 +238,7 @@ F:/Industry_Detection/cameralabelwidget.h
  mdp:F:/Industry_Detection/include/PacketHead.h
  mdp:F:/Industry_Detection/parawidget.h
  mdp:F:/Industry_Detection/public.h
+ mdp:F:/Industry_Detection/tcp.h
  mdp:F:/Industry_Detection/zoomablelabel.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir
@@ -1071,6 +1072,7 @@ F:/Industry_Detection/mainwindow.h
  mdp:F:/Industry_Detection/parawidget.h
  mdp:F:/Industry_Detection/public.h
  mdp:F:/Industry_Detection/role.h
+ mdp:F:/Industry_Detection/tcp.h
  mdp:F:/Industry_Detection/zoomablelabel.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir
@@ -2280,3 +2282,4 @@ F:/Industry_Detection/fullscreenwindow.h
  mdp:F:/QT/6.7.3/msvc2022_64/include/QtWidgets/qwidget.h
 F:/Industry_Detection/syspara.cpp
 F:/Industry_Detection/fullscreenwindow.cpp
+F:/Industry_Detection/include/MZ_ADOConn.h

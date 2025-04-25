@@ -11,6 +11,7 @@
 #include "parawidget.h"
 #include "fullscreenwindow.h"
 #include "ZoomableLabel.h"  // 新增：引入支持缩放和平移的自定义标签头文件
+#include "tcp_client.h"
 
 class CameraLabelWidget : public QWidget
 {
@@ -19,11 +20,13 @@ public:
     // 构造函数：index 用于生成唯一的名称、显示文字，parent 为父控件
     explicit CameraLabelWidget(int index, const QString &fixedTextName, QWidget *parent = nullptr);
 
+    static void pic_handle(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg);
+    static void pic_display(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg);
     void displayimg(QPixmap &pixmap);
     void displayimg(HImage &himage);
-    HImage convertQPixmapToHImage(const QPixmap &pixmap);
+   static HImage convertQPixmapToHImage(const QPixmap &pixmap);
     QPixmap convertHImageToPixmap(const HImage& hImage);
-    // 获取内部显示图像的 ZoomableLabel，便于外部更新图片
+
     QLabel* getImageLabel() const { return imageLabel; }
 
 private:

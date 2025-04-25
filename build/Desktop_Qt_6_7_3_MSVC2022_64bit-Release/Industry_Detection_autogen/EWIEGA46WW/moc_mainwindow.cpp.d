@@ -10,6 +10,7 @@ F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Release/Industry_Det
   F:/Industry_Detection/parawidget.h \
   F:/Industry_Detection/public.h \
   F:/Industry_Detection/role.h \
+  F:/Industry_Detection/tcp.h \
   F:/Industry_Detection/zoomablelabel.h \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDebug \
   F:/QT/6.7.3/msvc2022_64/include/QtCore/QDir \

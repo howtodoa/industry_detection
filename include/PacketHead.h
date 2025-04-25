@@ -6,11 +6,15 @@
 using namespace std;
 typedef struct _HValue
 {
-	char m_Valuetype[64] = {0};
+	char m_Valuetype[32] = {0};
 	char m_Value[64] = { 0 };
+	char* getDate()
+	{
+		return &m_Valuetype[0];
+	}
 	int getdatelength()
 	{
-		return 128;
+		return sizeof(m_Valuetype) + sizeof(m_Value);
 	}
 	int I()
 	{
@@ -78,14 +82,16 @@ typedef struct _HValue
 typedef struct _HValues
 {
 	vector<HValue> m_Values;
+	char *getDate()
+	{
+		if(m_Values.size() == 0)
+			return NULL;
+		return (char*)m_Values[0].getDate();
+	}
 	int getdatelength()
 	{
-		int length = 0;
-		for (int i = 0; i < m_Values.size(); i++)
-		{
-			length += m_Values[i].getdatelength();
-		}
-		return length + sizeof(int);
+		int length = sizeof(HValue) * m_Values.size();
+		return length;
 	}
 	int getValueNums()
 	{
@@ -171,67 +177,127 @@ typedef struct _ImageHead
 	int width = 0;
 	int height = 0;
 	int channels = 0;
-	int getdatelength()
+	int length = 0;
+	void clear()
 	{
-		return width * height * channels;
+		width = 0;
+		height = 0;
+		channels = 0;
+		length = 0;
+	}
+	_ImageHead()
+	{
+		clear();
+	}
+	_ImageHead(const _ImageHead& image)
+	{
+		width = image.width;
+		height = image.height;
+		channels = image.channels;
+		length = image.length;
+	}
+	_ImageHead(int width, int height, int channels, int length)
+	{
+		this->width = width;
+		this->height = height;
+		this->channels = channels;
+		this->length = length;
 	}
 }ImageHeader;
 typedef struct _HImage
 {
 	ImageHeader  imageHead;
-	char* data = NULL;
+	unsigned char* data = NULL;
 	int getdatelength()
 	{
-		return imageHead.getdatelength() + sizeof(ImageHeader);
+		return imageHead.length + sizeof(ImageHeader);
 	}
 	void Rlease()
 	{
+		imageHead.clear();
 		if (data != NULL)
 		{
-			delete[] data;
+			delete data;
 			data = NULL;
 		}
-		imageHead.width = 0;
-		imageHead.height = 0;
-		imageHead.channels = 0;
 	}
 	_HImage()
 	{
 		data = NULL;
 	}
+	_HImage(const _HImage& image)
+	{
+		imageHead = image.imageHead;
+		if (image.data != NULL)
+		{
+			data = new unsigned char[image.imageHead.length];
+			if (data != NULL)
+			{
+				memcpy(data, image.data, image.imageHead.length);
+			}
+		}
+	}
 	~_HImage()
 	{
+		if (data != NULL)
+		{
+			delete data;
+			data = NULL;
+		}
+		imageHead.clear();
+	}
+	_HImage(int width, int height, int channels, int length, unsigned char* inputdata)
+	{
+		imageHead.width = width;
+		imageHead.height = height;
+		imageHead.channels = channels;
+		imageHead.length = length;
+		data = new unsigned char[length];
+		if (data != NULL)
+		{
+			memcpy(data, inputdata, length);
+		}
+	}
+	_HImage(char* inputdata, int length)
+	{
+		memcpy(&imageHead, inputdata, sizeof(ImageHeader));
+		data = new unsigned char[imageHead.length];
+		if (data != NULL)
+		{
+			memcpy(data, inputdata + sizeof(ImageHeader), imageHead.length);
+		}
+	}
+	_HImage operator=(const _HImage& image)
+	{
+		imageHead = image.imageHead;
 		if (data != NULL)
 		{
 			delete[] data;
 			data = NULL;
 		}
-	}
-	_HImage(int width, int height, int channels, char* data)
-	{
-		imageHead.width = width;
-		imageHead.height = height;
-		imageHead.channels = channels;
-		data = new char[imageHead.getdatelength()];
-		if (data != NULL)
+		if (image.data != NULL)
 		{
-			memcpy(this->data, data, imageHead.getdatelength());
+			data = new unsigned char[image.imageHead.length];
+			if (data != NULL)
+			{
+				memcpy(data, image.data, image.imageHead.length);
+			}
 		}
-	}
-	_HImage(char* data, int length)
-	{
-		memcpy(&imageHead, data, sizeof(ImageHeader));
-		this->data = new char[imageHead.getdatelength()];
-		if (this->data != NULL)
-		{
-			memcpy(this->data, data + sizeof(ImageHeader), imageHead.getdatelength());
-		}
+		return *this;
 	}
 }HImage;
 
 typedef struct _HImages
 {
 	vector<HImage> m_Images;
+	void Relase()
+	{
+		for (int i = 0; i < m_Images.size(); i++)
+		{
+			m_Images[i].Rlease();
+		}
+		m_Images.clear();
+	}
 	_HImages()
 	{
 
@@ -244,6 +310,22 @@ typedef struct _HImages
 		}
 		m_Images.clear();
 	}
+	_HImages(const _HImages& images)
+	{
+		for (int i = 0; i < images.m_Images.size(); i++)
+		{
+			m_Images.push_back(images.m_Images[i]);
+		}
+	}
+	_HImages operator=(const _HImages& images)
+	{
+		m_Images.clear();
+		for (int i = 0; i < images.m_Images.size(); i++)
+		{
+			m_Images.push_back(images.m_Images[i]);
+		}
+		return *this;
+	}
 	int getdatelength()
 	{
 		int length = 0;
@@ -251,7 +333,7 @@ typedef struct _HImages
 		{
 			length += m_Images[i].getdatelength();
 		}
-		return length + sizeof(int);
+		return length;
 	}
 	int getImageNums()
 	{
@@ -489,6 +571,10 @@ typedef struct _sc_pack_head
 	unsigned char inputImagesnums;
 	unsigned long data_len;//数据长度
 
+	char *GetData()
+	{
+		return (char*)&label_1;
+	}
 	void init()
 	{
 		label_1 = HEAD_LABEL_SC_1;
@@ -557,6 +643,7 @@ typedef struct _sc_pack_data
 	_sc_pack_data(char* inputbuffer, int inputbufferLength)
 	{
 		buffer = new char[inputbufferLength];
+		data_len = inputbufferLength;
 		memcpy(buffer, inputbuffer, inputbufferLength);
 	}
 	_sc_pack_data(HValues inputValues, HImages inputImages)
@@ -608,33 +695,49 @@ typedef struct _SC_PacketData
 
 	_SC_PacketData(const _SC_PacketData& aPacket)
 	{
-		head = aPacket.head;
-		data = SC_PackData(aPacket.data.buffer, head.data_len);
+		this->head = aPacket.head;
+		this->data.buffer = new char[aPacket.data.data_len];
+		this->data.data_len = aPacket.data.data_len;
+		memcpy(this->data.buffer, aPacket.data.buffer, aPacket.head.data_len);
 	}
 	_SC_PacketData operator = (const _SC_PacketData& aPacket)
 	{
 		this->head = aPacket.head;
-		this->data = SC_PackData(aPacket.data.buffer, head.data_len);
+		this->data.buffer = new char[aPacket.data.data_len];
+		this->data.data_len = aPacket.data.data_len;
+		memcpy(this->data.buffer, aPacket.data.buffer, aPacket.head.data_len);
 		return *this;
 	}
 	_SC_PacketData(string funcName,HImages inputImages, HValues inputPrams)
 	{
 		head.user_define = funcName;
 		head.inputImagesnums = inputImages.getImageNums();
-		head.inputParamsnums = inputPrams.getdatelength();
-		head.data_len = inputImages.getdatelength() + inputPrams.getdatelength();
+		head.inputParamsnums = inputPrams.getValueNums();
+		int Imagesdatasize = inputImages.getdatelength();
+		int Paramsdatasize = inputPrams.getdatelength();
+		head.data_len = Imagesdatasize + Paramsdatasize;
 		data.buffer = new char[head.data_len];
+		data.data_len = head.data_len;
 		//先放变量，再放图片
-		memcpy(data.buffer, inputPrams.m_Values[0].m_Value, inputPrams.getdatelength());
+		int offsetPrt = 0;
+		for (int i = 0; i < inputPrams.getValueNums(); ++i)
+		{
+			memcpy(data.buffer + offsetPrt, inputPrams.m_Values[i].getDate(), sizeof(HValue));
+			offsetPrt += sizeof(HValue);
+		}
 		for (int i = 0; i < inputImages.getImageNums(); ++i)
 		{
-			memcpy(data.buffer + inputPrams.getdatelength() + i * inputImages.m_Images[i].getdatelength(), &inputImages.m_Images[i], inputImages.m_Images[i].getdatelength());
+			memcpy(data.buffer + offsetPrt, &inputImages.m_Images[i].imageHead, sizeof(ImageHeader));
+			offsetPrt += sizeof(ImageHeader);
+			memcpy(data.buffer + offsetPrt, inputImages.m_Images[i].data, inputImages.m_Images[i].imageHead.length);
+			offsetPrt += inputImages.m_Images[i].imageHead.length;
 		}
 	}
 	_SC_PacketData(char * inputbuffer)
 	{
 		memcpy(&head, inputbuffer, sizeof(SC_PackHead));
 		data.buffer = new char[head.data_len];
+		data.data_len = head.data_len;
 		memcpy(data.buffer, inputbuffer + sizeof(SC_PackHead), head.data_len);
 	}
 	int getdatelength()
@@ -649,9 +752,13 @@ typedef struct _SC_PacketData
 			data.buffer = NULL;
 		}
 	}
-	void * getdata()
+	void * getHeaddata()
 	{
 		return &head;
+	}
+	void *GetDatadata()
+	{
+		return data.buffer;
 	}
 	void Clear()
 	{
@@ -671,9 +778,24 @@ typedef struct _SC_PacketDataEx
 	{
 		data.Clear();
 	}
+	~_SC_PacketDataEx()
+	{
+		data.Clear();
+	}
+	_SC_PacketDataEx(const _SC_PacketDataEx & aPacket)
+	{
+		this->DataSorceSocket = aPacket.DataSorceSocket;
+		this->data = aPacket.data;
+	}
 	_SC_PacketDataEx(LONG inputComm, SC_PacketData inputData)
 	{
 		data = inputData;
+	}
+	_SC_PacketDataEx operator = (const _SC_PacketDataEx& aPacket)
+	{
+		this->DataSorceSocket = aPacket.DataSorceSocket;
+		this->data = aPacket.data;
+		return *this;
 	}
 
 }SC_PacketDataEx;
