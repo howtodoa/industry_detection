@@ -19,13 +19,15 @@
 void MainWindow::test()
 {
 
-
-
     QPixmap pixmap(":/images/resources/images/image.jpg");
     cameraLabels[4]->displayimg(pixmap);
 
-    int width = 1080;
-    int height = 720;
+    QPixmap pixmap1(":/images/resources/images/test.jpg");
+    cameraLabels[3]->displayimg(pixmap1);
+
+
+    int width = 2600;
+    int height = 2160;
     int channels = 3;
     int imageDataLength = width * height * channels;  // 数据长度
 
@@ -40,7 +42,6 @@ void MainWindow::test()
         imageData[i + 1] = std::rand() % 256;   // G 通道（0-255）
         imageData[i + 2] = std::rand() % 256;   // B 通道（0-255）
     }
-
     // 创建 HImage 对象
     HImage disimg(width, height, channels, imageDataLength, imageData);
 

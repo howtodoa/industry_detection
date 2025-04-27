@@ -1,6 +1,7 @@
 #include "zoomablelabel.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <QWheelEvent>
 
 ZoomableLabel::ZoomableLabel(QWidget *parent)
     : QLabel(parent), scaleFactor(1.0), offset(0, 0), dragging(false)
@@ -16,13 +17,33 @@ void ZoomableLabel::setPixmap(const QPixmap &pixmap)
     updateScaledPixmap();  // 更新显示
 }
 
+void ZoomableLabel::setOriginalPixmap(const QPixmap &pixmap)
+{
+    originalPixmap = pixmap;
+    scaleFactor = 1.0;
+    updateScaledPixmap();
+    qDebug() << "ZoomableLabel size:" << size();  // 打印控件当前大小
+    qDebug() << "Original Image size:" << originalPixmap.size();
+}
+
 void ZoomableLabel::updateScaledPixmap()
 {
     if (!originalPixmap.isNull()) {
-        QSize scaledSize = size() * scaleFactor;  // 按当前缩放比例调整图像大小
-        QPixmap scaled = originalPixmap.scaled(scaledSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QLabel::setPixmap(scaled);  // 更新当前显示的图像
-        setAlignment(Qt::AlignCenter);  // 图像居中显示
+        QSize labelSize = size();  // 获取控件的大小
+        QSize imageSize = originalPixmap.size();  // 获取图片的原始大小
+
+        qDebug() << "ZoomableLabel size:" << labelSize;  // 输出控件大小
+        qDebug() << "Original Image size:" << imageSize;  // 输出图片的原始大小
+
+        // 计算适合的缩放因子，确保图片完整显示在控件中
+        float widthScaleFactor = static_cast<float>(labelSize.width()) / imageSize.width();
+        float heightScaleFactor = static_cast<float>(labelSize.height()) / imageSize.height();
+
+        // 选择较小的缩放因子，以保持图片比例，避免图片被拉伸
+        scaleFactor = qMin(widthScaleFactor, heightScaleFactor);
+
+        // 更新图像显示
+        update();  // 重新绘制图像
     }
 }
 
@@ -30,7 +51,10 @@ void ZoomableLabel::resetZoom()
 {
     scaleFactor = 1.0;  // 重置缩放因子
     offset = QPoint(0, 0);  // 重置平移偏移
-    update();  // 重绘图像
+
+    // 确保图片大小被重新计算并更新显示
+    updateScaledPixmap();  // 强制更新图像
+    update();  // 强制重绘控件
 }
 
 void ZoomableLabel::wheelEvent(QWheelEvent *event)
@@ -59,8 +83,23 @@ void ZoomableLabel::wheelEvent(QWheelEvent *event)
 
 void ZoomableLabel::resizeEvent(QResizeEvent *event)
 {
-    QLabel::resizeEvent(event);
-    update();  // 窗口大小改变时更新图像
+
+    QLabel::resizeEvent(event);  // 调用基类的 resizeEvent
+
+    if (!originalPixmap.isNull()) {
+        QSize labelSize = size();  // 获取控件的大小
+        QSize imageSize = originalPixmap.size();  // 获取图片的原始大小
+
+        // 计算缩放比例
+        float widthScaleFactor = static_cast<float>(labelSize.width()) / imageSize.width();
+        float heightScaleFactor = static_cast<float>(labelSize.height()) / imageSize.height();
+
+        // 选择较小的缩放因子以保证图片不被拉伸
+        scaleFactor = qMin(widthScaleFactor, heightScaleFactor);
+
+        // 更新图像显示
+        update();  // 重新绘制图像
+    }
 }
 
 void ZoomableLabel::mouseDoubleClickEvent(QMouseEvent *event)
@@ -96,21 +135,54 @@ void ZoomableLabel::mouseReleaseEvent(QMouseEvent *event)
 
 void ZoomableLabel::paintEvent(QPaintEvent *event)
 {
-    // 不调用基类的 paintEvent，防止默认绘制,出现两张图
-    // QLabel::paintEvent(event);
-
     if (originalPixmap.isNull())
         return;  // 如果没有有效的图像，则不绘制
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::SmoothPixmapTransform, true);  // 启用平滑转换
 
-    // 计算缩放后的图像尺寸
+    // 根据 scaleFactor 计算缩放后的图像尺寸
     QSize scaledSize = originalPixmap.size() * scaleFactor;
     QPixmap scaled = originalPixmap.scaled(scaledSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    // 计算图像在标签中的绘制位置
+    // 计算图像在标签中的绘制位置，确保居中显示
     QPoint drawPoint = rect().center() - QPoint(scaled.width() / 2, scaled.height() / 2) + offset;
     painter.drawPixmap(drawPoint, scaled);  // 绘制图像
 }
+
+/*强行拉伸填充的版本
+void ZoomableLabel::updateScaledPixmap()
+{
+    if (!originalPixmap.isNull()) {
+        QSize labelSize = size();  // 获取控件的大小
+        QSize imageSize = originalPixmap.size();  // 获取图片的原始大小
+
+        qDebug() << "ZoomableLabel size:" << labelSize;
+        qDebug() << "Original Image size:" << imageSize;
+
+        // !!! 直接无脑拉伸，不保持比例
+        QPixmap scaled = originalPixmap.scaled(labelSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+        QLabel::setPixmap(scaled);
+
+        qDebug() << "Scaled Image size:" << scaled.size();
+    }
+}
+
+void ZoomableLabel::paintEvent(QPaintEvent *event)
+{
+    if (originalPixmap.isNull())
+        return;
+
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+    QSize scaledSize = originalPixmap.size() * scaleFactor;
+    QPixmap scaled = originalPixmap.scaled(scaledSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    QPoint drawPoint = rect().center() - QPoint(scaled.width() / 2, scaled.height() / 2) + offset;
+    painter.drawPixmap(drawPoint, scaled);
+}
+
+ * /
 

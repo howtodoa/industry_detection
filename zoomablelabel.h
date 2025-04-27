@@ -14,9 +14,9 @@ public:
     void setPixmap(const QPixmap &pixmap);
     void resetZoom();
     void updateScaledPixmap();
+    void setOriginalPixmap(const QPixmap &pixmap);
 
 public slots:
-
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -26,7 +26,6 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-
 
 private:
     QPixmap originalPixmap;

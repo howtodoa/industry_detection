@@ -235,7 +235,7 @@ CameraLabelWidget::CameraLabelWidget(int index, const QString &fixedTextName, QW
         val1.m_Values.push_back(HValue(1));
         val1.m_Values.push_back(HValue(2));
 
-        client.DoActionFun(port, "pic_display_produce", val1, HImages(), &val2, &img, &errcode, &errmsg,1000);
+        client.DoActionFun(port, "pic_display_produce_ex", val1, HImages(), &val2, &img, &errcode, &errmsg,10000);
         qDebug()<<"imag.size:"<<img.getImageNums();
         if(img.m_Images.size()>0)
             {
@@ -413,6 +413,7 @@ void CameraLabelWidget::displayimg(QPixmap &pixmap)
 {
     currentPixmap = pixmap;
     imageLabel->setPixmap(pixmap);
+    qDebug()<<"cccccccc";
 }
 
 void CameraLabelWidget::displayimg(HImage &himage)
@@ -420,7 +421,7 @@ void CameraLabelWidget::displayimg(HImage &himage)
     QPixmap pixmap = convertHImageToPixmap(himage);
     currentPixmap = pixmap;
     imageLabel->setPixmap(pixmap);
-    qDebug()<<"ccccccccc";
+    qDebug()<<"bbbbbbb";
 }
 
 QPixmap CameraLabelWidget::convertHImageToPixmap(const HImage& hImage) {
