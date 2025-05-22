@@ -1,0 +1,3 @@
+# Ignore Program Database (Debug Symbols) files
+*.pdb
+build/
