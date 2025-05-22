@@ -1,8 +1,11 @@
 #include "cameral.h"
-
-Cameral::Cameral(QObject *parent) :
-    QObject(parent)
+#include <iostream>
+Cameral::Cameral()
 {
+
+
+    //tcp=std::make_unique<TCP_Client>();
+tcp = new TCP_Client();
     // 初始化 rangeParams 的默认值
     rangeParams.nePinLengthLower = 0.0f;
     rangeParams.nePinWidthLower = 0.0f;
@@ -35,5 +38,51 @@ Cameral::Cameral(QObject *parent) :
 
 Cameral::~Cameral()
 {
+    //delete tcp;
+    //tcp=nullptr;
+   qDebug()<<"this is Cameral destroy";
+}
 
+
+bool Cameral::init(CommPorts port)
+{
+    return  this->tcp->initialize(port);
+}
+
+bool Cameral::doAction(const std::string& funcName,
+                       const HValues& inputValues,
+                       const HImages& inputImages,
+                       HValues& outputValues,
+                       HImages& outputImages,
+                       int& retCode, std::string& retMsg)
+{
+    qDebug()<<"Cameral::doAction";
+    return this->tcp->doAction(funcName,inputValues,inputImages,outputValues,outputImages,retCode,retMsg);
+}
+
+bool Cameral::start()
+{
+    return this->tcp->startWork();
+}
+
+void Cameral::stop()
+{
+     this->tcp->stopWork();
+}
+
+bool Cameral::RegsiterFunitFun(Callbackfunc func)
+{
+    return this->tcp->RegsiterFunitFun(func);
+}
+
+void Cameral::heartbeat_ui(HImages inputImages, HValues inputPrams,
+                           HImages& outputImages, HValues& outputParams,
+                           int& errcode, std::string& errmsg)
+{
+    qDebug()<<"enter";
+    qDebug()<<"inputPrams.m_Values.size()"<<inputPrams.m_Values.size();
+    if(inputPrams.m_Values.size()==0) qDebug()<<"error  heartbeat ";
+        if(inputPrams.m_Values[0].S()=="hello")  outputParams.m_Values.push_back(inputPrams.m_Values[0]);
+    else std::cout<<"error  heartbeat "<<std::endl;
+    qDebug()<<"outputParams.m_Values[0].S()"<<outputParams.m_Values[0].S();
 }

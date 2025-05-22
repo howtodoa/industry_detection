@@ -1,4 +1,0 @@
-F:/Industry_Detection/build/CMakeFiles/Industry_Detection.dir
-F:/Industry_Detection/build/CMakeFiles/edit_cache.dir
-F:/Industry_Detection/build/CMakeFiles/rebuild_cache.dir
-F:/Industry_Detection/build/CMakeFiles/Industry_Detection_autogen.dir

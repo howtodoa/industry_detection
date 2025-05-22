@@ -1,3 +1,0 @@
-set(__QT_DEPLOY_TARGET_Industry_Detection_FILE F:/Industry_Detection/build/Desktop_Qt_6_7_3_MSVC2022_64bit-Release/bin/Industry_Detection.exe)
-set(__QT_DEPLOY_TARGET_Industry_Detection_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_Industry_Detection_RUNTIME_DLLS F:/QT/6.7.3/msvc2022_64/bin/Qt6Widgets.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6VirtualKeyboard.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6Quick.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6QmlModels.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6Qml.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6Network.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6OpenGL.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6Gui.dll;F:/QT/6.7.3/msvc2022_64/bin/Qt6Core.dll)

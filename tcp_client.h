@@ -1,42 +1,47 @@
 #ifndef TCP_CLIENT_H
 #define TCP_CLIENT_H
 
-#include <QObject>
-#include <QMutex>
-#include <QString>
+//#include <QObject>
 #include <string>
-#include <QList>
+#include <mutex>
 #include "MZ_ClientControl.h"
 
-// ServerComm 结构体移到类外部
-struct ServerComm
+class TCP_Client
 {
-    CommPorts port;                          // 端口信息
-    Mz_ClientControl::ClientOperation* clientOp; // ClientOperation对象
-    bool isInitialized;                      // 标记是否已初始化
-    bool isRunning;                          // 标记是否正在运行
-};
-
-class TCP_Client : public QObject
-{
-    Q_OBJECT
+    //Q_OBJECT
 
 public:
-    explicit TCP_Client(QObject* parent = nullptr);
+
+    inline static TCP_Client* tcp1 = nullptr;
+   inline static TCP_Client* tcp2 = nullptr;
+   inline static TCP_Client* tcp3 = nullptr;
+   inline static TCP_Client* tcp4 = nullptr;
+    inline static TCP_Client* tcp5 = nullptr;
+   inline static TCP_Client* tcp6 = nullptr;
+    explicit TCP_Client();
+   // explicit TCP_Client(QObject* parent = nullptr);
     ~TCP_Client();
 
-    bool initialize(const std::string& portName); // 初始化某个端口
-    bool startWork(const std::string& portName);  // 启动某个端口的工作
-    void stopWork(const std::string& portName = ""); // 停止某个端口的工作
-    bool doAction(const std::string& portName, const std::string& funcName,
-                  const HValues& inputValues, const HImages& inputImages,
-                  HValues& outputValues, HImages& outputImages,
-                  int& retCode, std::string& retMsg); // 执行远程操作
+    bool initialize(const CommPorts& port);        // 初始化绑定端口
+    bool startWork();                              // 启动
+    void stopWork();                               // 停止
+    bool doAction(const std::string& funcName,
+                  const HValues& inputValues,
+                  const HImages& inputImages,
+                  HValues& outputValues,
+                  HImages& outputImages,
+                  int& retCode, std::string& retMsg);  // 执行功能
+   bool RegsiterFunitFun(Callbackfunc func);
+   bool GetFunList_Remote(CommPorts portname,vector<Callbackfunc>& funList);
+   bool GetRemoteCommports(vector<CommPorts>& commports);
 
-private:
-    ServerComm* findCommByName(const std::string& portName);  // 查找端口
-    QList<ServerComm> m_commInstances;  // 存储多个端口通信实例
-    QMutex m_mutex;                     // 线程同步锁
+    CommPorts m_port;
+    bool m_isInitialized = false;
+    bool m_isRunning = false;
+  Mz_ClientControl::ClientOperation* m_clientOp = nullptr;
+    private:
+    std::mutex m_mutex;
+
 };
 
 #endif // TCP_CLIENT_H

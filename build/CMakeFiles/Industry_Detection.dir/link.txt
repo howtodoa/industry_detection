@@ -1,3 +1,0 @@
-"E:\My  Download\Typeeasy\Launcher\bin\cmake.exe" -E rm -f CMakeFiles\Industry_Detection.dir/objects.a
-F:\QT\Tools\mingw1120_64\bin\ar.exe qc CMakeFiles\Industry_Detection.dir/objects.a @CMakeFiles\Industry_Detection.dir\objects1.rsp
-F:\QT\Tools\mingw1120_64\bin\g++.exe -DQT_QML_DEBUG -g -Wl,--whole-archive CMakeFiles\Industry_Detection.dir/objects.a -Wl,--no-whole-archive -o bin\Industry_Detection.exe -Wl,--out-implib,libIndustry_Detection.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Industry_Detection.dir\linkLibs.rsp

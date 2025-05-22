@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
-
+#include <functional>
 using namespace std;
 typedef struct _HValue
 {
@@ -343,16 +343,26 @@ typedef struct _HImages
 //绑定函数名称和对应的回调函数
 //函数的标准格式 functioName(inputImages,inputPrams,outputImages,outputPrams,errcode,errmsg);
 //errcode表示函数执行是否成功，0表示成功，其他表示失败，errmsg表示错误信息
-typedef void (*FunctionTableStream)(HImages inputImages, HValues inputPrams, HImages& outputImages, HValues& outputPrams, int& errcode, string& errmsg);
+//typedef void (*FunctionTableStream)(HImages inputImages, HValues inputPrams, HImages& outputImages, HValues& outputPrams, int& errcode, string& errmsg);
+
+namespace myproject {
+using FunctionTableStream = std::function<
+    void(HImages inputImages, HValues inputPrams, HImages& outputImages, HValues& outputPrams, int& errcode, string& errmsg)>;
+
+}
+
+
 typedef struct _Callbackfunc
 {
-	string funcname; //函数名称
-	int inputImagesnums; //输入图像个数
-	int inputPramsnums; //输入参数个数
-	int outputImagesnums; //输出图像个数
-	int outputPramsnums; //输出参数个数
-	FunctionTableStream func; //函数指针
+    string funcname; //函数名称
+    int inputImagesnums; //输入图像个数
+    int inputPramsnums; //输入参数个数
+    int outputImagesnums; //输出图像个数
+    int outputPramsnums; //输出参数个数
+   myproject:: FunctionTableStream func; //函数指针
 }Callbackfunc;
+
+
 //存储IP地址和端口号
 typedef struct _IPPort
 {
@@ -386,6 +396,7 @@ typedef struct _CommPorts
 	int isActAsServer; //是否作为服务端，0表示客户端，1表示服务端
 	std::string PortName;//注册端口名称
 	IPPort localhost_IP;//本机IP地址
+       IPPort remote_IP;//远程IP地址
 	void init()
 	{
 		isActAsServer = -1;

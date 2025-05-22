@@ -7,7 +7,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # 设置 C++ 标准
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 查找 Qt6 组件
@@ -17,6 +17,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets VirtualKeyboard)
 if(NOT Qt6_FOUND)
     find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets VirtualKeyboard)
 endif()
+
 
 # 定义源文件
 set(SOURCES
@@ -52,6 +53,7 @@ set(UI_FILES
     mainwindow.ui
 )
 
+
 # 创建可执行文件
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
 
@@ -75,6 +77,7 @@ if(Qt6_FOUND)
         Qt6::VirtualKeyboard
         "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"  # 相对路径，指向项目中的 lib 目录
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
+         Dbghelp
     )
 else()
     target_link_libraries(${PROJECT_NAME} PRIVATE

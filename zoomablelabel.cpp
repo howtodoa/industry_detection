@@ -150,7 +150,8 @@ void ZoomableLabel::paintEvent(QPaintEvent *event)
     painter.drawPixmap(drawPoint, scaled);  // 绘制图像
 }
 
-/*强行拉伸填充的版本
+/*
+ * 强行拉伸填充的版本
 void ZoomableLabel::updateScaledPixmap()
 {
     if (!originalPixmap.isNull()) {
@@ -183,6 +184,4 @@ void ZoomableLabel::paintEvent(QPaintEvent *event)
     QPoint drawPoint = rect().center() - QPoint(scaled.width() / 2, scaled.height() / 2) + offset;
     painter.drawPixmap(drawPoint, scaled);
 }
-
- * /
-
+*/

@@ -1,2 +1,0 @@
-# Hashes of file build rules.
-76b058dbb371cbdf9f2b08365da72078 CMakeFiles/Industry_Detection_autogen
