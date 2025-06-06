@@ -1,94 +1,45 @@
 #include "FileOperator.h"
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
 
-bool FileOperator::writeRangePara(const QString& filePath, const RangePara& range) {
+QJsonObject FileOperator::readJsonObject(const QString& filePath)
+{
     QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return {};
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError || !doc.isObject())
+        return {};
+
+    return doc.object();
+}
+
+bool FileOperator::writeJsonObject(const QString& filePath, const QJsonObject& obj)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
         return false;
-    }
-    QTextStream out(&file);
-    out << range.toString();
+
+    QJsonDocument doc(obj);
+    file.write(doc.toJson(QJsonDocument::Indented));
     file.close();
     return true;
 }
 
-bool FileOperator::writeCameralPara(const QString& filePath, const CameralPara& cam) {
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        return false;
-    }
-    QTextStream out(&file);
-    out << cam.toString();
-    file.close();
-    return true;
+QVariantMap FileOperator::readJsonMap(const QString& filePath)
+{
+    return readJsonObject(filePath).toVariantMap();
 }
 
-bool FileOperator::writeAlgorithmPara(const QString& filePath, const AlgorithmPara& algo) {
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        return false;
-    }
-    QTextStream out(&file);
-    out << algo.toString();
-    file.close();
-    return true;
-}
-
-RangePara FileOperator::readRangePara(const QString& filePath) {
-    QFile file(filePath);
-    RangePara param;
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return param;
-    }
-    QTextStream in(&file);
-    QString content = in.readAll();
-    file.close();
-
-    QStringList sections = content.split("\n\n", Qt::SkipEmptyParts);
-    for (const QString& section : sections) {
-        if (section.startsWith("范围参数：")) {
-            param.fromString(section);
-            break;
-        }
-    }
-    return param;
-}
-
-CameralPara FileOperator::readCameralPara(const QString& filePath) {
-    QFile file(filePath);
-    CameralPara param;
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return param;
-    }
-    QTextStream in(&file);
-    QString content = in.readAll();
-    file.close();
-
-    QStringList sections = content.split("\n\n", Qt::SkipEmptyParts);
-    for (const QString& section : sections) {
-        if (section.startsWith("相机参数：")) {
-            param.fromString(section);
-            break;
-        }
-    }
-    return param;
-}
-
-AlgorithmPara FileOperator::readAlgorithmPara(const QString& filePath) {
-    QFile file(filePath);
-    AlgorithmPara param;
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return param;
-    }
-    QTextStream in(&file);
-    QString content = in.readAll();
-    file.close();
-
-    QStringList sections = content.split("\n\n", Qt::SkipEmptyParts);
-    for (const QString& section : sections) {
-        if (section.startsWith("算法参数：")) {
-            param.fromString(section);
-            break;
-        }
-    }
-    return param;
+bool FileOperator::writeJsonMap(const QString& filePath, const QVariantMap& map)
+{
+    QJsonObject obj = QJsonObject::fromVariantMap(map);
+    return writeJsonObject(filePath, obj);
 }

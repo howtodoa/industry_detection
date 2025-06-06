@@ -2,32 +2,38 @@
 #define PARAWIDGET_H
 
 #include <QWidget>
-#include "public.h"
+#include <QVariantMap>
 #include "fileoperator.h"
 
 class QTabWidget;
-class QPushButton;
 
 class ParaWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ParaWidget(QWidget *parent = nullptr);
-    explicit ParaWidget(RangePara& rangeParams, CameralPara& cameralParams, AlgorithmPara& algoParams, QWidget *parent = nullptr);
+    explicit ParaWidget(const QString& rangePath, const QString& cameralPath, const QString& algoPath, QWidget *parent = nullptr);
     ~ParaWidget();
 
 private:
-    void setupRangeTab(QTabWidget* tabWidget, RangePara& rangeParams);
-    void setupCameralTab(QTabWidget* tabWidget, CameralPara& cameralParams);
-    void setupAlgorithmTab(QTabWidget* tabWidget, AlgorithmPara& algoParams);
+    void setupRangeTab(QTabWidget* tabWidget, const QVariantMap& rangeParams);
+    void setupCameralTab(QTabWidget* tabWidget, const QVariantMap& cameralParams);
+    void setupAlgorithmTab(QTabWidget* tabWidget, const QVariantMap& algoParams) ;
 
 private slots:
-    void saveCameralChanges(const QString& filePath, const CameralPara& cam);
-    void saveRangeChanges(const QString& filePath, const RangePara& range);
-    void saveAlgorithmChanges(const QString& filePath, const AlgorithmPara& algo);
-    void closeWindow(); // 关闭窗口
+   // void saveChanges(const QString& filePath); // 保存当前 tab 对应修改
+    void closeWindow();
 
 signals:
+    void parametersChanged(const QVariantMap& paramMap); //临时保存修改
+
+private:
+    QString rangePath;
+        QString cameralPath;
+        QString algoPath;
+
+    QVariantMap rangeModifiedMap_;
+     QVariantMap cameralModifiedMap_ ;
+    QVariantMap algoModifiedMap_ ;
 };
 
 #endif // PARAWIDGET_H

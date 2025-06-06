@@ -19,11 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void InitTcp();
-    void test_tcp();
-    TCP_Client * InitTcp(int index );
-    TCP_Client * InitTcp(CommPorts port);
-    void InitCam(int index);
+    void initcams(int camnumber);
     void CreateMenu();
     void CreateImageGrid();
     void SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<CameraLabelWidget*>& cameraLabels, QWidget* window);
@@ -40,6 +36,7 @@ private:
     QMenu *menuUser;    // "用户"菜单
    // QAction *loginAction; // 登录动作
     QVector<CameraLabelWidget *> cameraLabels;
+    QVector<Cameral *> cams;
 
 
 

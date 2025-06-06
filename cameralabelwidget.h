@@ -18,9 +18,7 @@ class CameraLabelWidget : public QWidget
     Q_OBJECT
 public:
     // 构造函数：index 用于生成唯一的名称、显示文字，parent 为父控件
-     explicit CameraLabelWidget(int index, const QString &fixedTextName, QWidget *parent = nullptr);
-   // explicit CameraLabelWidget(std::shared_ptr<Cameral> &cam,int index, const QString &fixedTextName, QWidget *parent = nullptr);
-//explicit CameraLabelWidget(Cameral *cam,int index, const QString &fixedTextName, QWidget *parent = nullptr);
+     explicit CameraLabelWidget(Cameral * cam, int index, const QString &fixedTextName, QWidget *parent = nullptr);
     static void pic_handle(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg);
     static void pic_display(HImages inputImages, HValues inputParams, HImages& outputImages, HValues& outputParams,int& errcode, string& errmsg);
     static void add_ui(HImages inputImages, HValues inputParams,  HImages& outputImages, HValues& outputParams,   int& errcode, std::string& errmsg);

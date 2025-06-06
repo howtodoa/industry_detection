@@ -1,23 +1,21 @@
-#ifndef FILEOPERATOR_H
-#define FILEOPERATOR_H
+#pragma once
 
 #include <QString>
-#include <QFile>
-#include <QTextStream>
-#include "public.h"
+#include <QJsonObject>
+#include <QVariantMap>
 
 class FileOperator
 {
 public:
-    // 分别写入三种类型的参数
-    static bool writeRangePara(const QString& filePath, const RangePara& range);
-    static bool writeCameralPara(const QString& filePath, const CameralPara& cam);
-    static bool writeAlgorithmPara(const QString& filePath, const AlgorithmPara& algo);
+    // 从 JSON 文件读取为 QJsonObject
+    static QJsonObject readJsonObject(const QString& filePath);
 
-    // 分别读取三种类型的参数
-    static RangePara readRangePara(const QString& filePath);
-    static CameralPara readCameralPara(const QString& filePath);
-    static AlgorithmPara readAlgorithmPara(const QString& filePath);
+    // 将 QJsonObject 写入文件
+    static bool writeJsonObject(const QString& filePath, const QJsonObject& obj);
+
+    // 从 JSON 文件读取为 QVariantMap（适合 UI 操作）
+    static QVariantMap readJsonMap(const QString& filePath);
+
+    // 将 QVariantMap 写入文件
+    static bool writeJsonMap(const QString& filePath, const QVariantMap& map);
 };
-
-#endif // FILEOPERATOR_H
