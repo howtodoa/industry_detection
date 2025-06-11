@@ -293,11 +293,11 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<C
         qWarning() << "Cameral::Cams 中数据不足，无法初始化 " << i << " 个相机框！";
         return;
     }
-    // 添加前 i 个相机框，使用新设计的 CameraLabelWidget
-    for (int idx = 0; idx < i && idx < cams.size(); ++idx) {  // 双重保护：idx < i 且 idx < cams.size()
+
+    for (int idx = 0; idx < i && idx < cams.size(); ++idx) {
         CameraLabelWidget* cameraLabel = new CameraLabelWidget(
             cams[idx],       // 使用 idx 而非 i 访问 cams
-            idx + 1,         // 假设编号从1开始
+            idx + 1,         // 编号从1开始
             CameralName(idx),
             window
             );
@@ -311,8 +311,8 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<C
     gridLayout->addWidget(emptyWidget, i / cols, i % cols);
 
     // 根据 i 动态调整窗口大小
-    int frameWidth = 200;  // 每个框的基准宽度（可调整）
-    int frameHeight = 150; // 每个框的基准高度（可调整）
+    int frameWidth = 200;  // 每个框的基准宽度
+    int frameHeight = 150; // 每个框的基准高度（
     int spacing = 10;      // 网格间距
     int margin = 20;       // 窗口边距
 

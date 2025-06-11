@@ -4,8 +4,15 @@
 #include <QElapsedTimer>
 #include <qthread.h>
 #include <QPixmap>
+#include <QMimeData>
+#include <QImageReader>
+#include <QUrl>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 #include "MZ_ADOConn.h"
 #include "ZoomableLabel.h"
+#include "imageviewerwindow.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap &pixmap) {
     HImage hImage;
@@ -148,15 +155,25 @@ CameraLabelWidget::CameraLabelWidget(Cameral *cam,int index, const QString &fixe
 
     });
 
-    cameraMenu->addMenuOption("全屏", [this]() {
+    // cameraMenu->addMenuOption("全屏", [this]() {
+    //     if (!currentPixmap.isNull()) {
+    //         FullScreenWindow *fullscreenWindow = new FullScreenWindow(currentPixmap);
+    //         fullscreenWindow->showFullScreen();
+    //     } else {
+    //         qDebug() << "当前没有图片可供显示";
+    //     }
+    // });
+    cameraMenu->addMenuOption("查看图像", [this]() {
         if (!currentPixmap.isNull()) {
-            FullScreenWindow *fullscreenWindow = new FullScreenWindow(currentPixmap);
-            fullscreenWindow->showFullScreen();
+            auto *viewer = new ImageViewerWindow(currentPixmap, nullptr);
+            viewer->setAttribute(Qt::WA_DeleteOnClose);
+            viewer->show();
         } else {
-            qDebug() << "当前没有图片可供显示";
+             auto *viewer = new ImageViewerWindow(nullptr);
+            viewer->setAttribute(Qt::WA_DeleteOnClose);
+            viewer->show();
         }
     });
-
 
     // 设置菜单按钮（箭头）样式：无边框，与固定文本高度一致
     cameraMenu->getMenuButton()->setStyleSheet(
@@ -244,3 +261,5 @@ QPixmap CameraLabelWidget::convertHImageToPixmap(const HImage& hImage) {
 
     return QPixmap::fromImage(image.copy());
 }
+
+

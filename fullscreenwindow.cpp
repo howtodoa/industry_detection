@@ -19,6 +19,8 @@ FullScreenWindow::FullScreenWindow(const QPixmap &pixmap, QWidget *parent)
     closeButton->setFixedSize(40, 40);
     closeButton->setStyleSheet("background-color: red; color: white; font-size: 20px; border-radius: 20px;");
     connect(closeButton, &QPushButton::clicked, this, &FullScreenWindow::close);
+
+
 }
 
 

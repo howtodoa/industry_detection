@@ -29,12 +29,15 @@ public:
 
     QLabel* getImageLabel() const { return imageLabel; }
 
+protected:
+
+
 private:
     QPixmap currentPixmap;
     ZoomableLabel *imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
     QLabel        *fixedText;  // 固定文本标签
     CameraMenu    *cameraMenu; // 操作菜单
-   // Cameral       *cameral;    // 摄像头参数对象
+
 };
 
 #endif // CAMERALABELWIDGET_H

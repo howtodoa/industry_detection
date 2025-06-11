@@ -62,103 +62,118 @@ ParaWidget::~ParaWidget()
 
 void ParaWidget::setupRangeTab(QTabWidget* tabWidget, const QVariantMap& rangeParams)
 {
+    // 创建主Tab
     QWidget* rangeTab = new QWidget;
     tabWidget->addTab(rangeTab, "范围参数");
 
-    QVBoxLayout* tabLayout = new QVBoxLayout(rangeTab);
-    QGridLayout* gridLayout = new QGridLayout;
+    QVBoxLayout* mainLayout = new QVBoxLayout(rangeTab);
+    QTabWidget* subTabWidget = new QTabWidget(this);
+    mainLayout->addWidget(subTabWidget);
 
-    int row = 0;
-
+    // 解析 "范围参数"
     if (rangeParams.contains("范围参数") && rangeParams["范围参数"].type() == QVariant::Map) {
-        const QVariantMap actualRangeParams = rangeParams["范围参数"].toMap();
+        const QVariantMap allTabsMap = rangeParams["范围参数"].toMap();
 
-        for (auto it = actualRangeParams.begin(); it != actualRangeParams.end(); ++it, ++row) {
-            const QString& paramKey = it.key();
-            const QVariant& paramValue = it.value();
+        for (auto tabIt = allTabsMap.begin(); tabIt != allTabsMap.end(); ++tabIt) {
+            QString tabName = tabIt.key(); // "检测项目1"
+            const QVariantMap paramMap = tabIt.value().toMap();
 
-            if (paramValue.type() == QVariant::Map) {
-                const QVariantMap paramDetails = paramValue.toMap();
-                QString valueStr = paramDetails.value("值").toString();
-                QString unitStr = paramDetails.value("单位").toString();
+            QWidget* subTab = new QWidget;
+            QVBoxLayout* tabLayout = new QVBoxLayout(subTab);
+            QGridLayout* gridLayout = new QGridLayout;
 
-                QLabel* label = new QLabel(paramKey, this);
-                QLineEdit* edit = new QLineEdit(valueStr, this);
+            int row = 0;
+            for (auto paramIt = paramMap.begin(); paramIt != paramMap.end(); ++paramIt, ++row) {
+                QString paramKey = paramIt.key(); // 如 "正极针上限"
+                const QVariantMap valueMap = paramIt.value().toMap();
+
+                QString valueStr = valueMap.value("值").toString();
+                QString unitStr = valueMap.value("单位").toString();
+
+                QLabel* nameLabel = new QLabel(paramKey, this);
+                QLineEdit* valueEdit = new QLineEdit(valueStr, this);
                 QLabel* unitLabel = new QLabel(unitStr, this);
 
-                // 控制 QLineEdit 宽度，使整体布局紧凑
-                edit->setFixedWidth(80);
-                unitLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+                // 控制缩进和对齐
+                nameLabel->setMinimumWidth(100);
+                valueEdit->setMaximumWidth(80);
+                unitLabel->setMinimumWidth(30);
 
-                // 初始化并监听修改
-                rangeModifiedMap_[paramKey] = edit->text();
-                connect(edit, &QLineEdit::textChanged, this, [=]() {
-                    rangeModifiedMap_[paramKey] = edit->text();
-                });
-
-                // 添加控件到布局
-                gridLayout->addWidget(label, row, 0, Qt::AlignRight);
-                gridLayout->addWidget(edit, row, 1);
+                // 缩小左右距离
+                gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight);
+                gridLayout->addWidget(valueEdit, row, 1);
                 gridLayout->addWidget(unitLabel, row, 2);
+
+                QString mapKey = tabName + "/" + paramKey;
+                rangeModifiedMap_[mapKey] = valueStr;
+
+                connect(valueEdit, &QLineEdit::textChanged, this, [=]() {
+                    rangeModifiedMap_[mapKey] = valueEdit->text();
+                });
             }
+
+            tabLayout->addLayout(gridLayout);
+            subTabWidget->addTab(subTab, tabName);
         }
     } else {
         QLabel* errorLabel = new QLabel("配置文件格式错误或为空。", this);
-        gridLayout->addWidget(errorLabel, 0, 0, 1, 3);
+        mainLayout->addWidget(errorLabel);
     }
 
-    tabLayout->addLayout(gridLayout);
-
-    // 底部按钮
+    // 添加保存与退出按钮
     QHBoxLayout* buttonLayout = new QHBoxLayout;
     QPushButton* saveButton = new QPushButton("保存修改", this);
     QPushButton* exitButton = new QPushButton("退出", this);
+
     buttonLayout->addStretch();
     buttonLayout->addWidget(saveButton);
     buttonLayout->addWidget(exitButton);
     buttonLayout->addStretch();
-    tabLayout->addLayout(buttonLayout);
+    mainLayout->addLayout(buttonLayout);
 
     // 保存逻辑
     connect(saveButton, &QPushButton::clicked, this, [this, rangeParams]() {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "保存确认", "确定要保存当前修改吗？",
-                                      QMessageBox::Yes | QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
-            QVariantMap dataToSaveActual;
+        QMessageBox::StandardButton reply = QMessageBox::question(this, "保存确认", "确定要保存当前修改吗？", QMessageBox::Yes | QMessageBox::No);
+        if (reply != QMessageBox::Yes) return;
 
-            for (auto it = rangeModifiedMap_.begin(); it != rangeModifiedMap_.end(); ++it) {
-                QString paramKey = it.key();
-                QString modifiedValue = it.value().toString();
+        QVariantMap rangeData;
 
-                QString originalUnit = "";
-                if (rangeParams.contains("范围参数") && rangeParams["范围参数"].type() == QVariant::Map) {
-                    const QVariantMap actualOriginalParams = rangeParams["范围参数"].toMap();
-                    if (actualOriginalParams.contains(paramKey) && actualOriginalParams[paramKey].type() == QVariant::Map) {
-                        originalUnit = actualOriginalParams[paramKey].toMap().value("单位").toString();
+        for (auto it = rangeModifiedMap_.begin(); it != rangeModifiedMap_.end(); ++it) {
+            QStringList parts = it.key().split("/");
+            if (parts.size() != 2) continue;
+
+            QString tabName = parts[0];
+            QString paramName = parts[1];
+            QString newValue = it.value().toString();
+
+            QString originalUnit;
+            if (rangeParams.contains("范围参数")) {
+                QVariantMap detectionItems = rangeParams["范围参数"].toMap();
+                if (detectionItems.contains(tabName)) {
+                    QVariantMap paramMap = detectionItems[tabName].toMap();
+                    if (paramMap.contains(paramName)) {
+                        originalUnit = paramMap[paramName].toMap().value("单位").toString();
                     }
                 }
-
-                QVariantMap paramEntry;
-                paramEntry["值"] = modifiedValue;
-                paramEntry["单位"] = originalUnit;
-
-                dataToSaveActual[paramKey] = paramEntry;
             }
 
-            QVariantMap finalDataToSave;
-            finalDataToSave["范围参数"] = dataToSaveActual;
+            QVariantMap valueUnit;
+            valueUnit["值"] = newValue;
+            valueUnit["单位"] = originalUnit;
 
-            FileOperator::writeJsonMap(rangePath, finalDataToSave);
-            QMessageBox::information(this, "保存成功", "范围参数已成功保存！");
+            QVariantMap tabMap = rangeData.value(tabName).toMap();
+            tabMap[paramName] = valueUnit;
+            rangeData[tabName] = tabMap;
         }
+
+        QVariantMap finalSave;
+        finalSave["范围参数"] = rangeData;
+        FileOperator::writeJsonMap(rangePath, finalSave);
+        QMessageBox::information(this, "保存成功", "范围参数已成功保存！");
     });
 
-    // 退出
     connect(exitButton, &QPushButton::clicked, this, &ParaWidget::closeWindow);
 }
-
-
 
 
 void ParaWidget::setupCameralTab(QTabWidget* tabWidget, const QVariantMap& cameralParams)

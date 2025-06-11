@@ -13,10 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 查找 Qt6 组件
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets VirtualKeyboard)
 
-# 如果 Qt6 未找到，可以尝试 Qt5 作为备用（可选）
-if(NOT Qt6_FOUND)
-    find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets VirtualKeyboard)
-endif()
+
 
 
 # 定义源文件
@@ -63,7 +60,9 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   cameralabelwidget.h cameralabelwidget.cpp
   zoomablelabel.h zoomablelabel.cpp
   fullscreenwindow.h fullscreenwindow.cpp
-  tcp_client.h tcp_client.cpp)
+  tcp_client.h tcp_client.cpp
+  imageviewerwindow.h imageviewerwindow.cpp
+  rangeclass.h rangeclass.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
