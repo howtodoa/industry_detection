@@ -6,6 +6,8 @@
 #include <atomic>
 #include <QString>
 #include "rangeclass.h"
+#include "algoclass.h"
+#include "cameralclass.h"
 #include "public.h"
 
 class Cameral : public QObject
@@ -18,7 +20,9 @@ public:
     QString algopath;
     QString rangepath;
     QString cameralpath;
-    RangeClass RC;
+    RangeClass *RC;
+    AlgoClass *AC;
+    CameralClass *CC;
     std::mutex mutex;
     std::atomic<bool> photoflag;
 };

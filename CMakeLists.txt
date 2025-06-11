@@ -62,7 +62,9 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   fullscreenwindow.h fullscreenwindow.cpp
   tcp_client.h tcp_client.cpp
   imageviewerwindow.h imageviewerwindow.cpp
-  rangeclass.h rangeclass.cpp)
+  rangeclass.h rangeclass.cpp
+  algoclass.h algoclass.cpp
+  cameralclass.h cameralclass.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")

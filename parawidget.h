@@ -3,7 +3,14 @@
 
 #include <QWidget>
 #include <QVariantMap>
+#include "rangeclass.h"
 #include "fileoperator.h"
+#include "cameralclass.h"
+#include "algoclass.h"
+#include <QCheckBox>
+#include <QLineEdit>
+#include<QMap>
+
 
 class QTabWidget;
 
@@ -11,29 +18,31 @@ class ParaWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ParaWidget(const QString& rangePath, const QString& cameralPath, const QString& algoPath, QWidget *parent = nullptr);
+    explicit ParaWidget( RangeClass *RC, CameralClass * CC, AlgoClass *AC,QWidget *parent = nullptr);
     ~ParaWidget();
 
 private:
-    void setupRangeTab(QTabWidget* tabWidget, const QVariantMap& rangeParams);
-    void setupCameralTab(QTabWidget* tabWidget, const QVariantMap& cameralParams);
-    void setupAlgorithmTab(QTabWidget* tabWidget, const QVariantMap& algoParams) ;
+    void setupRangeTab(QTabWidget* tabWidget);
+    void setupCameralTab(QTabWidget* tabWidget);
+    void setupAlgorithmTab(QTabWidget* tabWidget) ;
 
 private slots:
-   // void saveChanges(const QString& filePath); // 保存当前 tab 对应修改
+
     void closeWindow();
 
 signals:
     void parametersChanged(const QVariantMap& paramMap); //临时保存修改
 
 private:
-    QString rangePath;
-        QString cameralPath;
-        QString algoPath;
 
-    QVariantMap rangeModifiedMap_;
-     QVariantMap cameralModifiedMap_ ;
-    QVariantMap algoModifiedMap_ ;
+     RangeClass* m_rangeSettings;
+     CameralClass * m_cameralSettings;
+     AlgoClass *m_algoSettings;
+     QMap<QString, QMap<QString, QLineEdit*>> m_paramValueEdits;
+     QMap<QString, QMap<QString, QCheckBox*>> m_paramCheckboxes;
+  //  QVariantMap rangeModifiedMap_;
+   //  QVariantMap cameralModifiedMap_ ;
+  //  QVariantMap algoModifiedMap_ ;
 };
 
 #endif // PARAWIDGET_H

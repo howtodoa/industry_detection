@@ -4,6 +4,7 @@
 #include <QJsonObject>
 #include <QVariantMap>
 
+
 class FileOperator
 {
 public:
@@ -13,7 +14,7 @@ public:
     // 将 QJsonObject 写入文件
     static bool writeJsonObject(const QString& filePath, const QJsonObject& obj);
 
-    // 从 JSON 文件读取为 QVariantMap（适合 UI 操作）
+    // 从 JSON 文件读取为 QVariantMap
     static QVariantMap readJsonMap(const QString& filePath);
 
     // 将 QVariantMap 写入文件

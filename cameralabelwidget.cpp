@@ -144,9 +144,9 @@ CameraLabelWidget::CameraLabelWidget(Cameral *cam,int index, const QString &fixe
 
     cameraMenu->addMenuOption("参数", [this,cam]() {
         // 将 Cameral 的参数传入 ParaWidget 并显示
-        ParaWidget* parawidget = new ParaWidget(cam->rangepath,
-                                                cam->cameralpath,
-                                               cam->algopath);
+        ParaWidget* parawidget = new ParaWidget(cam->RC,
+                                                cam->CC,
+                                               cam->AC);
        parawidget->show();
     });
 

@@ -85,11 +85,15 @@ void MainWindow::initcams(int camnumber)
      QString rootpath = "F:/Industry_Detection/ini/camera";
    for(int i=1;i<=camnumber;i++)
     {
-         Cameral * cam=new Cameral();
+         Cameral * cam=new Cameral(this);
        cam->algopath = rootpath + QString::number(i) + "/algo.json";
        cam->cameralpath = rootpath + QString::number(i) + "/cameral.json";
        cam->rangepath = rootpath + QString::number(i) + "/range.json";
-         cams.push_back(cam);
+       cam->RC=new RangeClass(cam->rangepath);
+       cam->CC=new CameralClass();
+       cam->AC=new AlgoClass();
+
+        cams.push_back(cam);
    }
 }
 
