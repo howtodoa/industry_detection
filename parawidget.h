@@ -40,6 +40,13 @@ private:
      AlgoClass *m_algoSettings;
      QMap<QString, QMap<QString, QLineEdit*>> m_paramValueEdits;
      QMap<QString, QMap<QString, QCheckBox*>> m_paramCheckboxes;
+
+     QMap<QString, QMap<QString, QLineEdit*>> m_cameralValueEdits;  // 存储相机参数的 QLineEdit
+     QMap<QString, QMap<QString, QCheckBox*>> m_cameralCheckboxes;  // 存储相机参数的 QCheckBox
+
+     QMap<QString, QMap<QString, QLineEdit*>> m_algoValueEdits;
+     QMap<QString, QMap<QString, QCheckBox*>> m_algoCheckboxes;
+
   //  QVariantMap rangeModifiedMap_;
    //  QVariantMap cameralModifiedMap_ ;
   //  QVariantMap algoModifiedMap_ ;

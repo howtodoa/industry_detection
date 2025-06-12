@@ -90,7 +90,7 @@ void MainWindow::initcams(int camnumber)
        cam->cameralpath = rootpath + QString::number(i) + "/cameral.json";
        cam->rangepath = rootpath + QString::number(i) + "/range.json";
        cam->RC=new RangeClass(cam->rangepath);
-       cam->CC=new CameralClass();
+       cam->CC=new CameralClass(cam->cameralpath);
        cam->AC=new AlgoClass();
 
         cams.push_back(cam);
