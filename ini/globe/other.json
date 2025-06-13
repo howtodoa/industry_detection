@@ -1,0 +1,35 @@
+{
+
+            "OK_DIR": {
+                "值": "F:/Industry_Detection/data",
+                "单位": "ms",
+                "可见": "true",
+                "检测": "",
+                "类型": "string",
+                "范围": ""
+            },
+			"NG_DIR": {
+                "值": "F:/Industry_Detection/data",
+                "单位": "",
+                "可见": "true",
+                "检测": "",
+                "类型": "string",
+                "范围": ""
+            },
+		    "LOG_DIR": {
+                "值": "../../../log",
+                "单位": "",
+                "可见": "true",
+                "检测": "",
+                "类型": "string",
+                "范围": ""
+            },
+			"DATA_DIR": {
+                "值": "F:/Industry_Detection/data",
+                "单位": "",
+                "可见": "true",
+                "检测": "",
+                "类型": "string",
+                "范围": ""
+            }			
+}

@@ -94,7 +94,6 @@ Login::~Login()
 bool Login::validateLogin(const QString &role, const QString &password)
 {
     // 示例验证：验证角色和密码是否正确
-    // 可以根据实际需要调整验证规则，例如查询数据库或调用API
     if (role.isEmpty() || password.isEmpty()) {
         qDebug() << "角色或密码为空！";
         return false;

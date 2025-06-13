@@ -19,12 +19,14 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void loadjson_layer(const QString& filePath);
+    void loadjson_layer2(const QString& filePath);
     void initcams(int camnumber);
     void CreateMenu();
-    void CreateImageGrid();
+    void CreateImageGrid(int camnumber);
     void SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<CameraLabelWidget*>& cameraLabels, QWidget* window);
     QString CameralName(int &i);
-    QWidget* CreateEighthFrame();
+    QWidget* CreateEighthFrame(int camnumber);
     void setLabel(QVBoxLayout *layout, int row, int col);
     void test();
     Role role;
@@ -37,8 +39,8 @@ private:
    // QAction *loginAction; // 登录动作
     QVector<CameraLabelWidget *> cameraLabels;
     QVector<Cameral *> cams;
-
-
+    QVector<Camerinfo> caminfo;
+    QVector<QVector<QLabel*>> dataLabels;
 
 private slots:
 

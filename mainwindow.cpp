@@ -6,48 +6,169 @@
 #include "public.h"
 #include "parawidget.h"
 #include "syspara.h"
-
-
+#include "fileoperator.h"
 #include "cameralabelwidget.h"
 #include "MZ_ADOConn.h"
 #include "tcp_client.h"
+
 #include "QTimer"
-#include "TCP_Client.h"
+
+
+void MainWindow::loadjson_layer(const QString& filePath)
+{
+    // 使用 FileOperator 读取 JSON 文件为 QVariantMap
+    QVariantMap configMap = FileOperator::readJsonMap(filePath);
+
+
+    if (configMap.isEmpty()) {
+        qWarning() << "Failed to load configuration from" << filePath;
+        return;
+    }
+
+    // 从 configMap 中解析每个 ParamDetail，并将其 '值' 赋给 SystemPara 的静态成员
+    // 检查每个键是否存在，以避免潜在的崩溃并提供更好的错误提示
+    if (configMap.contains("OK_DIR")) {
+        ParamDetail detail(configMap.value("OK_DIR").toMap());
+        SystemPara::OK_DIR = detail.value.toString();
+        qDebug() << "Parsed OK_DIR:" << SystemPara::OK_DIR;
+    } else {
+        qWarning() << "JSON file missing 'OK_DIR' entry.";
+    }
+
+    if (configMap.contains("NG_DIR")) {
+        ParamDetail detail(configMap.value("NG_DIR").toMap());
+        SystemPara::NG_DIR = detail.value.toString();
+        qDebug() << "Parsed NG_DIR:" << SystemPara::NG_DIR;
+    } else {
+        qWarning() << "JSON file missing 'NG_DIR' entry.";
+    }
+
+    if (configMap.contains("LOG_DIR")) {
+        ParamDetail detail(configMap.value("LOG_DIR").toMap());
+        SystemPara::LOG_DIR = detail.value.toString();
+        qDebug() << "Parsed LOG_DIR:" << SystemPara::LOG_DIR;
+    } else {
+        qWarning() << "JSON file missing 'LOG_DIR' entry.";
+    }
+
+    if (configMap.contains("DATA_DIR")) {
+        ParamDetail detail(configMap.value("DATA_DIR").toMap());
+        SystemPara::DATA_DIR = detail.value.toString();
+        qDebug() << "Parsed DATA_DIR:" << SystemPara::DATA_DIR;
+    } else {
+        qWarning() << "JSON file missing 'DATA_DIR' entry.";
+    }
+
+    qDebug() << "JSON parsing complete and SystemPara members populated.";
+}
+
+void MainWindow::loadjson_layer2(const QString& filePath)
+{
+    // 使用 FileOperator 读取 JSON 文件为 QVariantMap
+    QVariantMap configMap = FileOperator::readJsonMap(filePath);
+
+    // 检查是否成功读取到配置
+    if (configMap.isEmpty()) {
+        qWarning() << "Failed to load configuration from" << filePath;
+        return;
+    }
+
+    // 遍历 configMap 中的所有顶层键（例如 "相机1"）
+    for (auto it = configMap.begin(); it != configMap.end(); ++it) {
+        if (it.value().type() == QVariant::Map) {
+            QVariantMap cameraData = it.value().toMap(); // 获取 "相机1" 下面的所有数据
+
+            Camerinfo currentCamera; // 创建一个 Camerinfo 对象来存储当前相机的信息
+
+            // 解析 "相机名称"
+            if (cameraData.contains("相机名称")) {
+                ParamDetail nameDetail(cameraData.value("相机名称").toMap());
+                currentCamera.name = nameDetail.value.toString();
+            } else {
+                qWarning() << "Missing '相机名称' for camera:" << it.key();
+            }
+
+            // 解析 "相机ip"
+            if (cameraData.contains("相机ip")) {
+                ParamDetail ipDetail(cameraData.value("相机ip").toMap());
+                currentCamera.ip = ipDetail.value.toString();
+            } else {
+                qWarning() << "Missing '相机ip' for camera:" << it.key();
+            }
+
+            // 解析 "相机port"
+            if (cameraData.contains("相机port")) {
+                ParamDetail portDetail(cameraData.value("相机port").toMap());
+                currentCamera.port = portDetail.value.toInt();
+            } else {
+                qWarning() << "Missing '相机port' for camera:" << it.key();
+            }
+
+            // 解析 "相机SN"
+            if (cameraData.contains("相机SN")) {
+                ParamDetail snDetail(cameraData.value("相机SN").toMap());
+                currentCamera.SN = snDetail.value.toString();
+            } else {
+                qWarning() << "Missing '相机SN' for camera:" << it.key();
+            }
+
+            // 解析 "相机配置文件路径"
+            if (cameraData.contains("配置文件路径")) {
+                ParamDetail snDetail(cameraData.value("配置文件路径").toMap());
+                currentCamera.path= snDetail.value.toString();
+            } else {
+                qWarning() << "Missing '配置文件路径' for camera:" << it.key();
+            }
+            // 将解析好的 Camerinfo 对象添加到 QVector 中
+            caminfo.append(currentCamera);
+            qDebug() << "Parsed Camera Info for" << it.key()
+                     << ": Name=" << currentCamera.name
+                     << ", IP=" << currentCamera.ip
+                     << ", Port=" << currentCamera.port
+                     << ", SN=" << currentCamera.SN
+                     <<",path="<<currentCamera.path;
+        } else {
+            qWarning() << "Top-level key '" << it.key() << "' is not a map. Skipping.";
+        }
+    }
+
+    qDebug() << "Camera configuration parsing complete.";
+}
 
 
 
 void MainWindow::test()
 {
 
-    QPixmap pixmap(":/images/resources/images/image.jpg");
-    cameraLabels[4]->displayimg(pixmap);
+   // QPixmap pixmap(":/images/resources/images/image.jpg");
+    //cameraLabels[4]->displayimg(pixmap);
 
     QPixmap pixmap1(":/images/resources/images/test.jpg");
-    cameraLabels[3]->displayimg(pixmap1);
+    cameraLabels[0]->displayimg(pixmap1);
 
 
-    int width = 2600;
-    int height = 2160;
-    int channels = 3;
-    int imageDataLength = width * height * channels;  // 数据长度
+    // int width = 2600;
+    // int height = 2160;
+    // int channels = 3;
+    // int imageDataLength = width * height * channels;  // 数据长度
 
-    // 为图片数据创建一个缓冲区，这里用随机数据来模拟图像数据
-    unsigned char* imageData = new unsigned char[imageDataLength];
-    // 填充图像数据（例如：将所有值设为 255 表示白色图像）
-    std::srand(std::time(0));
+    // // 为图片数据创建一个缓冲区，这里用随机数据来模拟图像数据
+    // unsigned char* imageData = new unsigned char[imageDataLength];
+    // // 填充图像数据（例如：将所有值设为 255 表示白色图像）
+    // std::srand(std::time(0));
 
-    // 填充图像数据（生成彩色图像）
-    for (int i = 0; i < imageDataLength; i += 3) {
-        imageData[i] = std::rand() % 256;       // R 通道（0-255）
-        imageData[i + 1] = std::rand() % 256;   // G 通道（0-255）
-        imageData[i + 2] = std::rand() % 256;   // B 通道（0-255）
-    }
-    // 创建 HImage 对象
-    HImage disimg(width, height, channels, imageDataLength, imageData);
+    // // 填充图像数据（生成彩色图像）
+    // for (int i = 0; i < imageDataLength; i += 3) {
+    //     imageData[i] = std::rand() % 256;       // R 通道（0-255）
+    //     imageData[i + 1] = std::rand() % 256;   // G 通道（0-255）
+    //     imageData[i + 2] = std::rand() % 256;   // B 通道（0-255）
+    // }
+    // // 创建 HImage 对象
+    // HImage disimg(width, height, channels, imageDataLength, imageData);
 
-    delete[] imageData;
+    // delete[] imageData;
 
-    cameraLabels[1]->displayimg(disimg);
+    // cameraLabels[0]->displayimg(disimg);
 }
 
 
@@ -72,13 +193,17 @@ MainWindow::MainWindow(QWidget *parent) :
     int x = (screenWidth - windowWidth) / 2;
     int y = (screenHeight - windowHeight) / 2;
     move(x, y);
-
-    initcams(7);
+    loadjson_layer("../../../ini/globe/other.json");
+    qDebug()<<"SystemPara::LOG_DIR"<<SystemPara::OK_DIR;
+    loadjson_layer2("../../../ini/globe/cameral.json");
+    qDebug()<<caminfo[0].name;
+    initcams(caminfo.size());
     CreateMenu();
-    CreateImageGrid();
-    test();
+    CreateImageGrid(caminfo.size());
+   test();
 
 }
+
 
 void MainWindow::initcams(int camnumber)
 {
@@ -91,7 +216,7 @@ void MainWindow::initcams(int camnumber)
        cam->rangepath = rootpath + QString::number(i) + "/range.json";
        cam->RC=new RangeClass(cam->rangepath);
        cam->CC=new CameralClass(cam->cameralpath);
-       cam->AC=new AlgoClass();
+       cam->AC=new AlgoClass(cam->algopath);
 
         cams.push_back(cam);
    }
@@ -120,37 +245,6 @@ void MainWindow::CreateMenu()
     menuTools = menuBar->addMenu("工具");
     menuUser = menuBar->addMenu("用户");
 
-
-
-    QMenu *menuStart = menuExecute->addMenu("运行全部检测");
-    QMenu *menuStop = menuExecute->addMenu("停止全部检测");
-
-
-
-    QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
-    QMenu *menuLight = menuTools->addMenu("光源与IO");
-    QMenu *menuSelfStart = menuTools->addMenu("开机自启动");
-    QMenu *menuSModeCancel = menuTools->addMenu("SModeCancel");
-    QMenu *menuSModeAutostart = menuTools->addMenu("SMode_Autostart");
-    QMenu *menuForceMode = menuTools->addMenu("ForceMode");
-
-
-    QMenu *menuLogout = menuUser->addMenu("注销");
-
-    QMenu *menuBlockCameral1 = menuBlock->addMenu("屏蔽正引脚输出");
-    QMenu *menuBlockCameral2 = menuBlock->addMenu("屏蔽座板输出");
-    QMenu *menuBlockCameral3 = menuBlock->addMenu("屏蔽负引脚输出");
-    QMenu *menuBlockCameral4 = menuBlock->addMenu("屏蔽捺印输出");
-    QMenu *menuBlockCameral5 = menuBlock->addMenu("屏蔽载带输出");
-    QMenu *menuBlockCameral6 = menuBlock->addMenu("屏蔽H部输出");
-    QMenu *menuBlockCameral7 = menuBlock->addMenu("屏蔽载带座板输出");
-    QMenu *menuBlockPLC = menuBlock->addMenu("启动PLC链接");
-
-    QAction *loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
-    QAction *LogAction = menuRecord->addAction("日志");
-    QAction *DataAction = menuRecord->addAction("数据");
-    QAction *SystemParaAction = menuTools->addAction("系统参数");
-
     // 获取或创建状态栏
     QStatusBar *statusBar = this->statusBar();
     if (!statusBar) {
@@ -165,6 +259,7 @@ void MainWindow::CreateMenu()
     QLabel *roleLabel = new QLabel(role.GetCurrentRole(), this);
     runtimeLabel->setStyleSheet("QLabel { color: black; }");
     roleLabel->setStyleSheet("QLabel { color: black; }");
+
 
     // 将 QLabel 添加到状态栏左侧
     statusBar->addWidget(runtimeLabel); // 靠左显示
@@ -185,6 +280,34 @@ void MainWindow::CreateMenu()
                                   .arg(secs, 2, 10, QChar('0')));
     });
     timer->start(100);
+
+    QMenu *menuStart = menuExecute->addMenu("运行全部检测");
+    QMenu *menuStop = menuExecute->addMenu("停止全部检测");
+
+
+
+  //  QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
+   // QMenu *menuLight = menuTools->addMenu("光源与IO");
+  //  QMenu *menuSelfStart = menuTools->addMenu("开机自启动");
+
+
+ //   QMenu *menuLogout = menuUser->addMenu("注销");
+    QAction* actionLogout = menuUser->addAction("注销");
+    connect(actionLogout, &QAction::triggered, this, [roleLabel](){
+        Role::ChangeRole("操作员");
+        roleLabel->setText(Role::GetCurrentRole());
+    });
+
+    // QMenu *menuBlockPLC = menuBlock->addMenu("启动PLC链接");
+
+    QAction *loginAction = menuUser->addAction("登录"); // 直接赋值给成员变量
+    QAction *LogAction = menuRecord->addAction("日志");
+    QAction *DataAction = menuRecord->addAction("数据");
+    QAction *SystemParaAction = menuTools->addAction("系统参数");
+
+
+
+
 
     // 连接登录动作以更新角色信息
     connect(loginAction, &QAction::triggered, this, [this, loginAction, roleLabel]() {
@@ -208,7 +331,7 @@ void MainWindow::CreateMenu()
     });
 
     connect(LogAction, &QAction::triggered, this, [this, LogAction]() {
-                QString logFolderPath = SystemPara::log_dir;
+                QString logFolderPath = SystemPara::LOG_DIR;
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
@@ -235,7 +358,7 @@ void MainWindow::CreateMenu()
     });
 
     connect(DataAction, &QAction::triggered, this, [this, DataAction]() {
-                QString logFolderPath = SystemPara::data_dir;
+                QString logFolderPath = SystemPara::DATA_DIR;
 
                 QDir dir(logFolderPath);
                 if (!dir.exists()) {
@@ -302,7 +425,7 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<C
         CameraLabelWidget* cameraLabel = new CameraLabelWidget(
             cams[idx],       // 使用 idx 而非 i 访问 cams
             idx + 1,         // 编号从1开始
-            CameralName(idx),
+            caminfo[idx].name,
             window
             );
         cameraLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -310,7 +433,7 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<C
         gridLayout->addWidget(cameraLabel, idx / cols, idx % cols);
     }
     // 添加第八个固定框
-    QWidget* emptyWidget = CreateEighthFrame();
+    QWidget* emptyWidget = CreateEighthFrame(i);
     emptyWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     gridLayout->addWidget(emptyWidget, i / cols, i % cols);
 
@@ -333,7 +456,7 @@ void MainWindow::SetupCameraGridLayout(int i, QGridLayout* gridLayout, QVector<C
     window->resize(windowWidth, windowHeight);
 }
 
-void MainWindow::CreateImageGrid()
+void MainWindow::CreateImageGrid(int camnumber)
 {
     // 创建中央控件，并设置可扩展属性
     QWidget *centralWidget = new QWidget(this);
@@ -347,7 +470,7 @@ void MainWindow::CreateImageGrid()
 
     // 根据相机数量创建相机标签（注意：cameraLabels 类型为 QVector<CameraLabelWidget*>）
     // 使用 centralWidget 作为窗口参数，便于在中央控件中查找子控件
-    SetupCameraGridLayout(7, gridLayout, cameraLabels, centralWidget);
+    SetupCameraGridLayout(camnumber, gridLayout, cameraLabels, centralWidget);
 
     // 设置行列拉伸因子，确保网格中的控件均分空间
     for (int row = 0; row < 2; ++row) {
@@ -373,7 +496,7 @@ QString MainWindow::CameralName(int &i)
 }
 
 
-QWidget* MainWindow::CreateEighthFrame()
+QWidget* MainWindow::CreateEighthFrame(int camnumber)
 {
     // 创建容器控件
     QWidget *container = new QWidget(this);
@@ -385,87 +508,105 @@ QWidget* MainWindow::CreateEighthFrame()
     mainLayout->setContentsMargins(5, 5, 5, 5);
     mainLayout->setSpacing(5);
 
-    // 创建 8 行，每行 4 个标签
-    for (int row = 0; row < 10; ++row) {
+    // 清空之前可能遗留的 Label 指针，防止内存泄漏和错误引用
+    dataLabels.clear();
+
+    // 计算总行数：1行标题 + camnumber行相机数据 + 1行总和 + 1行按钮
+    // 原代码是10行，其中 8行是数据行，1行总和，1行按钮
+    // 现在是 1行标题 + camnumber 行 + 1行总和 + 1行按钮
+    int totalRows = 1 + camnumber + 1 + 1; // 标题行 + 相机数据行 + "总和"行 + 按钮行
+
+    for (int row = 0; row < totalRows; ++row) {
         QHBoxLayout *rowLayout = new QHBoxLayout();
         rowLayout->setSpacing(3);
 
+        // 每行创建的 QLabel 存储在这个临时向量中，用于后续添加到 dataLabels
+        QVector<QLabel*> currentRowLabels;
+
         for (int col = 0; col < 4; ++col) {
             QString text;
-            // 第一行 (row == 0)
-            if (row == 0 && col == 0) {
-                text = "相机";
-            } else if (row == 0 && col == 1) {
-                text = "总数";
-            } else if (row == 0 && col == 2) {
-                text = "NG";
-            } else if (row == 0 && col == 3) {
-                text = "良率";
-            }
-            // 第二行 (row == 1)
-            else if (row == 1 && col == 0) {
-                text = "正引脚";
-            }
-            // 第三行 (row == 2)
-            else if (row == 2 && col == 0) {
-                text = "座板";
-            }
-            // 第四行 (row == 3)
-            else if (row == 3 && col == 0) {
-                text = "负引脚";
-            }
-            // 第五行 (row == 4)
-            else if (row == 4 && col == 0) {
-                text = "捺印";
-            }
-            // 第六行 (row == 5)
-            else if (row == 5 && col == 0) {
-                text = "载带";
-            }
-            // 第七行 (row == 6)
-            else if (row == 6 && col == 0) {
-                text = "H部";
-            }
-            // 第八行 (row == 7)
-            else if (row == 7 && col == 0) {
-                text = "载带座板";
-            }
-            else if (row == 8 && col == 3) {
-                text = "总和";
-            }
-            else if (row == 9 && col == 0) {
-                text = "触发";
-            }
-            else if (row == 9 && col == 1) {
-                text = "启动";
-            }
-            else if (row == 9 && col == 2) {
-                text = "停止";
-            }
-            else if (row == 9 && col == 3) {
-                text = "一键清理";
-            }
-            // 其他位置为空
-            else {
-                text = "";
-            }
+            QLabel *label;
+            QFont font;
 
-            QLabel *label = new QLabel(text, container);
+            // 设置通用样式和字体
+            font.setPointSize(18); // 稍微调小字体，以便在表格中容纳更多内容
+            label = new QLabel("", container); // 先创建空标签，后续设置文本
+
             label->setAlignment(Qt::AlignCenter);
-            QFont font = label->font();
-            font.setPointSize(20);
             label->setFont(font);
             label->setStyleSheet("background-color: white; border: 1px solid gray;");
             label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+            // 第一行 (row == 0) - 标题行
+            if (row == 0) {
+                if (col == 0) text = "相机";
+                else if (col == 1) text = "总数";
+                else if (col == 2) text = "NG";
+                else if (col == 3) text = "良率";
+                label->setFont(QFont("微软雅黑", 20, QFont::Bold)); // 标题加粗，字体大一点
+                label->setStyleSheet("background-color: lightgray; border: 1px solid gray;"); // 标题背景色
+            }
+            // 动态创建相机数据行
+            else if (row > 0 && row <= camnumber) {
+                int cameraIndex = row - 1; // 对应 caminfo 数组的索引
+                if (cameraIndex < caminfo.size()) { // 确保索引不越界
+                    if (col == 0) {
+                        text = caminfo[cameraIndex].name; // 相机名称
+                        label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 名称左对齐
+                        label->setContentsMargins(10, 0, 0, 0); // 左侧留白
+                        label->setFont(QFont("微软雅黑", 16, QFont::DemiBold)); // 相机名称字体
+                    } else {
+                        text = "0"; // 总数, NG, 良率 初始为 0
+                    }
+                } else {
+                    // 如果 caminfo 数量不足 camnumber，则显示空或默认值
+                    if (col == 0) text = QString("未知相机%1").arg(cameraIndex + 1);
+                    else text = "0";
+                    qWarning() << "caminfo does not have enough entries for camnumber:" << camnumber;
+                }
+                // 存储数据标签的指针，以便后续更新（仅限数据列，不包含相机名称列）
+                if (col > 0) {
+                    currentRowLabels.append(label);
+                }
+            }
+            // "总和" 行 (在所有相机数据行之后)
+            else if (row == camnumber + 1) { // 标题行 (0) + camnumber行数据 + 1行
+                if (col == 0) { // 只有最后一列是“总和”
+                    text = "总和";
+                    label->setFont(QFont("微软雅黑", 18, QFont::Bold));
+                    label->setStyleSheet("background-color: #E0E0E0; border: 1px solid gray;"); // 略深背景
+                } else {
+                    text = ""; // 其他列为空
+                    label->setStyleSheet("background-color: #E0E0E0; border: 1px solid gray;");
+                }
+            }
+            // 按钮行 (最后一行)
+            else if (row == camnumber + 2) { // 标题行 (0) + camnumber行数据 + "总和"行 (1) + 1行
+                // 在按钮行，你可能想用 QPushButton 而不是 QLabel
+                // 这里为了保持 QLabel 的统一性，暂时用 QLabel，但建议后续替换为 QPushButton
+                if (col == 0) { text = "触发"; label->setStyleSheet("background-color: lightblue; border: 1px solid gray;"); }
+                else if (col == 1) { text = "启动"; label->setStyleSheet("background-color: lightgreen; border: 1px solid gray;"); }
+                else if (col == 2) { text = "停止"; label->setStyleSheet("background-color: lightcoral; border: 1px solid gray;"); }
+                else if (col == 3) { text = "一键清理"; label->setStyleSheet("background-color: lightyellow; border: 1px solid gray;"); }
+                label->setFont(QFont("微软雅黑", 18, QFont::Bold));
+            }
+
+            label->setText(text); // 设置最终文本
             rowLayout->addWidget(label);
         }
         mainLayout->addLayout(rowLayout);
+
+        // 如果是数据行，将当前行的 QLabel 指针保存到 dataLabels
+        if (row > 0 && row <= camnumber) {
+            dataLabels.append(currentRowLabels);
+        }
     }
-    setLabel(mainLayout, 1, 1);
+
+    // setLabel(mainLayout, 1, 1); // 你的原始代码中有一个 setLabel 调用，但没有提供其定义。
+    // 如果它用于动态更新标签，你需要根据新的结构调整它。
+    // 如果它是一个占位符或旧功能，可能需要移除。
     return container;
 }
-
-
 
 void MainWindow::setLabel(QVBoxLayout *layout, int row, int col)
 {

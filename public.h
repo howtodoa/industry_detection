@@ -154,8 +154,20 @@ public:
 struct SystemPara
 {
 public:
-    static QString data_dir;
-    static QString log_dir;
+    static QString OK_DIR;
+    static QString NG_DIR;
+    static QString LOG_DIR;
+    static QString DATA_DIR;
+};
+
+struct Camerinfo
+{
+public:
+    QString name;
+    QString ip;
+    int port;
+    QString SN;
+    QString path;
 };
 
 #endif // PUBLIC_H

@@ -25,6 +25,7 @@ private:
     void setupRangeTab(QTabWidget* tabWidget);
     void setupCameralTab(QTabWidget* tabWidget);
     void setupAlgorithmTab(QTabWidget* tabWidget) ;
+    void setupDebugTab(QTabWidget* tabWidget) ;
 
 private slots:
 
@@ -47,9 +48,10 @@ private:
      QMap<QString, QMap<QString, QLineEdit*>> m_algoValueEdits;
      QMap<QString, QMap<QString, QCheckBox*>> m_algoCheckboxes;
 
-  //  QVariantMap rangeModifiedMap_;
-   //  QVariantMap cameralModifiedMap_ ;
-  //  QVariantMap algoModifiedMap_ ;
+ private slots:
+     void onCalibClicked();
+     void onROIClicked();
+     void onRecipeClicked();
 };
 
 #endif // PARAWIDGET_H

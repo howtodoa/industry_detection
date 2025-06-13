@@ -14,8 +14,8 @@ SysPara::SysPara(QWidget *parent) : QWidget(parent)
     setStyleSheet("SysPara { background-color: white; }");
 
     // 创建控件
-    dataDirEdit = new QLineEdit(SystemPara::data_dir, this);
-    logDirEdit = new QLineEdit(SystemPara::log_dir, this);
+    dataDirEdit = new QLineEdit(SystemPara::DATA_DIR, this);
+    logDirEdit = new QLineEdit(SystemPara::LOG_DIR, this);
     QPushButton *modifyButton = new QPushButton("修改", this);
     QPushButton *cancelButton = new QPushButton("取消", this);
 
@@ -57,8 +57,8 @@ SysPara::SysPara(QWidget *parent) : QWidget(parent)
 void SysPara::onModifyClicked()
 {
     // 读取文本框的值并更新 SystemPara
-    SystemPara::data_dir = dataDirEdit->text();
-    SystemPara::log_dir = logDirEdit->text();
+    SystemPara::DATA_DIR = dataDirEdit->text();
+    SystemPara::LOG_DIR = logDirEdit->text();
 
     QMessageBox::information(this, "提示", "参数已修改");
     close(); // 关闭窗口
