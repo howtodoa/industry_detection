@@ -8,6 +8,7 @@
 #include "syspara.h"
 #include "fileoperator.h"
 #include "cameralabelwidget.h"
+#include "addcameradialog.h"
 #include "MZ_ADOConn.h"
 #include "tcp_client.h"
 
@@ -59,6 +60,13 @@ void MainWindow::loadjson_layer(const QString& filePath)
         qWarning() << "JSON file missing 'DATA_DIR' entry.";
     }
 
+    if (configMap.contains("ROOT_DIR")) {
+        ParamDetail detail(configMap.value("ROOT_DIR").toMap());
+        SystemPara::ROOT_DIR = detail.value.toString();
+        qDebug() << "Parsed ROOT_DIR:" << SystemPara::ROOT_DIR;
+    } else {
+        qWarning() << "JSON file missing 'ROOT_DIR' entry.";
+    }
     qDebug() << "JSON parsing complete and SystemPara members populated.";
 }
 
@@ -79,6 +87,15 @@ void MainWindow::loadjson_layer2(const QString& filePath)
             QVariantMap cameraData = it.value().toMap(); // 获取 "相机1" 下面的所有数据
 
             Camerinfo currentCamera; // 创建一个 Camerinfo 对象来存储当前相机的信息
+
+            // 相机是否可见,如果不可见直接跳过
+            if (cameraData.contains("检测")) {
+                ParamDetail nameDetail(cameraData.value("检测").toMap());
+                currentCamera.check = nameDetail.value.toString();
+                if(currentCamera.check=="false") continue;
+            } else {
+                qWarning() << "Missing '相机名称' for camera:" << it.key();
+            }
 
             // 解析 "相机名称"
             if (cameraData.contains("相机名称")) {
@@ -193,6 +210,7 @@ MainWindow::MainWindow(QWidget *parent) :
     int x = (screenWidth - windowWidth) / 2;
     int y = (screenHeight - windowHeight) / 2;
     move(x, y);
+    init_log();
     loadjson_layer("../../../ini/globe/other.json");
     qDebug()<<"SystemPara::LOG_DIR"<<SystemPara::OK_DIR;
     loadjson_layer2("../../../ini/globe/cameral.json");
@@ -204,21 +222,74 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+void MainWindow::init_log()
+{
+    GlobalLog::logger.Mz_GetInstance(L"app.log");
 
+    // 写入日志
+    LOG_DEBUG(GlobalLog::logger, L"Application started.");
+      GlobalLog::logger.Mz_AddLog(L"hello");
+
+    // 模拟日期检查（通常由定时器或每次写入时触发）
+    GlobalLog::logger.Mz_CheckDateTime();
+
+    // 释放资源（删除所有日志文件！）
+    //    logger.Mz_Realse();
+
+}
 void MainWindow::initcams(int camnumber)
 {
-     QString rootpath = "F:/Industry_Detection/ini/camera";
+     QString rootpath = SystemPara::ROOT_DIR;
    for(int i=1;i<=camnumber;i++)
     {
          Cameral * cam=new Cameral(this);
-       cam->algopath = rootpath + QString::number(i) + "/algo.json";
-       cam->cameralpath = rootpath + QString::number(i) + "/cameral.json";
-       cam->rangepath = rootpath + QString::number(i) + "/range.json";
+       // cam->algopath = rootpath +"" QString::number(i) + "/algo.json";
+       // cam->cameralpath = rootpath + QString::number(i) + "/cameral.json";
+       // cam->rangepath = rootpath + QString::number(i) + "/range.json";
+         cam->rangepath=caminfo[i-1].path+ "/range.json";
+         cam->cameralpath=caminfo[i-1].path+"/cameral.json";
+         cam->algopath=caminfo[i-1].path+ "/algo.json";
+
+         QString dateStr = QDate::currentDate().toString("yyyyMMdd");
+         cam->ok_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].name+"/OK/"+dateStr;
+
+         qDebug()<<"  cam->ok_path:     "<<  cam->ok_path;
+
+         if (!QDir(cam->ok_path).exists()) {
+             QDir dir;
+             if (dir.mkpath(cam->ok_path)) {
+                 qDebug() << "路径创建成功:" << cam->ok_path;
+             } else {
+                 qDebug() << "路径创建失败:" << cam->ok_path;
+             }
+         } else {
+             qDebug() << "路径已存在:" << cam->ok_path;
+         }
+
+
+         cam->ng_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].name+"/NG/"+dateStr;
+
+         qDebug()<<"  cam->ng_path:     "<<  cam->ng_path;
+
+         if (!QDir(cam->ng_path).exists()) {
+             QDir dir;
+             if (dir.mkpath(cam->ng_path)) {
+                 qDebug() << "路径创建成功:" << cam->ng_path;
+             } else {
+                 qDebug() << "路径创建失败:" << cam->ng_path;
+             }
+         } else {
+             qDebug() << "路径已存在:" << cam->ng_path;
+         }
+
+
+
        cam->RC=new RangeClass(cam->rangepath);
        cam->CC=new CameralClass(cam->cameralpath);
        cam->AC=new AlgoClass(cam->algopath);
 
         cams.push_back(cam);
+
    }
 }
 
@@ -288,10 +359,9 @@ void MainWindow::CreateMenu()
 
   //  QMenu *menuBlock = menuTools->addMenu("屏蔽输出");
    // QMenu *menuLight = menuTools->addMenu("光源与IO");
-  //  QMenu *menuSelfStart = menuTools->addMenu("开机自启动");
+    QAction*ActionSelfStart = menuTools->addAction("开机自启动");
 
 
- //   QMenu *menuLogout = menuUser->addMenu("注销");
     QAction* actionLogout = menuUser->addAction("注销");
     connect(actionLogout, &QAction::triggered, this, [roleLabel](){
         Role::ChangeRole("操作员");
@@ -304,9 +374,13 @@ void MainWindow::CreateMenu()
     QAction *LogAction = menuRecord->addAction("日志");
     QAction *DataAction = menuRecord->addAction("数据");
     QAction *SystemParaAction = menuTools->addAction("系统参数");
+    QAction *CameralSetAction = menuTools->addAction("相机配置");
 
 
-
+    connect(CameralSetAction, &QAction::triggered, this, [=]() {
+        AddCameraDialog dlg("../../../ini/globe/cameral.json", this);
+        dlg.exec();  // 使用 exec() 以对话框方式打开
+    });
 
 
     // 连接登录动作以更新角色信息
@@ -602,9 +676,7 @@ QWidget* MainWindow::CreateEighthFrame(int camnumber)
         }
     }
 
-    // setLabel(mainLayout, 1, 1); // 你的原始代码中有一个 setLabel 调用，但没有提供其定义。
     // 如果它用于动态更新标签，你需要根据新的结构调整它。
-    // 如果它是一个占位符或旧功能，可能需要移除。
     return container;
 }
 

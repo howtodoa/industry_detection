@@ -20,6 +20,8 @@ public:
     QString algopath;
     QString rangepath;
     QString cameralpath;
+    QString ok_path;
+    QString ng_path;
     RangeClass *RC;
     AlgoClass *AC;
     CameralClass *CC;

@@ -2,7 +2,6 @@
 #include <QDebug>
 #include <QString>
 #include "mainwindow.h"
-
 #include <windows.h>
 #include <dbghelp.h>
 

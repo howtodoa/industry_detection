@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void init_log();
     void loadjson_layer(const QString& filePath);
     void loadjson_layer2(const QString& filePath);
     void initcams(int camnumber);

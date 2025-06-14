@@ -79,6 +79,8 @@ qDebug()<<"start1";
     qDebug()<<"start2";
 }
 
+
+
 void CameraLabelWidget::add_ui(HImages inputImages, HValues inputParams,
          HImages& outputImages, HValues& outputParams,
          int& errcode, std::string& errmsg)
@@ -134,12 +136,19 @@ CameraLabelWidget::CameraLabelWidget(Cameral *cam,int index, const QString &fixe
     cameraMenu->addMenuOption("停止", [index,this]() {
         qDebug() << "摄像头" << index + 1 << "的选项 停止 被点击";
     });
-    cameraMenu->addMenuOption("OK", [index,this]() {
+    cameraMenu->addMenuOption("OK", [index,this,cam]() {
         qDebug() << "摄像头" << index + 1 << "的选项 OK 被点击";
+
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(cam->ok_path))) {
+            qWarning() << "无法打开路径:" << cam->ok_path;
+        }
     });
 
-    cameraMenu->addMenuOption("NG", [index,this]() {
+    cameraMenu->addMenuOption("NG", [index,this,cam]() {
         qDebug() << "摄像头" << index + 1 << "的选项 NG 被点击";
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(cam->ng_path))) {
+            qWarning() << "无法打开路径:" << cam->ng_path;
+        }
     });
 
     cameraMenu->addMenuOption("参数", [this,cam]() {

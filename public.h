@@ -23,6 +23,14 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QHBoxLayout>
+#include "Mz_LogConn.h"
+
+
+namespace GlobalLog {
+extern Mz_Log::COperation logger;
+}
+
+#define LOG_DEBUG(logger, msg) logger.Mz_AddLogEx(msg, _T(__FILE__), __LINE__)
 
 
 struct RangePara {
@@ -158,6 +166,7 @@ public:
     static QString NG_DIR;
     static QString LOG_DIR;
     static QString DATA_DIR;
+    static QString ROOT_DIR;
 };
 
 struct Camerinfo
@@ -168,6 +177,7 @@ public:
     int port;
     QString SN;
     QString path;
+    QString check;
 };
 
 #endif // PUBLIC_H

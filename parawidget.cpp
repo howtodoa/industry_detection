@@ -1004,17 +1004,21 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     QPushButton* roiButton = new QPushButton("ROI", debugPage);
     QPushButton* recipeButton = new QPushButton("配方", debugPage);
      QPushButton* choosepicButton = new QPushButton("选择图片", debugPage);
+     QPushButton* shieldButton = new QPushButton("屏蔽", debugPage);
 
     QSize buttonSize(160, 30);
     calibButton->setFixedSize(buttonSize);
     roiButton->setFixedSize(buttonSize);
     recipeButton->setFixedSize(buttonSize);
     choosepicButton->setFixedSize(buttonSize);
+    shieldButton->setFixedSize(buttonSize);
+
     // 添加按钮到布局
     layout->addWidget(calibButton);
     layout->addWidget(roiButton);
     layout->addWidget(recipeButton);
     layout->addWidget(choosepicButton);
+    layout->addWidget(shieldButton);
 
     // 占位符：连接槽函数（后续实现）
     connect(calibButton, &QPushButton::clicked, this, &ParaWidget::onCalibClicked);
