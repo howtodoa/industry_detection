@@ -69,7 +69,9 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
   algoclass.h algoclass.cpp
   cameralclass.h cameralclass.cpp
   addcameradialog.h addcameradialog.cpp
-  include/Mz_LogConn.h)
+  include/Mz_LogConn.h
+  rezultinfo.h rezultinfo.cpp
+  rezultinfo_nayin.h rezultinfo_nayin.cpp)
 
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")

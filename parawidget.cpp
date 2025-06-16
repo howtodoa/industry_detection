@@ -91,7 +91,7 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         QLabel* infoLabel = new QLabel("未找到任何范围参数，请检查配置文件。", this);
         infoLabel->setStyleSheet("color: blue;");
         mainLayout->addWidget(infoLabel);
-        return; // 直接返回，不再使用 goto
+        return;
     }
 
     for (auto projectIt = allRangeParameters.detectionProjects.begin();
@@ -107,7 +107,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         QGridLayout* gridLayout = new QGridLayout;
         gridLayout->setVerticalSpacing(5); // 增加垂直间距
         gridLayout->setHorizontalSpacing(10); // 增加水平间距
-
 
         int row = 0;
 
@@ -147,18 +146,35 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
 
             // 设置验证器 (实时输入限制)
             if (!paramDetail.range.isEmpty()) {
-                QStringList rangeParts = paramDetail.range.split('-');
-                if (rangeParts.size() == 2) {
+                // 优化范围解析，以便正确处理负数范围，例如 "-100-10"
+                QString minStr;
+                QString maxStr;
+                int lastDashIndex = paramDetail.range.lastIndexOf('-');
+
+                // 检查是否有至少一个 '-'
+                if (lastDashIndex == -1) {
+                    qWarning() << "Range format invalid (no dash):" << paramDetail.range;
+                    // 不设置 validator，或设置一个宽松的，但后续保存校验会捕获
+                } else if (lastDashIndex == 0) { // 比如 "-10"，被认为是无效格式，因为只有min没有max
+                    qWarning() << "Range format invalid (dash at start, no max):" << paramDetail.range;
+                }
+                else {
+                    minStr = paramDetail.range.left(lastDashIndex);
+                    maxStr = paramDetail.range.mid(lastDashIndex + 1);
+
                     bool okMin, okMax;
-                    double minVal = rangeParts.at(0).toDouble(&okMin);
-                    double maxVal = rangeParts.at(1).toDouble(&okMax);
+                    double minValDouble = minStr.toDouble(&okMin);
+                    double maxValDouble = maxStr.toDouble(&okMax);
 
                     if (okMin && okMax) {
                         QValidator* validator = nullptr;
                         if (paramDetail.type.toLower() == "int") {
-                            validator = new QIntValidator(static_cast<int>(minVal), static_cast<int>(maxVal), this);
+                            int minInt = static_cast<int>(minValDouble);
+                            int maxInt = static_cast<int>(maxValDouble);
+                            validator = new QIntValidator(minInt, maxInt, this);
                         } else if (paramDetail.type.toLower() == "float") {
-                            validator = new QDoubleValidator(minVal, maxVal, 3, this); // 3 为小数位数
+                            validator = new QDoubleValidator(minValDouble, maxValDouble, 3, this); // 3 为小数位数
+                            static_cast<QDoubleValidator*>(validator)->setNotation(QDoubleValidator::StandardNotation);
                         }
                         if (validator) {
                             valueEdit->setValidator(validator);
@@ -168,8 +184,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
                     } else {
                         qWarning() << "Failed to parse range values for param:" << paramName << " range:" << paramDetail.range;
                     }
-                } else {
-                    qWarning() << "Invalid range format for param:" << paramName << " range:" << paramDetail.range;
                 }
             } else {
                 qDebug() << "Range is empty for param:" << paramName << ". No validator applied.";
@@ -180,13 +194,13 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             m_paramCheckboxes[projectName].insert(paramName, checkCheckBox);
 
             // 将控件添加到网格布局，明确指定列索引和对齐方式
-            gridLayout->addWidget(nameLabel,       row, 0, Qt::AlignRight | Qt::AlignVCenter);
-            gridLayout->addWidget(valueEdit,       row, 1, Qt::AlignLeft | Qt::AlignVCenter);
-            gridLayout->addWidget(unitLabel,       row, 2, Qt::AlignLeft | Qt::AlignVCenter);
-            gridLayout->addWidget(rangeLabel,      row, 3, Qt::AlignRight | Qt::AlignVCenter);
-            gridLayout->addWidget(rangeValueLabel, row, 4, Qt::AlignLeft | Qt::AlignVCenter);
-            gridLayout->addWidget(checkLabel,      row, 5, Qt::AlignRight | Qt::AlignVCenter);
-            gridLayout->addWidget(checkCheckBox,   row, 6, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(nameLabel,         row, 0, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(valueEdit,         row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(unitLabel,         row, 2, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(rangeLabel,        row, 3, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(rangeValueLabel,   row, 4, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(checkLabel,        row, 5, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(checkCheckBox,     row, 6, Qt::AlignLeft | Qt::AlignVCenter);
             row++;
         }
 
@@ -230,7 +244,7 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         }
 
         // --- 步骤 1: 将所有 QLineEdit 和 QCheckBox 的当前值同步到 m_rangeSettings ---
-        // 在这里进行关键修改：在更新 m_rangeSettings 之前进行 QVariant 类型转换
+        // 任何转换失败都应中断并通知用户
         for (auto projectIt = m_paramValueEdits.begin(); projectIt != m_paramValueEdits.end(); ++projectIt)
         {
             const QString& projectName = projectIt.key();
@@ -247,22 +261,36 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
                 QVariant convertedValue;
 
                 // 获取参数的详细信息，以便进行类型转换
-                // 假设 m_rangeSettings 提供了 getParamDetail 方法来获取 ParamDetail
                 const ParamDetail* detail = m_rangeSettings->getParamDetail(projectName, paramName);
                 if (detail) {
+                    bool conversionOk = false;
                     if (detail->type.toLower() == "int") {
-                        bool ok;
-                        convertedValue = textValue.toInt(&ok);
-                        if (!ok) qWarning() << "ParaWidget::saveRangeParams: 无法将" << textValue << "转换为 int 类型，参数：" << paramName;
+                        convertedValue = textValue.toInt(&conversionOk);
+                        if (!conversionOk) {
+                            QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的值 '%3' 不是有效的整数。请修正。")
+                                                                                 .arg(paramName).arg(projectName).arg(textValue));
+                            return; // 中断保存
+                        }
                     } else if (detail->type.toLower() == "float") { // 假设配置文件中使用 "float" 表示 double
-                        bool ok;
-                        convertedValue = textValue.toDouble(&ok);
-                        if (!ok) qWarning() << "ParaWidget::saveRangeParams: 无法将" << textValue << "转换为 float 类型，参数：" << paramName;
+                        convertedValue = textValue.toDouble(&conversionOk);
+                        if (!conversionOk) {
+                            QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的值 '%3' 不是有效的浮点数。请修正。")
+                                                                                 .arg(paramName).arg(projectName).arg(textValue));
+                            return; // 中断保存
+                        }
                     } else if (detail->type.toLower() == "bool") {
                         // 对于布尔类型，根据 "true"/"false" 或 "0"/"1" 判断
                         convertedValue = (textValue.toLower() == "true" || textValue == "1");
+                        conversionOk = true; // 布尔转换通常不会失败
                     } else {
                         convertedValue = textValue; // 默认为字符串类型
+                        conversionOk = true; // 字符串转换不会失败
+                    }
+
+                    // 如果类型转换失败，则停止保存
+                    if (!conversionOk) {
+                        qWarning() << "ParaWidget::saveRangeParams: 无法将" << textValue << "转换为指定类型，参数：" << paramName << " 类型:" << detail->type;
+                        return; // 已经通过 QMessageBox 提示用户，这里直接返回
                     }
                 } else {
                     convertedValue = textValue; // 如果未找到 ParamDetail，也默认为字符串
@@ -302,57 +330,88 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
                 if (!paramDetail.visible) continue;
                 if (paramDetail.range.isEmpty()) continue; // 没有范围的参数不进行校验
 
-                QStringList rangeParts = paramDetail.range.split('-');
-                if (rangeParts.size() != 2) {
+                // 优化范围解析，以便正确处理负数范围，例如 "-100-10"
+                QString minStr;
+                QString maxStr;
+                int lastDashIndex = paramDetail.range.lastIndexOf('-');
+
+                // 检查是否有至少一个 '-'
+                if (lastDashIndex == -1) {
+                    errorMessage = QString("参数 '%1' (项目: %2) 的范围格式无效: '%3'。应为 'min-max'，缺少分隔符。")
+                                       .arg(paramName).arg(projectName).arg(paramDetail.range);
+                    validationFailed = true;
+                    break;
+                }
+
+                // 如果最后一个 '-' 在字符串的开头，例如 "-10"，这被视为无效格式
+                if (lastDashIndex == 0) {
                     errorMessage = QString("参数 '%1' (项目: %2) 的范围格式无效: '%3'。应为 'min-max'。")
                                        .arg(paramName).arg(projectName).arg(paramDetail.range);
                     validationFailed = true;
-                    break; // 跳出内层循环
+                    break;
                 }
 
+                // minStr 是从开头到最后一个 '-' 之前的部分
+                minStr = paramDetail.range.left(lastDashIndex);
+                // maxStr 是从最后一个 '-' 之后的部分
+                maxStr = paramDetail.range.mid(lastDashIndex + 1);
+
+                // 额外的空字符串检查，避免类似 "-10-" 或 "--" 这样的异常情况
+                if (minStr.isEmpty() && !minStr.startsWith('-') && minStr != "0") { // 0是个特殊情况
+                    errorMessage = QString("参数 '%1' (项目: %2) 的范围格式无效: '%3'。min值解析为空或不符合规范。")
+                                       .arg(paramName).arg(projectName).arg(paramDetail.range);
+                    validationFailed = true;
+                    break;
+                }
+                if (maxStr.isEmpty()) {
+                    errorMessage = QString("参数 '%1' (项目: %2) 的范围格式无效: '%3'。max值解析为空。")
+                                       .arg(paramName).arg(projectName).arg(paramDetail.range);
+                    validationFailed = true;
+                    break;
+                }
+
+
                 bool okMin, okMax;
-                double minVal = rangeParts.at(0).toDouble(&okMin);
-                double maxVal = rangeParts.at(1).toDouble(&okMax);
+                double minValDouble = minStr.toDouble(&okMin);
+                double maxValDouble = maxStr.toDouble(&okMax);
+
 
                 if (!okMin || !okMax) {
                     errorMessage = QString("参数 '%1' (项目: %2) 的范围值 '%3' 无法解析为数字。")
                                        .arg(paramName).arg(projectName).arg(paramDetail.range);
                     validationFailed = true;
-                    break; // 跳出内层循环
+                    break;
                 }
 
                 bool valueConversionOk; // 检查 QVariant 内部转换是否成功
                 if (paramDetail.type.toLower() == "int") {
-                    long long value = paramDetail.value.toLongLong(&valueConversionOk);
-                    // 只有当 QVariant 成功转换为目标类型后，才进行范围比较
-                    if (!valueConversionOk || value < minVal || value > maxVal) {
+                    double value = paramDetail.value.toDouble(&valueConversionOk);
+                    if (!valueConversionOk || value < minValDouble || value > maxValDouble) {
                         errorMessage = QString("参数 '%1' (项目: %2) 的值 '%3' 超出范围 [%4 - %5] 或格式不正确。")
                                            .arg(paramName).arg(projectName).arg(paramDetail.value.toString())
-                                           .arg(static_cast<long long>(minVal)).arg(static_cast<long long>(maxVal));
+                                           .arg(QString::number(minValDouble, 'f', 0)).arg(QString::number(maxValDouble, 'f', 0));
                         validationFailed = true;
-                        break; // 跳出内层循环
+                        break;
                     }
                 } else if (paramDetail.type.toLower() == "float") {
                     double value = paramDetail.value.toDouble(&valueConversionOk);
-                    // 只有当 QVariant 成功转换为目标类型后，才进行范围比较
-                    if (!valueConversionOk || value < minVal || value > maxVal) {
+                    if (!valueConversionOk || value < minValDouble || value > maxValDouble) {
                         errorMessage = QString("参数 '%1' (项目: %2) 的值 '%3' 超出范围 [%4 - %5] 或格式不正确。")
                                            .arg(paramName).arg(projectName).arg(paramDetail.value.toString())
-                                           .arg(minVal).arg(maxVal);
+                                           .arg(minValDouble).arg(maxValDouble);
                         validationFailed = true;
-                        break; // 跳出内层循环
+                        break;
                     }
                 } else {
-                    // 对于非数字类型，不需要进行数值范围校验
                     qDebug() << "Skipping range validation for non-numeric type:" << paramName << " Type:" << paramDetail.type;
                 }
             }
-            if (validationFailed) break; // 如果内层循环失败，跳出外层循环
+            if (validationFailed) break;
         }
 
         if (validationFailed) {
             QMessageBox::warning(this, "参数校验失败", "以下参数值超出规定范围或格式错误：\n" + errorMessage + "\n\n请修正后再保存。");
-            return; // 校验失败，直接返回，不执行保存操作
+            return;
         }
 
         // --- 步骤 3: 如果所有校验通过，则执行保存操作 ---
@@ -365,8 +424,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
 
     connect(exitButton, &QPushButton::clicked, this, &ParaWidget::closeWindow);
 }
-
-
 
 void ParaWidget::setupCameralTab(QTabWidget* tabWidget)
 {
