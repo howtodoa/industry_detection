@@ -18,7 +18,7 @@ struct RangeParameters
     RangeParameters() = default;
 
     // 从 QVariantMap 构造的构造函数：方便从 JSON 解析后进行初始化
-    // 假设传入的 map 是 {"检测项目1": {...}, "检测项目2": {...}} 这样的结构
+    // 传入的 map 是 {"检测项目1": {...}, "检测项目2": {...}} 这样的结构
     explicit RangeParameters(const QVariantMap& map)
     {
         for (auto it = map.begin(); it != map.end(); ++it) {

@@ -44,6 +44,8 @@ set(HEADERS
     "include/MZ_ClientControl.h"  # 相对路径，指向项目中的 include 目录
     "include/MZ_ADOConn.h"
     "include/Mz_LogConn.h"
+    "include/MZ_VC3000.h"
+     "include/testdll.h"
 )
 
 # 定义 UI 文件
@@ -82,6 +84,8 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"  # 相对路径，指向项目中的 lib 目录
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
         "${CMAKE_SOURCE_DIR}/lib/MZ_Log.lib"
+        "${CMAKE_SOURCE_DIR}/lib/VC3000DLL.lib"
+        "${CMAKE_SOURCE_DIR}/lib/testdll.lib"
          Dbghelp
     )
 else()

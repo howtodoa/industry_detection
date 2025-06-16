@@ -4,7 +4,8 @@
 #include "mainwindow.h"
 #include <windows.h>
 #include <dbghelp.h>
-
+#include "testdll.h"
+#include<MZ_VC3000.h>
 LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
 {
     // 获取当前时间作为文件名一部分
@@ -55,7 +56,8 @@ LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
 
 int main(int argc, char *argv[])
 {
-
+   // _testdll::PCIControl::PCIControl();
+    VC3000DLL::PCIControl();
     QApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
     MainWindow w;
