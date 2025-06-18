@@ -45,7 +45,8 @@ set(HEADERS
     "include/MZ_ADOConn.h"
     "include/Mz_LogConn.h"
     "include/MZ_VC3000.h"
-     "include/testdll.h"
+     "include/MsvDeviceLib.h"
+
 )
 
 # 定义 UI 文件
@@ -76,7 +77,10 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES}
 # 添加头文件路径
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
-# 链接 Qt 库和 MZ_ADOConnect.lib
+# 链接库
+
+file(GLOB OPENVINO_LIBS "${CMAKE_SOURCE_DIR}/lib/Release_openvino/*.lib")
+
 if(Qt6_FOUND)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         Qt6::Core
@@ -87,7 +91,10 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
         "${CMAKE_SOURCE_DIR}/lib/MZ_Log.lib"
         "${CMAKE_SOURCE_DIR}/lib/VC3000DLL.lib"
-        "${CMAKE_SOURCE_DIR}/lib/testdll.lib"
+        "${CMAKE_SOURCE_DIR}/lib/MZ_CameraDevice.lib"
+        "${CMAKE_SOURCE_DIR}/lib/opencv_world490.lib"
+         ${OPENVINO_LIBS}
+
          Dbghelp
     )
 else()
@@ -100,7 +107,14 @@ else()
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
     )
 endif()
-
+if(OPENVINO_LIBS)
+    message(STATUS "OpenVINO libs found:")
+    foreach(lib ${OPENVINO_LIBS})
+        message(STATUS "  ${lib}")
+    endforeach()
+else()
+    message(STATUS "OpenVINO libs not found!")
+endif()
 set(CMAKE_AUTOMOC ON)
 
 # 设置输出目录（可选）

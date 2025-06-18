@@ -9,7 +9,7 @@
 #include "algoclass.h"
 #include "cameralclass.h"
 #include "public.h"
-
+#include "rezultinfo_nayin.h"
 class Cameral : public QObject
 {
     Q_OBJECT
@@ -25,6 +25,7 @@ public:
     RangeClass *RC;
     AlgoClass *AC;
     CameralClass *CC;
+    RezultInfo_NaYin * NY=nullptr;
     std::mutex mutex;
     std::atomic<bool> photoflag;
 };

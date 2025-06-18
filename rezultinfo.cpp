@@ -3,48 +3,68 @@
 #include <QVariant>
 
 
-RezultInfo::RezultInfo(RangeParameters *rangePara, QObject *parent)
+
+RezultInfo::RezultInfo(RangeParameters *rangepara, QObject *parent)
     : QObject(parent)
 {
-    if (rangePara) {
-        processRangeParameters(rangePara);
-    } else {
-        qWarning("RezultInfo: RangeParameters pointer is null. No data will be processed.");
-    }
+    processRangeParameters(rangepara);
+}
+
+const QMap<QString, float>& RezultInfo::getProcessedData() const
+{
+    return m_processedData;
 }
 
 void RezultInfo::processRangeParameters(RangeParameters *rangePara)
 {
+    if (!rangePara) {
+        qWarning() << "RezultInfo: RangeParameters pointer is null during processing. m_processedData will be empty.";
+        m_processedData.clear();
+        return;
+    }
+
     m_processedData.clear();
 
-    for (auto projectIt = rangePara->detectionProjects.begin();
-         projectIt != rangePara->detectionProjects.end();
+    for (auto projectIt = rangePara->detectionProjects.constBegin();
+         projectIt != rangePara->detectionProjects.constEnd();
          ++projectIt)
     {
-        const QString& projectName = projectIt.key();
-        const DetectionProject& detectionProject = projectIt.value();
+        const DetectionProject& project = projectIt.value();
 
-        QMap<QString, ParamDetail> currentProjectParams;
-
-        for (auto paramIt = detectionProject.params.begin();
-             paramIt != detectionProject.params.end();
+        for (auto paramIt = project.params.constBegin();
+             paramIt != project.params.constEnd();
              ++paramIt)
         {
-            const QString& paramName = paramIt.key();
-            const ParamDetail& paramDetail = paramIt.value();
+            QString paramName = paramIt.key();
+            const ParamDetail& detail = paramIt.value();
 
-            if (paramDetail.check) {
-                currentProjectParams[paramName] = paramDetail;
+            if (detail.check) {
+                // 如果 check 为 true，保存实际的浮点值
+                m_processedData.insert(paramName, detail.value.toFloat());
+            } else {
+                // 如果 check 为 false，保存 NaN
+                m_processedData.insert(paramName, std::numeric_limits<float>::quiet_NaN());
             }
         }
-
-        if (!currentProjectParams.isEmpty()) {
-            m_processedData[projectName] = currentProjectParams;
-        }
     }
+    qDebug() << "RezultInfo: Parameters processed. Total parameters stored (flat, with NaN for unchecked):" << m_processedData.size();
 }
 
-const QMap<QString, QMap<QString, ParamDetail>>& RezultInfo::getProcessedData() const
+void RezultInfo::printProcessedData() const
 {
-    return m_processedData;
+    qDebug() << "--- RezultInfo Processed Flat Key-Value Data (float/NaN) ---";
+    if (m_processedData.isEmpty()) {
+        qDebug() << "No processed data available.";
+        return;
+    }
+
+    for (auto paramIt = m_processedData.constBegin(); paramIt != m_processedData.constEnd(); ++paramIt) {
+        // 打印时，可以检查是否是 NaN，以便更好地区分
+        if (std::isnan(paramIt.value())) {
+            qDebug() << "  Param:" << paramIt.key() << " Value: NaN (unchecked)";
+        } else {
+            qDebug() << "  Param:" << paramIt.key() << " Value:" << paramIt.value();
+        }
+    }
+    qDebug() << "--- End of RezultInfo Processed Flat Key-Value Data ---";
 }

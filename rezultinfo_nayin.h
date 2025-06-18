@@ -6,7 +6,7 @@
 #include <QMap>
 #include <QVariant>
 #include <vector>
-
+#include<cmath>
 #include "rezultinfo.h"
 
 struct OutResParam
@@ -25,11 +25,16 @@ class RezultInfo_NaYin : public RezultInfo
 {
     Q_OBJECT
 public:
-    explicit RezultInfo_NaYin(QObject *parent = nullptr);
+    explicit RezultInfo_NaYin(RangeParameters* params, QObject *parent = nullptr);
+
+    // 修改 printCheckInfo 以接受 float 类型，阈值统一是 float
+    void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange);
+
     int judge(const OutResParam &ret);
 
 private:
-    bool parseRangeString(const QString& rangeStr, QVariant::Type expectedType, QVariant& minVal, QVariant& maxVal) const;
+
 };
+
 
 #endif // REZULTINFO_NAYIN_H

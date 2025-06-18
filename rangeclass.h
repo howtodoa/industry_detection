@@ -72,7 +72,7 @@ public:
 
     void updateParamCheck(const QString& projectKey, const QString& paramName, bool checkValue);
 
-private:
+public:
     // 内部保存文件路径，以便加载和保存
     QString m_rangePath;
     // 存储解析后的结构化参数数据

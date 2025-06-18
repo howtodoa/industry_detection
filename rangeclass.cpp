@@ -18,12 +18,14 @@ RangeClass::RangeClass(QString rangepath, QObject *parent)
     : QObject{parent},
     m_rangePath(rangepath) // 初始化成员变量 m_rangePath
 {
-    // 构造函数中尝试加载一次参数
-    // 如果加载失败，m_parameters 将保持其默认构造状态（即内部 QMap 为空）
-    if (!loadParams()) {
-        qWarning() << "RangeClass: Failed to load parameters from" << m_rangePath;
-        // m_parameters 默认构造已确保其是空的，无需额外清空或初始化 {"范围参数":{}}
-        // 因为 RangeParameters 结构体本身就代表了 "范围参数" 内部的内容
+    // 在构造函数内部调用 loadParams() 来立即加载数据
+    if (!m_rangePath.isEmpty()) {
+        if (!loadParams()) {
+            qDebug() << "RangeClass: Failed tsssssssssssssssssssssssssssssso load parameters from" << m_rangePath;
+            // 可以在这里设置默认参数或采取其他错误处理措施
+        }
+    } else {
+        qDebug() << "RangeClass: rangesssssssssssssssssssssssssssssssssssspath is empty, parameters not loaded.";
     }
 }
 

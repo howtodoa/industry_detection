@@ -2,7 +2,7 @@
 
 #include <string>
 
-class VC3000;  // Ç°ÏòÉùÃ÷£¬Êµ¼ÊÊµÏÖ°üº¬ÔÚ cpp ÖĞ
+class VC3000;  // å‰å‘å£°æ˜ï¼Œå®é™…å®ç°åŒ…å«åœ¨ cpp ä¸­
 
 namespace VC3000DLL
 {
@@ -10,30 +10,30 @@ namespace VC3000DLL
    class __declspec(dllexport) PCIControl
     {
     public:
-        // ³õÊ¼»¯½Ó¿ÚÀà
+        // åˆå§‹åŒ–æ¥å£ç±»
         PCIControl();
         ~PCIControl();
-        // ³õÊ¼»¯ WinIO ÏµÍ³
+        // åˆå§‹åŒ– WinIO ç³»ç»Ÿ
         int InitialSystem();
 
-        // ÉèÖÃ PNP/NPN Ä£Ê½
+        // è®¾ç½® PNP/NPN æ¨¡å¼
         int setPNP(unsigned int enable);
 
-        // ´ò¿ª´®¿Ú
+        // æ‰“å¼€ä¸²å£
         int openseral(const std::string& portName);
 
-        // ÉèÖÃÊä³öµãµçÆ½
+        // è®¾ç½®è¾“å‡ºç‚¹ç”µå¹³
         int setoutput(int pointNumber, bool lowOrHigh);
 
-        // »ñÈ¡ÊäÈëµãµçÆ½
+        // è·å–è¾“å…¥ç‚¹ç”µå¹³
         int getinput(int inputPortNumber);
 
-        // ¿ØÖÆ¹âÔ´
+        // æ§åˆ¶å…‰æº
         int setlight(int portNumber,
             unsigned short lightValue, unsigned short continueTime,
             bool onOrOff, bool edgeUpOrDown);
 
-        // ÇåÀí×ÊÔ´
+        // æ¸…ç†èµ„æº
         void Destroy();
     };
 }

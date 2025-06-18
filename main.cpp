@@ -4,8 +4,9 @@
 #include "mainwindow.h"
 #include <windows.h>
 #include <dbghelp.h>
-#include "testdll.h"
 #include<MZ_VC3000.h>
+#include "MsvDeviceLib.h"
+#include <openvino/openvino.hpp>
 LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
 {
     // 获取当前时间作为文件名一部分
@@ -53,11 +54,25 @@ LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
+void testOpenVINO() {
+    try {
+        ov::Core core;
+        auto available_devices = core.get_available_devices();
+        qDebug() << "Available devices:";
+        for (const auto& device : available_devices) {
+            qDebug() << QString::fromStdString(device);
+        }
+    } catch (const std::exception& e) {
+        qDebug() << "OpenVINO exception:" << e.what();
+    }
+}
 
 int main(int argc, char *argv[])
 {
-   // _testdll::PCIControl::PCIControl();
+
     VC3000DLL::PCIControl();
+    Mz_CameraConn::MsvInitLib();
+    Mz_CameraConn::MsvCloseLib();
     QApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
     MainWindow w;

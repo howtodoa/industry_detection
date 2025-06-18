@@ -516,11 +516,11 @@ const int TIME_OUT_COUNT = 20;
 //报警信息接收
 #define ALARM_MSG_OPERATE_TYPE			OperateTypes(0x90,OPERATE_CODE_CARELESS) //表示报警信息操作
 #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90,0x01) //接收报警信息
-#define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x02) //接收报警信息
-#define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x03) //接收报警信息
-#define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x04) //接收报警信息
-#define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x05) //接收报警信息
-#define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x06) //接收报警信息
+// #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x02) //接收报警信息
+// #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x03) //接收报警信息
+// #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x04) //接收报警信息
+// #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x05) //接收报警信息
+// #define ALARM_MSG_RECEIVE_MSG			OperateTypes(0x90, 0x06) //接收报警信息
 //////////////////////////////////////////////////////////////////////////
 
 typedef struct OperateTypes

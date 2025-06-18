@@ -11,7 +11,7 @@
 #include "addcameradialog.h"
 #include "MZ_ADOConn.h"
 #include "tcp_client.h"
-
+#include "rezultinfo_nayin.h"
 #include "QTimer"
 
 
@@ -163,7 +163,24 @@ void MainWindow::test()
     QPixmap pixmap1(":/images/resources/images/test.jpg");
     cameraLabels[0]->displayimg(pixmap1);
 
+    cams[2]->NY->printProcessedData();
 
+    OutResParam testResult;
+    testResult.phi = -15;
+    testResult.posWidth = 5;
+    testResult.posErr = 0.08f;
+    testResult.negWidth = 7;
+    testResult.negErr = 0.03f;
+    testResult.textNum = 2;
+    testResult.logoScores = 0.1f;
+    testResult.textScores = {0.8f, 0.7f};
+    //cams[2]->NY->judge(testResult);
+    int judgmentResult1 = cams[2]->NY->judge(testResult);
+    if (judgmentResult1 == 0) {
+        qDebug() << "第一次判断结果：                   所有参数都在范围内 。";
+    } else {
+        qDebug() << "第一次判断结果：                    有参数不在范围内。";
+    }
     // int width = 2600;
     // int height = 2160;
     // int channels = 3;
@@ -284,9 +301,11 @@ void MainWindow::initcams(int camnumber)
 
 
 
-       cam->RC=new RangeClass(cam->rangepath);
+       cam->RC=new RangeClass(cam->rangepath,nullptr);
        cam->CC=new CameralClass(cam->cameralpath);
        cam->AC=new AlgoClass(cam->algopath);
+       cam->NY=new RezultInfo_NaYin(&cam->RC->m_parameters,nullptr);
+
 
         cams.push_back(cam);
 
