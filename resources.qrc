@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>resources/images/oo.ico</file>
+		<file>resources/images/Carrier_NaYin.jpg</file>
+		<file>resources/images/NaYin.jpg</file>
+		<file>resources/images/start.ico</file>
+		<file>resources/images/camera.ico</file>
+		<file>resources/images/video.ico</file>
+		<file>resources/images/localrun.ico</file>
+		<file>resources/images/OK.ico</file>
+		<file>resources/images/NG.ico</file>
+		<file>resources/images/settings.ico</file>
+		<file>resources/images/expand.ico</file>
+		<file>resources/images/onlinelearn.ico</file>
+		<file>resources/images/pause.ico</file>
+		<file>resources/images/ten.ico</file>
+	</qresource>
+</RCC>

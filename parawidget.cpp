@@ -1,0 +1,1026 @@
+#include "parawidget.h"
+#include "role.h"
+#include <QVBoxLayout>
+#include <QTabWidget>
+#include <QGridLayout>
+#include <QLabel>
+#include<QGroupBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QIntValidator>
+#include <QDoubleValidator>
+#include <QFileDialog>
+#include <QScrollArea>
+#include <QSpinBox>
+#include<QComboBox>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QDoubleSpinBox>
+#include <QPushButton>
+#include <QtGlobal>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include "imageviewerwindow.h"
+#include <opencv2/opencv.hpp>
+
+
+
+ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC,Cameral *cam, DebugInfo* DI, QWidget *parent)
+    : QWidget{parent}
+{
+    // 设置窗口属性
+    setWindowFlags(Qt::Window);
+    setWindowTitle("参数设置");
+    setAttribute(Qt::WA_DeleteOnClose);
+    resize(1000, 750);
+
+    // 设置全局字体（放大一倍）
+    QFont font = this->font();
+    font.setPointSize(font.pointSize() * 2); // 字体放大两倍
+    setFont(font);
+ 
+    // 创建主布局
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+
+    // 创建选项卡控件
+    tabWidget = new QTabWidget;
+    mainLayout->addWidget(tabWidget); // 将tabWidget添加到主布局
+
+    // 赋值传入的参数管理类指针
+
+    this->m_cam = cam;
+    this->m_algoSettings = AC;
+    this->m_rangeSettings = RC;
+    this->m_cameralSettings = CC;
+    this->DI=DI;
+
+    connect(m_algoSettings, &AlgoClass::TransMat, this, &ParaWidget::onTransMat);
+
+    // 设置各个选项卡
+    setupRangeTab(tabWidget);    // 第一个选项卡：范围参数
+    setupCameralTab(tabWidget);  // 第二个选项卡：相机参数
+    setupAlgorithmTab(tabWidget); // 第三个选项卡：算法参数
+    setupDebugTab(tabWidget);//第四个选项卡：调试功能
+    setupScaleTab(tabWidget);
+
+
+    if (Role::GetCurrentRole() != "厂商" && Role::GetCurrentRole() != "机修")
+    {
+        // 隐藏第二个和第三个选项卡的标题
+        tabWidget->setTabVisible(1, false); // 隐藏 CameralTab 的标题 (索引从0开始)
+        tabWidget->setTabVisible(2, false); // 隐藏 AlgorithmTab 的标题
+    }
+
+    // 设置主布局
+    setLayout(mainLayout);
+}
+
+ParaWidget::~ParaWidget()
+{
+
+}
+
+
+void ParaWidget::onTransMat(cv::Mat mat)
+{
+    QPixmap pix = convertMatToPixmap(mat);
+    imageViewer_algo->setPixmap(pix);
+}
+
+void ParaWidget::closeEvent(QCloseEvent* event)
+{
+    // 获取当前活动页面的索引
+    int currentIndex = tabWidget->currentIndex();
+    // 获取当前活动页面的文本
+    QString currentTabText = tabWidget->tabText(currentIndex);
+
+    // 只有当当前页面是“范围参数”时，才弹出保存确认框
+    if (currentTabText != "范围参数") {
+        event->accept();
+        return;
+    }
+
+    // 弹窗询问用户是否保存修改
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "保存确认", "确定要保存当前修改吗？",
+        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+    if (reply == QMessageBox::No) {
+        // 用户选择“不保存”，直接接受关闭事件
+        event->accept();
+        return;
+    }
+
+    if (reply == QMessageBox::Cancel) {
+        // 用户选择“取消”，忽略关闭事件
+        event->ignore();
+        return;
+    }
+
+    // 用户选择“保存”，执行保存逻辑和校验
+    // --- 步骤 1: 将所有 QLineEdit 和 QCheckBox 的当前值同步到 m_rangeSettings ---
+    // 根据角色判断补偿值是否可见和可编辑
+    bool isManufacturer = (Role::CurrentRole == "厂商");
+    for (auto projectIt = m_paramValueEdits.begin(); projectIt != m_paramValueEdits.end(); ++projectIt)
+    {
+        const QString& projectName = projectIt.key();
+        const QMap<QString, QLineEdit*>& paramEdits = projectIt.value();
+        const QMap<QString, QCheckBox*>& paramCheckboxes = m_paramCheckboxes[projectName];
+        const QMap<QString, QLineEdit*>& paramCompensationEdits = m_paramCompensationEdits[projectName];
+
+        for (auto paramEditIt = paramEdits.begin(); paramEditIt != paramEdits.end(); ++paramEditIt)
+        {
+            const QString& paramName = paramEditIt.key();
+            QLineEdit* valueEdit = paramEditIt.value();
+            QCheckBox* checkBox = paramCheckboxes.value(paramName, nullptr);
+            QLineEdit* compensationEdit = paramCompensationEdits.value(paramName, nullptr);
+
+            QString textValue = valueEdit->text();
+            QVariant convertedValue;
+
+            const ParamDetail* detail = m_rangeSettings->getParamDetail(projectName, paramName);
+            if (detail) {
+                bool conversionOk = false;
+                if (detail->type.toLower() == "int") {
+                    convertedValue = textValue.toInt(&conversionOk);
+                }
+                else if (detail->type.toLower() == "float") {
+                    convertedValue = textValue.toDouble(&conversionOk);
+                }
+                else if (detail->type.toLower() == "bool") {
+                    convertedValue = (textValue.toLower() == "true" || textValue == "1");
+                    conversionOk = true;
+                }
+                else {
+                    convertedValue = textValue;
+                    conversionOk = true;
+                }
+
+                if (!conversionOk) {
+                    QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的值 '%3' 不是有效格式。请修正。")
+                        .arg(paramName).arg(projectName).arg(textValue));
+                    event->ignore(); // 忽略关闭事件
+                    return;
+                }
+            }
+            else {
+                convertedValue = textValue;
+            }
+
+            m_rangeSettings->updateParamValue(projectName, paramName, convertedValue);
+
+            if (checkBox) {
+                m_rangeSettings->updateParamCheck(projectName, paramName, checkBox->isChecked());
+            }
+
+            if (isManufacturer && compensationEdit) {
+                bool compConversionOk;
+                double compValue = compensationEdit->text().toDouble(&compConversionOk);
+                if (compConversionOk) {
+                    m_rangeSettings->updateParamCompensation(projectName, paramName, compValue);
+                }
+                else {
+                    QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的补偿值 '%3' 不是有效的浮点数。请修正。")
+                        .arg(paramName).arg(projectName).arg(compensationEdit->text()));
+                    event->ignore(); // 忽略关闭事件
+                    return;
+                }
+            }
+        }
+    }
+
+    //// --- 步骤 2: 对更新后的 m_rangeSettings 数据进行最终的范围校验 ---
+    //QString errorMessage;
+    //errorMessage = validateParametersRange(m_rangeSettings, "范围");
+
+    //if (!errorMessage.isEmpty()) {
+    //    QMessageBox::warning(this, "参数校验失败", "以下参数值超出规定范围或格式错误：\n" + errorMessage + "\n\n请修正后再保存。");
+    //    event->ignore(); // 忽略关闭事件
+    //    return;
+    //}
+
+    // --- 步骤 3: 如果所有校验通过，则执行保存操作并接受关闭事件 ---
+    m_rangeSettings->saveParamsAsync();
+    m_cam->RI->updateProcessedData(&m_rangeSettings->m_parameters);
+    m_cam->RI->updatePaintData(&m_rangeSettings->m_parameters);
+
+    QMessageBox::information(this, "保存成功", "参数已成功保存。");
+    event->accept(); // 接受关闭事件
+}
+
+void ParaWidget::setupScaleTab(QTabWidget* tabWidget)
+{
+    QWidget* scaleTab = new QWidget(tabWidget);
+    QVBoxLayout* mainLayout = new QVBoxLayout(scaleTab);//设置父对象，避免崩溃
+
+    QScrollArea* scrollArea = new QScrollArea(scaleTab);
+    scrollArea->setWidgetResizable(true);
+
+    QWidget* contentWidget = new QWidget(scrollArea);
+    QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
+    contentLayout->setContentsMargins(10, 10, 10, 10);
+    contentLayout->setSpacing(10);
+    scrollArea->setWidget(contentWidget);
+
+
+    qDebug() << "Debug: setupScaleTab called.";
+    if (!m_cam) {
+        qWarning() << "Error: m_cam is a null pointer.";
+        return;
+    }
+
+    qDebug() << "Debug: Address of m_cam->ScaleArray:" << &m_cam->ScaleArray;
+    qDebug() << "Debug: Size of m_cam->ScaleArray:" << m_cam->ScaleArray.size();
+
+    // 清空成员变量 m_lineEditMap，以防多次调用
+    m_lineEditMap.clear();
+
+    for (int i = 0; i < m_cam->ScaleArray.size(); ++i) {
+        const SimpleParam& param = m_cam->ScaleArray.at(i);
+
+        qDebug() << QString("Debug: Iteration %1, Processing item: name='%2', value=%3")
+            .arg(i).arg(param.name).arg(param.value);
+
+        if (param.name.isNull() || param.name.isEmpty()) {
+            qWarning() << "Warning: Detected invalid or empty name at index" << i << ". Skipping.";
+            continue;
+        }
+
+        if (qIsNaN(param.value) || qIsInf(param.value)) {
+            qWarning() << "Warning: Detected invalid double value (NaN/Inf) at index" << i << ". Using 0.0.";
+            continue;
+        }
+
+        QHBoxLayout* paramLayout = new QHBoxLayout();
+
+        // 将 QLabel 和 QLineEdit 设置为 contentWidget 的子对象
+        QLabel* label = new QLabel(param.name, contentWidget);
+        QLineEdit* lineEdit = new QLineEdit(QString::number(param.value, 'f', 5), contentWidget);
+
+        label->setFixedWidth(180);
+        lineEdit->setFixedWidth(150);
+
+        paramLayout->addWidget(label);
+        paramLayout->addWidget(lineEdit);
+        paramLayout->addStretch(1);
+
+        contentLayout->addLayout(paramLayout);
+        m_lineEditMap.insert(param.name, lineEdit);
+    }
+
+    mainLayout->addWidget(scrollArea);
+
+    // 将 saveButton 设置为 scaleTab 的子对象
+    QPushButton* saveButton = new QPushButton("保存修改", scaleTab);
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch(1);
+    buttonLayout->addWidget(saveButton);
+    mainLayout->addLayout(buttonLayout);
+
+    QObject::connect(saveButton, &QPushButton::clicked, this, [this]() {
+        QVector<SimpleParam> tempScaleArray = m_cam->ScaleArray;
+
+        for (SimpleParam& param : tempScaleArray) {
+            if (m_lineEditMap.contains(param.name)) {
+                QLineEdit* lineEdit = m_lineEditMap.value(param.name);
+                bool ok;
+                double value = lineEdit->text().toDouble(&ok);
+                if (ok) {
+                    param.value = value;
+                }
+            }
+        }
+        m_cam->RI->updatePaintDataFromScaleArray(tempScaleArray);
+        m_cam->ScaleArray = tempScaleArray;
+        saveScaleArrayAsync(m_cam->ScalePath, tempScaleArray);
+
+        qDebug() << "Calibration scales updated via m_cam.";
+        });
+
+    tabWidget->addTab(scaleTab, "标定参数");
+}
+
+
+void ParaWidget::saveScaleArrayAsync(const QString& filePath, const QVector<SimpleParam>& scaleArray)
+{
+    // 将 QVector<SimpleParam> 转换为 QVariantMap，以方便 FileOperator::writeJsonMap 使用
+    QVariantMap mapToSave;
+    for (const SimpleParam& param : scaleArray) {
+        QVariantMap paramMap;
+        paramMap["值"] = param.value;
+        mapToSave[param.name] = paramMap;
+    }
+
+    // 在后台线程中执行保存操作
+    QFuture<bool> future = QtConcurrent::run([filePath, dataToSave = mapToSave]() {
+        qDebug() << "Background thread: Executing scale parameter save...";
+        if (FileOperator::writeJsonMap(filePath, dataToSave)) {
+            qDebug() << "Background thread: Scale parameters saved successfully to" << filePath;
+            return true;
+        }
+        else {
+            qWarning() << "Background thread: Failed to save scale parameters to" << filePath;
+            return false;
+        }
+        });
+
+    qDebug() << "Main thread: Async scale parameter save initiated.";
+}
+
+
+void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
+{
+    if (m_rangeSettings == nullptr) {
+        // 使用新的通用错误处理函数
+        handleSettingsInitializationError(tabWidget, "范围参数", "范围参数管理器未正确初始化。");
+        return;
+    }
+
+    QWidget* rangeTab = new QWidget;
+    tabWidget->addTab(rangeTab, "范围参数");
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(rangeTab);
+    QTabWidget* subTabWidget = new QTabWidget(this);
+    mainLayout->addWidget(subTabWidget);
+
+    QFont defaultFont = rangeTab->font();
+    // 创建一个新字体，字号减一
+    QFont smallerFont = defaultFont;
+    smallerFont.setPointSize(defaultFont.pointSize() - 1);
+
+    // 将新字体应用于 rangeTab 的所有子控件
+    rangeTab->setFont(smallerFont);
+
+    // 清空 map，防止重复添加。
+    m_paramValueEdits.clear();
+    m_paramCheckboxes.clear();
+    m_paramCompensationEdits.clear();
+
+    const Parameters& allRangeParameters = m_rangeSettings->getRangeParameters();
+
+    if (allRangeParameters.detectionProjects.isEmpty()) {
+        displayNoParametersMessage(mainLayout, "范围");
+        return;
+    }
+
+    // 根据角色判断补偿值是否可见
+    bool isManufacturer = (Role::CurrentRole == "厂商");
+
+    for (auto projectIt = allRangeParameters.detectionProjects.begin();
+        projectIt != allRangeParameters.detectionProjects.end();
+        ++projectIt)
+    {
+        const QString& projectName = projectIt.key();
+        const DetectionProject& detectionProject = projectIt.value();
+
+        // 为每个项目创建一个包含滚动区域的子标签页
+        QWidget* subTabContent = new QWidget;
+        QVBoxLayout* subTabContentLayout = new QVBoxLayout(subTabContent);
+        QGridLayout* gridLayout = new QGridLayout;
+        gridLayout->setVerticalSpacing(5);
+        gridLayout->setHorizontalSpacing(10);
+
+        int row = 0;
+
+        // 为当前项目创建内层 QMap
+        m_paramValueEdits[projectName] = QMap<QString, QLineEdit*>();
+        m_paramCheckboxes[projectName] = QMap<QString, QCheckBox*>();
+        m_paramCompensationEdits[projectName] = QMap<QString, QLineEdit*>();
+
+        for (auto paramIt = detectionProject.params.begin();
+            paramIt != detectionProject.params.end();
+            ++paramIt)
+        {
+            const QString& paramName = paramIt.key();
+            const ParamDetail& paramDetail = paramIt.value();
+
+            if (!paramDetail.visible) {
+                continue;
+            }
+
+            // 参数名称和值
+            QLabel* nameLabel = new QLabel(paramName, this);
+            QLineEdit* valueEdit = new QLineEdit(paramDetail.value.toString(), this);
+            QLabel* unitLabel = new QLabel(QString("单位: %1").arg(paramDetail.unit), this);
+            QLabel* checkLabel = new QLabel("检测:", this);
+            QCheckBox* checkCheckBox = new QCheckBox(this);
+            checkCheckBox->setChecked(paramDetail.check);
+
+            // 补偿值控件
+            QLabel* compensationLabel = new QLabel("补偿值:", this);
+            // 确保显示足够的小数位，例如3位
+            QLineEdit* compensationEdit = new QLineEdit(QString::number(paramDetail.compensation, 'f', 3), this);
+
+            // 设置控件样式和大小
+            nameLabel->setMinimumWidth(100);
+            valueEdit->setMaximumWidth(80);
+            unitLabel->setMinimumWidth(30);
+            checkLabel->setMinimumWidth(40);
+            checkCheckBox->setMinimumWidth(20);
+            compensationLabel->setMinimumWidth(60);
+            compensationEdit->setMaximumWidth(80);
+
+            // 只有当角色是“厂商”时，补偿值相关控件才可见
+            compensationLabel->setVisible(isManufacturer);
+            compensationEdit->setVisible(isManufacturer);
+
+            // 使用新的通用验证函数，只校验类型，不校验范围
+            validateInputType(valueEdit, paramDetail.type);
+
+            // 为补偿值编辑框设置验证器，只允许浮点数
+            QDoubleValidator* compensationValidator = new QDoubleValidator(this);
+            compensationValidator->setLocale(QLocale::C); // 使用C语言环境，点号作为小数分隔符
+            compensationEdit->setValidator(compensationValidator);
+
+            // 将 QLineEdit 和 QCheckBox 指针存储到各自的成员变量中
+            m_paramValueEdits[projectName].insert(paramName, valueEdit);
+            m_paramCheckboxes[projectName].insert(paramName, checkCheckBox);
+            m_paramCompensationEdits[projectName].insert(paramName, compensationEdit);
+
+            // 将控件添加到网格布局
+            // 注意：因为移除了“范围”，列索引需要调整
+            gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(valueEdit, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(unitLabel, row, 2, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(checkLabel, row, 3, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(checkCheckBox, row, 4, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(compensationLabel, row, 5, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(compensationEdit, row, 6, Qt::AlignLeft | Qt::AlignVCenter);
+            row++;
+        }
+
+        // 调整列拉伸比例
+        gridLayout->setColumnStretch(0, 2);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 1);
+        gridLayout->setColumnStretch(3, 1);
+        gridLayout->setColumnStretch(4, 0);
+        gridLayout->setColumnStretch(5, 1);
+        gridLayout->setColumnStretch(6, 0);
+        gridLayout->setColumnStretch(7, 1);
+
+        subTabContentLayout->addLayout(gridLayout);
+        subTabContentLayout->addStretch(1);
+
+        // 创建 QScrollArea 并将 subTabContent 设置为其内容
+        QScrollArea* scrollArea = new QScrollArea(this);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setWidget(subTabContent);
+
+        // 将带有滚动条的 scrollArea 添加到 subTabWidget
+        subTabWidget->addTab(scrollArea, projectName);
+    }
+}
+
+
+void ParaWidget::setupCameralTab(QTabWidget* tabWidget)
+{
+    if (!m_cameralSettings) {
+        qWarning() << "m_cameralSettings is not initialized!";
+        return;
+    }
+
+    QWidget* cameralTab = new QWidget();
+    QVBoxLayout* mainLayout = new QVBoxLayout(cameralTab);
+    QFormLayout* formLayout = new QFormLayout();
+
+    // 使用 QWidget* 显式保存控件指针
+    QMap<QString, QWidget*> controlMap;
+
+    CamParamControll& params = m_cameralSettings->getParameters();
+
+    // 图像宽度
+    QSpinBox* widthBox = new QSpinBox();
+    widthBox->setRange(0, 8192);
+    widthBox->setValue(params.width);
+    formLayout->addRow("图像宽度:", widthBox);
+    controlMap["width"] = widthBox;
+
+    // 图像高度
+    QSpinBox* heightBox = new QSpinBox();
+    heightBox->setRange(0, 8192);
+    heightBox->setValue(params.height);
+    formLayout->addRow("图像高度:", heightBox);
+    controlMap["height"] = heightBox;
+
+    // 图像偏移X
+    QSpinBox* offsetXBox = new QSpinBox();
+    offsetXBox->setRange(0, 8192);
+    offsetXBox->setValue(params.offsetx);
+    formLayout->addRow("图像偏移X:", offsetXBox);
+    controlMap["offsetx"] = offsetXBox;
+
+    // 图像偏移Y
+    QSpinBox* offsetYBox = new QSpinBox();
+    offsetYBox->setRange(0, 8192);
+    offsetYBox->setValue(params.offsety);
+    formLayout->addRow("图像偏移Y:", offsetYBox);
+    controlMap["offsety"] = offsetYBox;
+
+    // 增益
+    QDoubleSpinBox* gainBox = new QDoubleSpinBox();
+    gainBox->setRange(0, 20);
+    gainBox->setDecimals(3);
+    gainBox->setValue(params.gain);
+    gainBox->setSingleStep(1);
+    formLayout->addRow("增益:", gainBox);
+    controlMap["gain"] = gainBox;
+    gainBox->setEnabled(false);
+    // 曝光时间
+    QDoubleSpinBox* exposureBox = new QDoubleSpinBox();
+    exposureBox->setRange(0.0, 5000.0);
+    exposureBox->setDecimals(3);
+    exposureBox->setSingleStep(50.0);
+    exposureBox->setValue(params.exposure);
+    formLayout->addRow("曝光时间:", exposureBox);
+    controlMap["exposure"] = exposureBox;
+
+    // gama值
+    QDoubleSpinBox* gamaBox = new QDoubleSpinBox();
+    gamaBox->setRange(0.0, 6.0);
+    gamaBox->setDecimals(3);
+    gamaBox->setValue(params.gama);
+    formLayout->addRow("gama值:", gamaBox);
+    controlMap["gama"] = gamaBox;
+
+    // 帧率
+    QSpinBox* fpsBox = new QSpinBox();
+    fpsBox->setRange(1, 90);
+    fpsBox->setValue(params.fps);
+    formLayout->addRow("帧率:", fpsBox);
+    controlMap["fps"] = fpsBox;
+
+    // 保存按钮
+    QPushButton* saveButton = new QPushButton("保存并应用");
+    mainLayout->addLayout(formLayout);
+    mainLayout->addWidget(saveButton);
+    mainLayout->addStretch();
+
+    tabWidget->addTab(cameralTab, "相机参数");
+
+    connect(saveButton, &QPushButton::clicked, [=]() {
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(cameralTab, "确认保存", "是否保存并应用当前相机参数？",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply != QMessageBox::Yes) {
+            qDebug() << "用户取消了相机参数保存。";
+            return;
+        }
+
+        CamParamControll& p = m_cameralSettings->getParameters();
+
+        // 使用 qobject_cast 转换指针类型
+        p.width = qobject_cast<QSpinBox*>(controlMap["width"])->value();
+        p.height = qobject_cast<QSpinBox*>(controlMap["height"])->value();
+        p.offsetx = qobject_cast<QSpinBox*>(controlMap["offsetx"])->value();
+        p.offsety = qobject_cast<QSpinBox*>(controlMap["offsety"])->value();
+        p.gain = qobject_cast<QDoubleSpinBox*>(controlMap["gain"])->value();
+        p.exposure = qobject_cast<QDoubleSpinBox*>(controlMap["exposure"])->value();
+        p.gama = qobject_cast<QDoubleSpinBox*>(controlMap["gama"])->value();
+        p.fps = qobject_cast<QSpinBox*>(controlMap["fps"])->value();
+
+        m_cameralSettings->change();
+        m_cameralSettings->saveParamAsync();
+        qDebug() << "相机参数已更新并应用";
+        });
+}
+
+
+
+void ParaWidget::setupAlgorithmTab(QTabWidget* tabWidget)
+{
+    QWidget* algoPage = new QWidget(tabWidget);
+    QHBoxLayout* mainLayout = new QHBoxLayout(algoPage);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
+      
+    QWidget* leftPanelWidget = m_algoSettings->createLeftPanel(algoPage);  // 虚函数生成面板并绑定事件
+
+    leftPanelWidget->setFixedWidth(280);
+    leftPanelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    mainLayout->addWidget(leftPanelWidget);
+
+
+
+    // 图像窗口初始化
+    imageViewer_algo = new ImageViewerWindow(algoPage);
+    imageViewer_algo->setMinimumSize(100, 100);
+    imageViewer_algo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QPixmap blackPixmap(920, 880);  // 右侧初始化黑屏
+    blackPixmap.fill(Qt::black);
+    imageViewer_algo->setPixmap(blackPixmap);
+
+    mainLayout->addWidget(imageViewer_algo, 1);
+    tabWidget->addTab(algoPage, "算法");
+}
+
+
+void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
+{
+    QWidget* debugPage = new QWidget(tabWidget);
+    QHBoxLayout* mainHorizontalLayout = new QHBoxLayout(debugPage);
+    mainHorizontalLayout->setContentsMargins(0, 0, 0, 0);
+    mainHorizontalLayout->setSpacing(0);
+
+    // === 左侧参数区域的容器 ===
+    QWidget* leftPanelWidget = new QWidget(debugPage);
+    QVBoxLayout* leftParamsLayout = new QVBoxLayout(leftPanelWidget);
+    leftParamsLayout->setContentsMargins(5, 5, 5, 5);
+    leftParamsLayout->setSpacing(5);
+
+    // === 标定 + 缩放系数 ===
+    QHBoxLayout* calibLayout = new QHBoxLayout;
+    QPushButton* calibButton = new QPushButton("标定", debugPage);
+    QLineEdit* scaleFactorEdit = new QLineEdit(debugPage);
+    scaleFactorEdit->setFixedSize(100, 30);
+    scaleFactorEdit->setPlaceholderText("缩放系数");
+    scaleFactorEdit->setText(QString::number(DI->scaleFactor));
+    calibButton->setFixedSize(160, 30);
+    calibLayout->addWidget(calibButton);
+    calibLayout->addWidget(scaleFactorEdit);
+    calibLayout->addStretch();
+    leftParamsLayout->addLayout(calibLayout);
+
+    // === 等级 ===
+    QHBoxLayout* flagLayout = new QHBoxLayout;
+    QPushButton* flagButton = new QPushButton("存图等级设置", debugPage);
+    QComboBox* flagCombo = new QComboBox(debugPage);
+    for (int i = 0; i <= 3; ++i) {
+        flagCombo->addItem(QString::number(i), i);
+    }
+    flagCombo->setFixedSize(100, 30);
+    flagCombo->setCurrentIndex(DI->saveflag);
+    flagButton->setFixedSize(160, 30);
+    flagLayout->addWidget(flagButton);
+    flagLayout->addWidget(flagCombo);
+    flagLayout->addStretch();
+    leftParamsLayout->addLayout(flagLayout);
+
+    // === 角度设置 ===
+    QHBoxLayout* angleLayout = new QHBoxLayout;
+    QPushButton* angleButton = new QPushButton("角度设置", debugPage);
+    QLineEdit* angleEdit = new QLineEdit(debugPage);
+    angleEdit->setFixedSize(100, 30);
+    angleEdit->setPlaceholderText("角度（-180~180）");
+    angleEdit->setText(QString::number(DI->Angle));
+    angleButton->setFixedSize(160, 30);
+    angleLayout->addWidget(angleButton);
+    angleLayout->addWidget(angleEdit);
+    angleLayout->addStretch();
+    leftParamsLayout->addLayout(angleLayout);
+
+    // === 其他按钮 ===
+    QSize buttonSize(160, 30);
+    QPushButton* roiButton = new QPushButton("ROI", debugPage);
+    QPushButton* recipeButton = new QPushButton("配方", debugPage);
+    QPushButton* choosepicButton = new QPushButton("选择图片", debugPage);
+    QPushButton* learnButton = new QPushButton("学习", debugPage);
+    QPushButton* checkButton = new QPushButton("复检", debugPage);
+
+    roiButton->setFixedSize(buttonSize);
+    recipeButton->setFixedSize(buttonSize);
+    choosepicButton->setFixedSize(buttonSize);
+    learnButton->setFixedSize(buttonSize);
+    checkButton->setFixedSize(buttonSize);
+
+    QPushButton *shieldButton = new QPushButton(debugPage);
+    shieldButton->setCheckable(true);
+    shieldButton->setFixedSize(buttonSize);
+    shieldButton->setChecked(DI->Shield);
+    shieldButton->setText(DI->Shield ? "屏蔽(开启)" : "屏蔽(关闭)");
+
+    QPushButton* emptyOKButton = new QPushButton(debugPage);
+    emptyOKButton->setCheckable(true);
+    emptyOKButton->setFixedSize(buttonSize);
+    emptyOKButton->setChecked(DI->EmptyIsOK);
+    emptyOKButton->setText(DI->EmptyIsOK ? "空料OK(开启)" : "空料OK(关闭)");
+
+    leftParamsLayout->addWidget(roiButton);
+    leftParamsLayout->addWidget(recipeButton);
+    leftParamsLayout->addWidget(choosepicButton);
+    leftParamsLayout->addWidget(checkButton);
+    leftParamsLayout->addWidget(learnButton);
+    leftParamsLayout->addWidget(shieldButton);
+    leftParamsLayout->addWidget(emptyOKButton);
+
+    roiButton->setVisible(false);
+    recipeButton->setVisible(false);
+
+    QPushButton* saveButton = new QPushButton("保存修改", debugPage);
+    saveButton->setFixedSize(160, 40);
+    leftParamsLayout->addWidget(saveButton, 0, Qt::AlignLeft);
+    leftParamsLayout->addStretch(1);
+
+    leftPanelWidget->setFixedWidth(280);
+    leftPanelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    mainHorizontalLayout->addWidget(leftPanelWidget);
+
+    // === 右侧图片显示窗口 ===
+    imageViewer = new ImageViewerWindow(debugPage);
+    imageViewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    imageViewer->setMinimumSize(100, 100);
+
+    QPixmap blackPixmap(1200 - 280, 880);
+    blackPixmap.fill(Qt::black);
+    imageViewer->setPixmap(blackPixmap);
+
+    mainHorizontalLayout->addWidget(imageViewer, 1);
+
+    tabWidget->addTab(debugPage, "调试");
+
+    calibButton->setFocusPolicy(Qt::NoFocus);
+    calibButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
+    flagButton->setFocusPolicy(Qt::NoFocus);
+    flagButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
+    angleButton->setFocusPolicy(Qt::NoFocus);
+    angleButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
+
+    // 信号连接
+    connect(calibButton, &QPushButton::clicked, this, &ParaWidget::onCalibClicked);
+    connect(roiButton, &QPushButton::clicked, this, &ParaWidget::onROIClicked);
+    connect(recipeButton, &QPushButton::clicked, this, &ParaWidget::onRecipeClicked);
+    connect(choosepicButton, &QPushButton::clicked, this, &ParaWidget::onChooseImageClicked);
+    connect(checkButton, &QPushButton::clicked, this, [this]() {
+        qDebug() << "复检功能触发！";
+        emit Check();
+        });
+    connect(learnButton, &QPushButton::clicked, this, [this]() {
+        qDebug() << "学习功能触发！";
+        emit Learn();
+        });
+
+    connect(saveButton, &QPushButton::clicked, this, [=]() {
+        QString scaleText = scaleFactorEdit->text();
+        QString angleText = angleEdit->text();
+        int flagValue = flagCombo->currentData().toInt(); // 取下拉框值
+
+        bool ok1 = false, ok2 = false;
+        double scaleValue = scaleText.toDouble(&ok1);
+        float angleValue = angleText.toFloat(&ok2);
+
+        if (!ok1) {
+            QMessageBox::warning(this, "输入错误", "缩放系数必须是浮点数！");
+            return;
+        }
+        if (!ok2 || angleValue < -180 || angleValue > 180) {
+            QMessageBox::warning(this, "输入错误", "角度必须是整数（-180 到 180）！");
+            return;
+        }
+
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this, "确认保存", "确定要保存当前设置吗？",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            DI->scaleFactor = scaleValue;
+            DI->Angle = angleValue;
+            DI->saveflag = flagValue;
+            if (m_cam->indentify == "Carrier_NaYin") LearnPara::inParam1.angleNum = angleValue;
+            if (m_cam->indentify == "NaYin") LearnPara::inParam2.angleNum = angleValue;
+            if (m_cam->indentify == "Top") LearnPara::inParam3.angleNum = angleValue;
+            if (m_cam->indentify == "Side") LearnPara::inParam4.imgAngleNum = angleValue;
+            if (m_cam->indentify == "Pin") LearnPara::inParam5.angleNum = angleValue;
+            emit SaveDebugInfo(DI);
+        }
+        });
+
+    connect(shieldButton, &QPushButton::toggled, this, [=](bool checked) {
+        DI->Shield = checked;
+        shieldButton->setText(checked ? "屏蔽(开启)" : "屏蔽(关闭)");
+        qDebug() << "DI->Shield 设置为：" << checked;
+        });
+    connect(emptyOKButton, &QPushButton::toggled, this, [=](bool checked) {
+        DI->EmptyIsOK = checked;
+        emptyOKButton->setText(checked ? "空料OK(开启)" : "空料OK(关闭)");
+        qDebug() << "EmptyIsOK 设置为：" << checked;
+        });
+}
+
+
+void ParaWidget::onChooseImageClicked()
+{
+    QString defaultPath = m_cam->localpath;
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "选择图像文件",
+        defaultPath,
+        "图像文件 (*.png *.jpg *.bmp *.jpeg *.tif *.tiff);;所有文件 (*.*)");
+
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+   QString m_tempImagePath = filePath;
+    qDebug() << "用户选择图片路径：" << filePath;
+
+    cv::Mat image = cv::imread(filePath.toStdString());
+    if (image.empty()) {
+        QMessageBox::warning(this, "错误", "加载失败！");
+        return;
+    }
+
+    // 创建 shared_ptr 持有独立图像数据
+     std::shared_ptr<cv::Mat> imagePtr(new cv::Mat(image.clone()));
+    emit ImageLoaded(imagePtr);
+   
+
+    QPixmap pixmap = convertMatToPixmap(*imagePtr);
+    imageViewer->setPixmap(pixmap);
+}
+
+
+
+void ParaWidget::handleSettingsInitializationError(QTabWidget* tabWidget, const QString& tabName, const QString& errorMessage)
+{
+    qWarning() << "ParaWidget::handleSettingsInitializationError: " << errorMessage;
+    QWidget* errorTab = new QWidget;
+    tabWidget->addTab(errorTab, tabName + " (错误)");
+    QVBoxLayout* errorLayout = new QVBoxLayout(errorTab);
+    // 这里使用 this 作为 QLabel 的父对象，确保其生命周期与 ParaWidget 关联
+    errorLayout->addWidget(new QLabel("错误：" + errorMessage, this));
+}
+
+void ParaWidget::displayNoParametersMessage(QVBoxLayout* mainLayout, const QString& settingType)
+{
+    // 创建一个 QLabel 显示提示信息
+    QLabel* infoLabel = new QLabel(QString("未找到任何%1参数。请检查配置文件路径或格式是否正确。").arg(settingType), this);
+    infoLabel->setStyleSheet("color: blue; font-size: 14px;"); 
+    // 设置 QLabel 居中对齐
+    infoLabel->setAlignment(Qt::AlignCenter);
+
+    // 添加到主布局
+    mainLayout->addWidget(infoLabel);
+
+    // 添加一些弹性空间，确保信息在中间
+    mainLayout->addStretch(1);
+}
+
+template<typename T>
+QString ParaWidget::validateParametersRange(T* settingsManager, const QString& settingType) const
+{
+    if (!settingsManager) {
+        return "内部错误：" + settingType + "参数管理器未初始化，无法进行校验。";
+    }
+
+    // 通过模板参数 T，我们可以调用 T 类型特有的方法来获取 Parameters
+    const Parameters& currentParams = settingsManager->getParameters();
+
+    for (auto projectIt = currentParams.detectionProjects.begin();
+         projectIt != currentParams.detectionProjects.end();
+         ++projectIt)
+    {
+        const QString& projectName = projectIt.key();
+        const DetectionProject& project = projectIt.value();
+
+        for (auto paramIt = project.params.begin();
+             paramIt != project.params.end();
+             ++paramIt)
+        {
+            const QString& paramName = paramIt.key();
+            const ParamDetail& paramDetail = paramIt.value();
+
+            if (!paramDetail.visible) continue;
+            if (paramDetail.range.isEmpty()) continue;
+
+            QString minStr;
+            QString maxStr;
+            int lastDashIndex = paramDetail.range.lastIndexOf('-');
+
+            if (lastDashIndex == -1 || lastDashIndex == 0 || lastDashIndex == paramDetail.range.length() -1) {
+                return QString("%1参数 '%2' (项目: %3) 的范围格式无效: '%4'。应为 'min-max'。")
+                    .arg(settingType).arg(paramName).arg(projectName).arg(paramDetail.range);
+            }
+
+            minStr = paramDetail.range.left(lastDashIndex);
+            maxStr = paramDetail.range.mid(lastDashIndex + 1);
+
+            bool okMin, okMax;
+            double minValDouble = minStr.toDouble(&okMin);
+            double maxValDouble = maxStr.toDouble(&okMax);
+
+            if (!okMin || !okMax) {
+                return QString("%1参数 '%2' (项目: %3) 的范围值 '%4' 无法解析为数字。")
+                    .arg(settingType).arg(paramName).arg(projectName).arg(paramDetail.range);
+            }
+
+            // 检查 minValDouble 是否大于 maxValDouble，这会导致校验逻辑混乱
+            if (minValDouble > maxValDouble) {
+                return QString("%1参数 '%2' (项目: %3) 的最小范围值 '%4' 大于最大范围值 '%5'。")
+                    .arg(settingType).arg(paramName).arg(projectName)
+                    .arg(QString::number(minValDouble, 'f', (paramDetail.type.toLower() == "int" ? 0 : 3)))
+                    .arg(QString::number(maxValDouble, 'f', (paramDetail.type.toLower() == "int" ? 0 : 3)));
+            }
+
+            bool valueConversionOk;
+            if (paramDetail.type.toLower() == "int") {
+                long long value = paramDetail.value.toLongLong(&valueConversionOk);
+                if (!valueConversionOk || value < static_cast<long long>(minValDouble) || value > static_cast<long long>(maxValDouble)) {
+                    return QString("%1参数 '%2' (项目: %3) 的值 '%4' 超出范围 [%5 - %6] 或格式不正确。")
+                        .arg(settingType).arg(paramName).arg(projectName).arg(paramDetail.value.toString())
+                        .arg(QString::number(minValDouble, 'f', 0)).arg(QString::number(maxValDouble, 'f', 0));
+                }
+            } else if (paramDetail.type.toLower() == "float") {
+                double value = paramDetail.value.toDouble(&valueConversionOk);
+                if (!valueConversionOk || value < minValDouble || value > maxValDouble) {
+                    return QString("%1参数 '%2' (项目: %3) 的值 '%4' 超出范围 [%5 - %6] 或格式不正确。")
+                        .arg(settingType).arg(paramName).arg(projectName).arg(paramDetail.value.toString())
+                        .arg(minValDouble).arg(maxValDouble);
+                }
+            } else {
+                qDebug() << "Skipping range validation for non-numeric " << settingType << " type:" << paramName << " Type:" << paramDetail.type;
+            }
+        }
+    }
+    return QString(); // 所有校验通过，返回空字符串
+}
+
+
+// 3. 通用 QLineEdit 验证器设置 (paramNameForLog)
+void ParaWidget::setupLineEditValidator(QLineEdit* valueEdit, const ParamDetail& paramDetail, const QString& paramNameForLog)
+{
+    // 使用 paramNameForLog 进行日志输出，而不是 paramDetail.name
+    if (paramDetail.range.isEmpty()) {
+        qDebug() << "Range is empty for param:" << paramNameForLog << ". No validator applied.";
+        return;
+    }
+
+    QString minStr;
+    QString maxStr;
+    int lastDashIndex = paramDetail.range.lastIndexOf('-');
+
+    if (lastDashIndex == -1 || lastDashIndex == 0 || lastDashIndex == paramDetail.range.length() -1) {
+        qWarning() << "Range format invalid for param:" << paramNameForLog << " range:" << paramDetail.range;
+        return;
+    }
+
+    minStr = paramDetail.range.left(lastDashIndex);
+    maxStr = paramDetail.range.mid(lastDashIndex + 1);
+
+    bool okMin, okMax;
+    double minValDouble = minStr.toDouble(&okMin);
+    double maxValDouble = maxStr.toDouble(&okMax);
+
+    if (okMin && okMax) {
+        QValidator* validator = nullptr;
+        if (paramDetail.type.toLower() == "int") {
+            int minInt = static_cast<int>(minValDouble);
+            int maxInt = static_cast<int>(maxValDouble);
+            validator = new QIntValidator(minInt, maxInt, this);
+        } else if (paramDetail.type.toLower() == "float") {
+            validator = new QDoubleValidator(minValDouble, maxValDouble, 3, this); // 3 为小数位数
+            static_cast<QDoubleValidator*>(validator)->setNotation(QDoubleValidator::StandardNotation);
+        }
+        if (validator) {
+            valueEdit->setValidator(validator);
+        } else {
+            qWarning() << "Failed to create validator for param:" << paramNameForLog << " type:" << paramDetail.type;
+        }
+    } else {
+        qWarning() << "Failed to parse range values for param:" << paramNameForLog << " range:" << paramDetail.range;
+    }
+}
+
+void ParaWidget::validateInputType(QLineEdit* lineEdit, const QString& type)
+{
+    if (type == "int") {
+        QIntValidator* validator = new QIntValidator(lineEdit);
+        lineEdit->setValidator(validator);
+    }
+    else if (type == "double" || type == "float") {
+        QDoubleValidator* validator = new QDoubleValidator(lineEdit);
+        // 使用C语言环境，以确保小数点为 '.'
+        validator->setLocale(QLocale::C);
+        lineEdit->setValidator(validator);
+    }
+    // 如果类型不是 int 或 double，则不设置验证器，允许自由输入
+}
+
+void ParaWidget::onCalibClicked()
+{
+    // TODO: 实现标定操作
+    qDebug() << "标定按钮被点击";
+}
+
+void ParaWidget::onROIClicked()
+{
+    // TODO: 实现 ROI 操作
+    qDebug() << "ROI 按钮被点击";
+}
+
+void ParaWidget::onRecipeClicked()
+{
+    // TODO: 实现配方操作
+    qDebug() << "配方按钮被点击";
+}
+
+
+
+void ParaWidget::closeWindow()
+{
+    close(); // 关闭窗口
+}

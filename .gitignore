@@ -1,0 +1,9 @@
+# Ignore Program Database (Debug Symbols) files
+*.pdb
+*.jpg
+build/
+data/
+out/
+.vs/
+out-qt/
+svn-ignore.txt
