@@ -7,3 +7,4 @@ out/
 .vs/
 out-qt/
 svn-ignore.txt
+CMakeSettings.json
