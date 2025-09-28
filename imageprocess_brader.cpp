@@ -106,7 +106,7 @@ void Imageprocess_Brader::run()
 				{
 					cam_instance->RI->m_PaintData[0].result = -1;
 					cam_instance->RI->m_PaintData[0].count++;
-					ret = -1;
+					//ret = -1;
 				}
 				else if (ret == 2) {
 					cam_instance->noneDisplay.store(true);
@@ -155,7 +155,7 @@ void Imageprocess_Brader::run()
 				{
 					cam_instance->RI->m_PaintData[0].result = -1;
 					cam_instance->RI->m_PaintData[0].count++;
-					ret = -1;
+					//ret = -1;
 				}
 				else ret = -1;
 			}
@@ -174,7 +174,7 @@ void Imageprocess_Brader::run()
 				{
 					cam_instance->RI->m_PaintData[0].result = -1;
 					cam_instance->RI->m_PaintData[0].count++;
-					ret = -1;
+					//ret = -1;
 				}
 				else if (ret == 2) {
 					cam_instance->noneDisplay.store(true);
@@ -197,7 +197,7 @@ void Imageprocess_Brader::run()
 			afterImagePtr = currentImagePtr;
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
-			emit imageProcessed(afterImagePtr, info);
+			emit imageProcessed_Brader(afterImagePtr, info);
 			currentImagePtr.reset();
 			backupImagePtr.reset();
 			afterImagePtr.reset();
@@ -232,7 +232,7 @@ void Imageprocess_Brader::run()
 			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && ret==1)//非本地运行的情况
 		{
 
 			if (0)
@@ -308,11 +308,11 @@ void Imageprocess_Brader::run()
 
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
-			emit imageProcessed(backupImagePtr, info);
+			emit imageProcessed_Brader(backupImagePtr, info);
 
 		}
 		else {
-			emit imageProcessed(afterImagePtr, info);
+			emit imageProcessed_Brader(afterImagePtr, info);
 
 		}
 

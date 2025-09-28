@@ -22,6 +22,7 @@ signals:
     void StopDevice();
     void PaintSend(QVector<PaintDataItem> paintData);
     void imageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
+	void imageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
     void ImageLoaded(std::shared_ptr<cv::Mat> image);
     void Learn();
     void SetButtonBackground(const QString& color);

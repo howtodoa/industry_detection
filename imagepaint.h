@@ -22,6 +22,9 @@ public:
     static  void drawPaintDataEx(QPixmap& pixmap,
         QVector<PaintDataItem> paintDataList,
         QSize displaySize);
+    static void drawPaintDataEx_I(QPixmap& pixmap,
+        QVector<PaintDataItem> paintDataList,
+        QSize displaySize);
 private:
 
     ImagePaint() = delete;

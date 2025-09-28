@@ -61,6 +61,7 @@ public slots:
     void onSwitchFullScreen(bool status);
     void onCameraConnect(const QString& color);
     void onStartGetIn();
+    void onImageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
 private:
     cv::Mat image;
     QPixmap currentPixmap;
