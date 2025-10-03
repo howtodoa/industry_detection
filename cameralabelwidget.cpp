@@ -1258,7 +1258,7 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 				
 			}
-			else if(info.ret==0) ImagePaint::drawPaintDataEx_V(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			//else if(info.ret==0) ImagePaint::drawPaintDataEx_V(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 			m_cam->noneDisplay.store(false);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 			
@@ -1325,7 +1325,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		//return;
 	}
-	if (info.ret == -1)
+	if (info.ret == -1||info.ret==1)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
@@ -1334,12 +1334,6 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
 
-
-
-	//dataToSave.imagePtr = processedImagePtr; // shared_ptr 的浅拷贝，引用计数增加
-
-	QElapsedTimer timer;
-	timer.start();  // 开始计时
 
 
 	//转换显示
@@ -1357,14 +1351,18 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 			if (m_cam->noneDisplay.load() == false && info.ret == -1)
 			{
 				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-
+				this->ngDisplay.store(true);
 			}
-			else if (info.ret == 0) ImagePaint::drawPaintDataEx_V(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			else if (info.ret == 0)
+			{
+				ImagePaint::drawPaintDataEx_V(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				this->ngDisplay.store(false);
+			}
 			else if (info.ret == 1)
 			{
 				info.ret = -1;
 				ImagePaint::drawPaintDataEx_I(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-				
+				this->ngDisplay.store(true);
 			}
 			m_cam->noneDisplay.store(false);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
@@ -1400,8 +1398,15 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 			
 		}
 		saveToQueue->cond.notify_one(); // 通知保存线程
-		// 4. 将深拷贝后的 QPixmap 显示在 ZoomableLabel 中
- //   this->currentPixmap = QPixmap();
+
+
+		if(this->ngDisplay.load()==false) FullScreenWindow::ShowOriginalSize(currentPixmap,true);
+		else
+		{
+			FullScreenWindow::ShowOriginalSize(currentPixmap, false);
+			return;
+		}
+
 		if (check_flag.load() == true)
 		{
 			parawidget->imageViewer->setPixmap(this->currentPixmap);
@@ -1416,8 +1421,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		qWarning() << "CameraLabelWidget: 转换图像用于显示失败，无法显示。";
 		LOG_DEBUG(GlobalLog::logger, _T("displayImage ptr null"));
 	}
-	qint64 elapsed = timer.elapsed();  // 获取经过的毫秒数
-	qDebug() << "显示耗时：" << elapsed << "毫秒";
+
 
 }
 

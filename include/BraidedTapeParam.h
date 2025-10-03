@@ -50,6 +50,7 @@ struct InPinParam
 	float pinWidth = 0;                               //针脚宽度
 	float Diameter = 0;                               //定位孔直径
 	int thresh = 0;                                   //胶带二值化参数
+	int PinThresh = 0;                               //胶带上针参数
 	bool al_core=false;
 };
 

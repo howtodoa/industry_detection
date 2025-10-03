@@ -86,6 +86,7 @@ private:
     std::atomic<bool> FullScreen = false;
     bool thread_exit=false;
     Cameral *m_cam=nullptr;
+	std::atomic<bool> ngDisplay = false;
 public:
     ImageProcess* m_imageProcessor;
     ImageViewerWindow* imageView = nullptr;

@@ -408,12 +408,6 @@ void ImageProcess::run()
 			saveToQueue->cond.notify_one();
 		}
 
-#ifdef USE_MAIN_WINDOW_CAPACITY
-		
-#else
-		PaintSend(cam_instance->RI->m_PaintData);
-#endif
-
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed(backupImagePtr, info);

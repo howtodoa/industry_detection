@@ -130,6 +130,7 @@ void Imageprocess_Brader::run()
 					cam_instance->ten -= 1;
 				}
 				ret = BraidedTapeSpace::RunSide(*currentImagePtr, inpara);
+				if(inpara.al_core==true&&ret!=0) cam_instance->ten += 1;
 				OutSideParam para;
 				BraidedTapeSpace::ResultOutSide(*afterImagePtr, para);
 				qint64 elapsed = timer.elapsed();
@@ -232,7 +233,7 @@ void Imageprocess_Brader::run()
 			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && ret==1)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1)//非本地运行的情况
 		{
 
 			if (0)
@@ -248,8 +249,8 @@ void Imageprocess_Brader::run()
 				Sleep(300);
 				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? false : true, durationMs);
 
-			//	PCI::pci().setoutput(cam_instance->pointNumber.load(), false);
-				
+				//	PCI::pci().setoutput(cam_instance->pointNumber.load(), false);
+
 				std::cout << "change:" << GlobalPara::changed.load();
 				emit SetButtonBackground("red");
 				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
