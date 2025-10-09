@@ -6,6 +6,7 @@
 #include "mainwindow.h"
 #include <windows.h>
 #include <dbghelp.h>
+#include <QProcess>
 #include "initsystem.h"
 //#include <openvino/openvino.hpp>
 
@@ -53,7 +54,7 @@ LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
         CloseHandle(hDumpFile);
     }
 
-    // 返回 EXCEPTION_EXECUTE_HANDLER 终止程序
+
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
@@ -97,38 +98,100 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
-int main(int argc, char *argv[])
+int runBusiness(int argc, char* argv[])
 {
-    //redirectToFile();
- 
-
-    HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        qDebug() << "程序已在运行中。";
-        return 0;  // 退出
-    }
-
-    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     QApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
 
     QIcon icon(":/images/resources/images/oo.ico");
-    QPixmap pixmap = icon.pixmap(512, 512);  
+    QPixmap pixmap = icon.pixmap(512, 512);
     QSplashScreen splash(pixmap);
     splash.show();
-    app.processEvents();  // 立即显示 splash 图
+    app.processEvents();
 
-    QDir::setCurrent(QCoreApplication::applicationDirPath());//设置工作路径
+    QDir::setCurrent(QCoreApplication::applicationDirPath());
     InitSystem("../../../ini/globe/Global.json");
+
 #ifdef USE_MAIN_WINDOW_CAPACITY
     MainWindow w;
-#else  
+#else
     MainWindow w(1);
-
 #endif
-    w.showMaximized();  // 启动时最大化显示
-
+    w.showMaximized();
     splash.finish(&w);
 
     return app.exec();
+}
+
+int main(int argc, char* argv[])
+{
+
+    if (argc > 1 && strcmp(argv[1], "--child") == 0) {
+        // 子进程需要 QApplication 来运行 GUI
+        return runBusiness(argc, argv);
+    }
+  
+    // 父进程不使用 QCoreApplication,可能会造成界面ui使用不了的情况，因为资源文件被父进程初始化了
+   
+    HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        return 0;
+    }
+
+    //  获取 EXE 完整路径 
+    wchar_t currentExePath[MAX_PATH];
+    GetModuleFileNameW(NULL, currentExePath, MAX_PATH);
+    QString currentExePathQ = QString::fromWCharArray(currentExePath);
+
+
+    while (true) {
+
+        QString program = currentExePathQ; 
+        QString argumentsStr = " --child";
+
+        STARTUPINFO si = { sizeof(si) };
+        PROCESS_INFORMATION pi;
+
+        // 必须为可写缓冲区
+        std::wstring cmdW = (program + argumentsStr).toStdWString();
+        wchar_t cmdBuffer[MAX_PATH * 2];
+        wcscpy_s(cmdBuffer, cmdW.c_str());
+
+        if (!CreateProcessW(
+            NULL,
+            cmdBuffer,
+            NULL, NULL, FALSE,
+            0, NULL, NULL,
+            &si, &pi))
+        {
+            return 1;
+        }
+
+        DWORD exitCode = 0;
+        while (true) {
+            DWORD result = WaitForSingleObject(pi.hProcess, 5000);
+            if (result == WAIT_TIMEOUT) {
+                continue;
+            }
+
+            GetExitCodeProcess(pi.hProcess, &exitCode);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            break;
+        }
+
+        if (exitCode == 0) {
+            // fprintf(stderr, "子进程正常退出，父进程也退出\n");
+            break;
+        }
+        else {
+            // fprintf(stderr, "子进程异常退出，重启\n");
+            Sleep(1000);
+        }
+    }
+
+    ReleaseMutex(hMutex);
+    CloseHandle(hMutex);
+
+    return 0;
 }

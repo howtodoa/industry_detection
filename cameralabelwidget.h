@@ -37,7 +37,7 @@ public:
      void triggerCameraStop(Cameral *cam);
      void handleCameraPush(Cameral* cam);
      void handleCameraLocalRun(Cameral* cam);
-     void triggerCameraPhoto(Cameral* cam);
+
      void updateDebugValuesAsync(const QString& cameraKey, const DebugInfo* DI, const QString& filePath);
     void stopLocalFileDetectorThread();
   
@@ -47,6 +47,7 @@ public:
 protected:
 
 public slots:
+    void triggerCameraPhoto(Cameral* cam);
     void onSetButtonBackground(const QString& color);
     void onCameraStart();
     void onCameraStop();

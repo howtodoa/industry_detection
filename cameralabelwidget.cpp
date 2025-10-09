@@ -517,6 +517,8 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 				LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerSource() twice, ret = %1").arg(ret).toStdWString().c_str());
 			}
 			ret = cam->camOp->MsvStartImageCapture();
+			LOG_DEBUG(GlobalLog::logger, QString("MsvStartImageCapture , ret = %1").arg(ret).toStdWString().c_str());
+
 
 		}
 
@@ -1448,7 +1450,8 @@ void CameraLabelWidget::onStartGetIn()
 			QThread::msleep(200);
 			qDebug() << "this is in the thread";
 		}
-		QMetaObject::invokeMethod(this, "triggerCameraPhoto", Qt::QueuedConnection);
+		QMetaObject::invokeMethod(this, "onCameraPhoto", Qt::QueuedConnection);
+		LOG_DEBUG(GlobalLog::logger, L"onCameraStart");
 		});
 
 }
