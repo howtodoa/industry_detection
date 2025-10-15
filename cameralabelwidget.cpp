@@ -995,6 +995,14 @@ CameraLabelWidget::~CameraLabelWidget()
 	//}
 }
 
+void CameraLabelWidget::ChangeDateDir(Cameral &cam)
+{
+	dataToSave.savePath_OK = cam.ok_path.toStdString();
+	dataToSave.savePath_NG = cam.ng_path.toStdString();
+	dataToSave.savePath_Pre = cam.localpath.toStdString();
+
+}
+
 void CameraLabelWidget::onViewImageClicked()
 {
 	if (!currentPixmap.isNull()) {
@@ -1210,10 +1218,9 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 {
 	
 	qDebug() << "this isonImageProcessed info.ret=:"<<info.ret;
-	if (!processedImagePtr || processedImagePtr->empty()) {
-		qWarning() << "CameraLabelWidget: 收到空或无效的处理后图像指针，跳过处理。";
+	if (!processedImagePtr || processedImagePtr->empty()) {	
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
-		//return;
+		return;
 	}
 	if (info.ret == -1)
 	{
@@ -1251,7 +1258,7 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 		// 3. 将 QImage 深拷贝到成员变量 currentPixmap8
 		//this->currentPixmap = QPixmap::fromImage(displayImage).copy();
 		this->currentPixmap = QPixmap::fromImage(displayImage);
-
+		if (CheckPixmap(this->currentPixmap) == -1) return;
 
 		if (m_cam->video == false)
 		{
@@ -1268,8 +1275,7 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 		cv::Mat mat = QPixmapToMat(currentPixmap).clone();
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>(mat);
 
-		if (!afterImagePtr || afterImagePtr->empty()) {
-			qWarning() << "CameraLabelWidget: 收到空或无效的处理后图像指针，跳过处理。";
+		if (!afterImagePtr || afterImagePtr->empty()) {			
 			LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
 			return;
 		}
@@ -1402,7 +1408,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		saveToQueue->cond.notify_one(); // 通知保存线程
 
 
-		if(this->ngDisplay.load()==false) FullScreenWindow::ShowOriginalSize(currentPixmap,true);
+		if(this->ngDisplay.load()==false || m_cam->video.load()==true) FullScreenWindow::ShowOriginalSize(currentPixmap,true);
 		else
 		{
 			FullScreenWindow::ShowOriginalSize(currentPixmap, false);

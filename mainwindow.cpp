@@ -1081,8 +1081,8 @@ void MainWindow::initcams(int camnumber)
          cam->algopath=caminfo[i-1].path+ "/algo.json";
 
          QString dateStr = QDate::currentDate().toString("yyyyMMdd");
-         cam->ok_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/OK/"+dateStr;
-
+        // cam->ok_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/OK/"+dateStr;
+         cam->ok_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/OK/" + dateStr;
          qDebug()<<"  cam->ok_path:     "<<  cam->ok_path;
 
          if (!QDir(cam->ok_path).exists()) {
@@ -1097,7 +1097,8 @@ void MainWindow::initcams(int camnumber)
          }
 
 
-         cam->ng_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/NG/"+dateStr;
+        // cam->ng_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/NG/"+dateStr;
+         cam->ng_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/NG/" + dateStr;
 
          qDebug()<<"  cam->ng_path:     "<<  cam->ng_path;
 
@@ -1112,8 +1113,8 @@ void MainWindow::initcams(int camnumber)
              qDebug() << "路径已存在:" << cam->ng_path;
          }
 
-         cam->localpath=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/LOCAL/"+dateStr;
-
+         //cam->localpath=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/LOCAL/"+dateStr;
+         cam->localpath = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/LOCAL/" + dateStr;
          qDebug()<<"  cam->localpath:     "<<  cam->localpath;
 
          if (!QDir(cam->localpath).exists()) {
@@ -2803,9 +2804,54 @@ void MainWindow::setupUpdateTimer()
 #endif
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
 
-    m_updateTimer->start(500);
+	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::RefreshDir);
+    m_updateTimer->start(1000);
    
 }
+
+void MainWindow::RefreshDir()
+{
+    QDate today = QDate::currentDate();
+    if (today != m_lastDate) {
+        m_lastDate = today;
+        QString dateStr = today.toString("yyyyMMdd");
+
+        for (int i = 0; i < cams.size(); ++i) {
+            // 先把已有路径分割成目录列表
+            auto updatePath = [&](QString& path) {
+                QDir dir(path);
+                QString parent = dir.path();           // 当前路径
+                QString baseName = dir.dirName();     // 最后一层目录（原日期）
+                parent.chop(baseName.length());       // 去掉原日期
+                path = parent + dateStr;              // 拼接新的日期
+                };
+
+            updatePath(cams[i]->ok_path);
+            updatePath(cams[i]->ng_path);
+            updatePath(cams[i]->localpath);
+
+            // 创建目录
+            QStringList paths = { cams[i]->ok_path, cams[i]->ng_path, cams[i]->localpath };
+            for (const QString& p : paths) {
+                if (!QDir(p).exists()) {
+                    if (QDir().mkpath(p))
+                        qDebug() << "路径创建成功:" << p;
+                    else
+                        qDebug() << "路径创建失败:" << p;
+                }
+                else {
+                    qDebug() << "路径已存在:" << p;
+                }
+            }
+
+			cameraLabels[i]->ChangeDateDir(*cams[i]);
+            cameraLabels[i]->m_imageProcessor->ChangeDir(*cams[i]);
+        }
+    }
+ 
+
+}
+
 
 void MainWindow::AllCameraConnect()
 {

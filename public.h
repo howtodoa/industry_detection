@@ -24,6 +24,12 @@
 #include <QHBoxLayout>
 #include <windows.h>
 #include "typdef.h"
+#include <dxgi1_4.h> 
+#include <Pdh.h> 
+#include <psapi.h>
+#include <winternl.h>
+
+
 
 void renameJpgFiles(const QString& directoryPath);
 
@@ -50,5 +56,13 @@ void printOutStampResParam(const OutStampResParam& param, const std::string& str
 QPixmap convertMatToPixmap(const cv::Mat& mat);
 
 QImage convertMatToQImage(const cv::Mat& mat);
+
+qint64 getAvailableSystemMemoryMB();
+
+qint64 getAvailableVRAM_MB();
+
+int CheckRAM();
+
+int CheckPixmap(const QPixmap& pixmap);
 
 #endif // PUBLIC_H

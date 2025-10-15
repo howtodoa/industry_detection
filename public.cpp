@@ -100,6 +100,27 @@ namespace GlobalLog {
 	}
 
 
+	qint64 getAvailableSystemMemoryMB()
+	{
+		PROCESS_MEMORY_COUNTERS pmc = { 0 };
+		if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+		{
+			// pmc.PrivateUsage: 当前进程占用的私有内存
+			// pmc.WorkingSetSize: 当前进程占用的物理内存
+			// 计算当前进程的可用虚拟内存
+			MEMORYSTATUSEX memInfo;
+			memInfo.dwLength = sizeof(memInfo);
+			if (GlobalMemoryStatusEx(&memInfo))
+			{
+				qint64 availablePhysMB = memInfo.ullAvailPhys / (1024 * 1024);
+				qint64 workingSetMB = pmc.WorkingSetSize / (1024 * 1024);
+				// 剩余可分配给当前进程的物理内存近似值
+				return availablePhysMB - workingSetMB;
+			}
+		}
+
+		return 0;
+	}
 
 
 cv::Mat convertQImageToMat(const QImage& image)
@@ -594,4 +615,110 @@ void printOutStampResParam(const OutStampResParam& param, const std::string& str
 
 	std::cout << "logoScores: " << std::fixed << std::setprecision(4) << param.logoScores << std::endl;
 	std::cout << "--------------------------" << std::endl;
+}
+
+
+qint64 getAvailableVRAM_MB()
+{
+	// 初始化COM库，DXGI需要
+	HRESULT com_hr = CoInitialize(NULL);
+
+	IDXGIFactory* pFactory = nullptr;
+	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&pFactory);
+
+	if (FAILED(hr) || !pFactory) {
+		qWarning() << "创建 DXGI Factory 失败。";
+		if (SUCCEEDED(com_hr)) CoUninitialize();
+		return 0;
+	}
+
+	IDXGIAdapter* pAdapter = nullptr;
+	IDXGIAdapter3* pAdapter3 = nullptr;
+	qint64 availableMemory = 0;
+
+	// 枚举第一个适配器（通常是主显卡）
+	if (pFactory->EnumAdapters(0, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+	{
+		// 尝试查询 IDXGIAdapter3 接口，这是获取显存预算所必需的
+		hr = pAdapter->QueryInterface(__uuidof(IDXGIAdapter3), (void**)&pAdapter3);
+		if (SUCCEEDED(hr) && pAdapter3)
+		{
+			DXGI_QUERY_VIDEO_MEMORY_INFO memoryInfo = { 0 };
+			// 查询本机（非共享）显存段的信息
+			hr = pAdapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memoryInfo);
+
+			if (SUCCEEDED(hr))
+			{
+				// 可用预算 = 总预算 - 当前使用量
+				qint64 availableBudgetBytes = memoryInfo.Budget - memoryInfo.CurrentUsage;
+				availableMemory = availableBudgetBytes / (1024 * 1024);
+			}
+			else {
+				qWarning() << "QueryVideoMemoryInfo 失败。";
+			}
+		}
+		else {
+			qWarning() << "查询 IDXGIAdapter3 接口失败，您的系统或驱动程序可能不支持此功能。";
+		}
+	}
+
+	// 释放所有已创建的COM对象，防止资源泄漏
+	if (pAdapter3) pAdapter3->Release();
+	if (pAdapter) pAdapter->Release();
+	if (pFactory) pFactory->Release();
+	if (SUCCEEDED(com_hr)) CoUninitialize();
+
+	return availableMemory > 0 ? availableMemory : 0;
+}
+
+
+int CheckRAM()
+{
+	const qint64 SAFE_RAM_THRESHOLD_MB = 80;  // 系统内存阈值
+	const qint64 SAFE_VRAM_THRESHOLD_MB = 256; // 显存阈值
+
+	// 检查系统可用内存 (RAM)
+	qint64 availableRAM_MB = getAvailableSystemMemoryMB();
+	QString str = QString("当前空闲物理内存: %1 MB").arg(availableRAM_MB);
+	LOG_DEBUG(GlobalLog::logger, str.toStdWString().c_str());
+	if (availableRAM_MB > 0 && availableRAM_MB < SAFE_RAM_THRESHOLD_MB)
+	{
+
+		LOG_DEBUG(GlobalLog::logger, _T("System RAM is low, skipping image processing to prevent crash."));
+		return-1; // RAM 不足，提前退出
+	}
+
+	// 检查可用显存 (VRAM)
+	qint64 availableVRAM_MB = getAvailableVRAM_MB();
+	if (availableVRAM_MB > 0 && availableVRAM_MB < SAFE_VRAM_THRESHOLD_MB)
+	{
+
+		LOG_DEBUG(GlobalLog::logger, _T("Available VRAM budget is low, skipping image processing."));
+		return -1; // VRAM 不足，提前退出
+	}
+	return 0;
+}
+
+int CheckPixmap(const QPixmap& pixmap)
+{
+	// 1 安全检查：空 pixmap
+	if (pixmap.isNull()) {
+		qWarning() << "[ZoomableLabel] pixmap is null, skip display.";
+		return -1;
+	}
+
+	// 2. 安全检查：cacheKey
+	if (pixmap.cacheKey() == 0) {
+		qWarning() << "[ZoomableLabel] pixmap cacheKey is 0, skip display.";
+		return -1;
+	}
+
+	// 3. 尺寸检查（防止极端值）
+	int w = pixmap.width();
+	int h = pixmap.height();
+	if (w <= 0 || h <= 0 || w > 10000 || h > 10000) {
+		qWarning() << "[ZoomableLabel] pixmap size invalid:" << w << "x" << h;
+		return -1;
+	}
+	return 0;
 }

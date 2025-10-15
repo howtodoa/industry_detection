@@ -30,7 +30,7 @@ signals:
 public:
     // 此方法将在独立的 QThread 中执行（即 ImageProcess 实例本身所代表的线程）。
     void run() override; // 重写 QThread 的 run 方法
-
+	void ChangeDir(Cameral& cam);
     Cameral* cam_instance = nullptr;
 
     ImageQueuePack* m_inputQueue = nullptr;

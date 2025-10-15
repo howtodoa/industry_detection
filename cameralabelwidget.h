@@ -37,10 +37,10 @@ public:
      void triggerCameraStop(Cameral *cam);
      void handleCameraPush(Cameral* cam);
      void handleCameraLocalRun(Cameral* cam);
-
+     void ChangeDateDir(Cameral &cam);
      void updateDebugValuesAsync(const QString& cameraKey, const DebugInfo* DI, const QString& filePath);
     void stopLocalFileDetectorThread();
-  
+   
 
     QLabel* getImageLabel() const { return imageLabel; }
 

@@ -3,12 +3,13 @@
 
 #include <QWidget>
 #include "public.h"
+#include <QFuture>
 class SysPara : public QWidget
 {
     Q_OBJECT
 public:
     explicit SysPara(QWidget *parent = nullptr);
-
+    QFuture<bool> updateSystemDirsToJsonAsync(const QString& filePath);
 private slots:
     void onModifyClicked(); // 修改按钮槽
     void onCancelClicked(); // 取消按钮槽

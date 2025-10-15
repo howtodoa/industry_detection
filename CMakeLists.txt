@@ -59,6 +59,7 @@ set(SOURCES
     displayinfowidget.cpp
     rightcontrolpanel.cpp
     aboutwidget.cpp
+    debugtool.cpp
 )
 
 set(HEADERS
@@ -112,6 +113,7 @@ set(HEADERS
     displayinfowidget.h
     rightcontrolpanel.h
     aboutwidget.h
+    debugtool.h
 )
 
 set(UI_FILES

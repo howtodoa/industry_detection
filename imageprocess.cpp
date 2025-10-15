@@ -423,3 +423,8 @@ void ImageProcess::run()
 	qDebug() << "ImageProcess::run() (thread finished).";
 } // run() 函数结束
 
+void ImageProcess::ChangeDir(Cameral& cam)
+{
+	dataToSave.savePath_Pre = cam.localpath.toStdString();
+	dataToSave.work_path = cam.localpath.toStdString();
+}

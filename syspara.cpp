@@ -1,4 +1,7 @@
 #include "syspara.h"
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
+#include "fileoperator.h"
 
 SysPara::SysPara(QWidget *parent) : QWidget(parent)
 {
@@ -59,9 +62,63 @@ void SysPara::onModifyClicked()
     // 读取文本框的值并更新 SystemPara
     SystemPara::DATA_DIR = dataDirEdit->text();
     SystemPara::LOG_DIR = logDirEdit->text();
-
+    updateSystemDirsToJsonAsync(SystemPara::GLOBAL_DIR);
     QMessageBox::information(this, "提示", "参数已修改");
     close(); // 关闭窗口
+}
+
+QFuture<bool> SysPara::updateSystemDirsToJsonAsync(const QString& filePath)
+{
+    // 在后台线程中执行操作
+    QFuture<bool> future = QtConcurrent::run([filePath]() {
+        qDebug() << "Background thread: Executing SystemPara directory sync...";
+
+        const QString newDataDirValue = SystemPara::DATA_DIR;
+        const QString newLogDirValue = SystemPara::LOG_DIR;
+
+        // 读取 JSON 文件
+        QVariantMap dataMap = FileOperator::readJsonMap(filePath);
+        if (dataMap.isEmpty()) {
+            qWarning() << "Background thread: Failed to read or parse JSON file from" << filePath;
+            return false;
+        }
+
+
+        // 更新 DATA_DIR
+        if (dataMap.contains("DATA_DIR")) {
+            QVariantMap dataDirMap = dataMap.value("DATA_DIR").toMap();
+            dataDirMap["值"] = newDataDirValue;
+            dataMap["DATA_DIR"] = dataDirMap;
+            qDebug() << "Updated DATA_DIR to:" << newDataDirValue;
+        }
+        else {
+            qWarning() << "Background thread: JSON structure missing 'DATA_DIR' key.";
+        }
+
+        // 更新 LOG_DIR
+        if (dataMap.contains("LOG_DIR")) {
+            QVariantMap logDirMap = dataMap.value("LOG_DIR").toMap();
+            logDirMap["值"] = newLogDirValue;
+            dataMap["LOG_DIR"] = logDirMap;
+            qDebug() << "Updated LOG_DIR to:" << newLogDirValue;
+        }
+        else {
+            qWarning() << "Background thread: JSON structure missing 'LOG_DIR' key.";
+        }
+
+        // 写入更新后的 QVariantMap 到 JSON 文件
+        if (FileOperator::writeJsonMap(filePath, dataMap)) {
+            qDebug() << "Background thread: System parameters saved successfully to" << filePath;
+            return true;
+        }
+        else {
+            qWarning() << "Background thread: Failed to save system parameters to" << filePath;
+            return false;
+        }
+        });
+
+    qDebug() << "Main thread: Async System directory sync initiated.";
+    return future;
 }
 
 void SysPara::onCancelClicked()

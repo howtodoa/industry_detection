@@ -2,6 +2,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include "public.h"
+
 
 ZoomableLabel::ZoomableLabel(QWidget *parent)
     : QLabel(parent), scaleFactor(1.0), offset(0, 0), dragging(false)
@@ -10,13 +12,17 @@ ZoomableLabel::ZoomableLabel(QWidget *parent)
     setScaledContents(false);  // 禁用自动缩放
 }
 
-void ZoomableLabel::setPixmap(const QPixmap &pixmap)
+void ZoomableLabel::setPixmap(const QPixmap& pixmap)
 {
-    originalPixmap = pixmap.copy();
-    scaleFactor = 1.0;  // 重置缩放因子
-    updateScaledPixmap();  // 更新显示
+#ifdef USE_MAIN_WINDOW_CAPACITY
+    if (CheckRAM() == -1) return;
+#endif
+    if (CheckPixmap(pixmap) == -1) return;
+    // 浅拷贝
+    originalPixmap = pixmap;
+    scaleFactor = 1.0;
+    updateScaledPixmap();
 }
-
 void ZoomableLabel::setOriginalPixmap(const QPixmap &pixmap)
 {
     originalPixmap = pixmap;

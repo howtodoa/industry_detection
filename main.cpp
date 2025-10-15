@@ -98,6 +98,8 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
+#ifndef USE_MAIN_WINDOW_CAPACITY
+
 int runBusiness(int argc, char* argv[])
 {
     QApplication app(argc, argv);
@@ -194,4 +196,42 @@ int main(int argc, char* argv[])
     CloseHandle(hMutex);
 
     return 0;
+} 
+#else // USE_MAIN_WINDOW_CAPACITY
+int main(int argc, char* argv[])
+{
+    //redirectToFile();
+
+
+    HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        qDebug() << "程序已在运行中。";
+        return 0;  // 退出
+    }
+
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
+    QApplication app(argc, argv);
+    QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
+
+    QIcon icon(":/images/resources/images/oo.ico");
+    QPixmap pixmap = icon.pixmap(512, 512);
+    QSplashScreen splash(pixmap);
+    splash.show();
+    app.processEvents();  // 立即显示 splash 图
+
+    QDir::setCurrent(QCoreApplication::applicationDirPath());//设置工作路径
+    InitSystem("../../../ini/globe/Global.json");
+#ifdef USE_MAIN_WINDOW_CAPACITY
+    MainWindow w;
+#else  
+    MainWindow w(1);
+
+#endif
+    w.showMaximized();  // 启动时最大化显示
+
+    splash.finish(&w);
+
+    return app.exec();
 }
+
+#endif

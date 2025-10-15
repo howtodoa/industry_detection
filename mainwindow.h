@@ -42,6 +42,7 @@ public:
     void setLabel(QVBoxLayout *layout, int row, int col);
     void updateCameraStats();
     void AllCameraConnect();
+    void RefreshDir();
     void setupUpdateTimer();
     void toggleAutoStart(QAction* action);
     void test_show();
@@ -74,6 +75,7 @@ private:
     QLabel* m_runtimeLabel;
     QLabel* m_roleLabel;
     SqliteDB::DBOperation* dbManager = nullptr;
+    QDate m_lastDate = QDate::currentDate();
    // QAction *loginAction; // 登录动作
     QVector<CameraLabelWidget *> cameraLabels;
     QVector<DisplayInfoWidget*> m_displayInfoWidgets;
