@@ -45,7 +45,7 @@ void RezultInfo_Pin::updatePinPaintVector(Parameters* rangePara)
     for (auto& item : m_PaintData) { // 使用引用&来直接修改列表中的项
 
         // 根据 item.label (缺陷名称) 找到对应的配置并更新
-        if (item.label == "毛刺面积") {
+        if (item.label == "孔毛刺") {
             bool hasLower = paramMap.contains("m_MaoCiAreaLower");
             bool hasUpper = paramMap.contains("m_MaoCiAreaUpper");
             item.check = (hasLower && paramMap["m_MaoCiAreaLower"].check) || (hasUpper && paramMap["m_MaoCiAreaUpper"].check);
@@ -57,13 +57,13 @@ void RezultInfo_Pin::updatePinPaintVector(Parameters* rangePara)
             item.check = (hasLower && paramMap["m_DisCircleLower"].check) || (hasUpper && paramMap["m_DisCircleUpper"].check);
             item.offset = hasLower ? paramMap["m_DisCircleLower"].compensation : (hasUpper ? paramMap["m_DisCircleUpper"].compensation : 0.0);
         }
-        else if (item.label == "上针宽度间距") {
+        else if (item.label == "成型脚距F") {
             bool hasLower = paramMap.contains("m_DisTopPinLower");
             bool hasUpper = paramMap.contains("m_DisTopPinUpper");
             item.check = (hasLower && paramMap["m_DisTopPinLower"].check) || (hasUpper && paramMap["m_DisTopPinUpper"].check);
             item.offset = hasLower ? paramMap["m_DisTopPinLower"].compensation : (hasUpper ? paramMap["m_DisTopPinUpper"].compensation : 0.0);
         }
-        else if (item.label == "下针宽度间距") {
+        else if (item.label == "成型不良") {
             bool hasLower = paramMap.contains("m_DisButtomPinLower");
             bool hasUpper = paramMap.contains("m_DisButtomPinUpper");
             item.check = (hasLower && paramMap["m_DisButtomPinLower"].check) || (hasUpper && paramMap["m_DisButtomPinUpper"].check);
@@ -75,13 +75,13 @@ void RezultInfo_Pin::updatePinPaintVector(Parameters* rangePara)
             item.check = (hasLower && paramMap["m_DisPinWidLower"].check) || (hasUpper && paramMap["m_DisPinWidUpper"].check);
             item.offset = hasLower ? paramMap["m_DisPinWidLower"].compensation : (hasUpper ? paramMap["m_DisPinWidUpper"].compensation : 0.0);
         }
-        else if (item.label == "缺陷总面积") {
+        else if (item.label == "胶带破洞") {
             bool hasLower = paramMap.contains("m_totalAreaLower");
             bool hasUpper = paramMap.contains("m_totalAreaUpper");
             item.check = (hasLower && paramMap["m_totalAreaLower"].check) || (hasUpper && paramMap["m_totalAreaUpper"].check);
             item.offset = hasLower ? paramMap["m_totalAreaLower"].compensation : (hasUpper ? paramMap["m_totalAreaUpper"].compensation : 0.0);
         }
-        else if (item.label == "胶带宽度") {
+        else if (item.label == "粘胶不牢") {
             bool hasLower = paramMap.contains("m_DisTapeWidLower");
             bool hasUpper = paramMap.contains("m_DisTapeWidUpper");
             item.check = (hasLower && paramMap["m_DisTapeWidLower"].check) || (hasUpper && paramMap["m_DisTapeWidUpper"].check);
@@ -184,25 +184,25 @@ int RezultInfo_Pin::judge_pin(const OutPinParam& ret)
         hasAnyFail |= !passed;
         };
 
-    checkRange("毛刺面积", ret.m_MaoCiArea, "m_MaoCiAreaLower","m_MaoCiAreaUpper");
+    checkRange("孔毛刺", ret.m_MaoCiArea, "m_MaoCiAreaLower","m_MaoCiAreaUpper");
     if (hasAnyFail) return -1;
 
     checkRange("定位圆间距", ret.m_DisCircle, "m_DisCircleLower", "m_DisCircleUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("上针宽度间距", ret.m_DisTopPin, "m_DisTopPinLower", "m_DisTopPinUpper");
+    checkRange("成型脚距F", ret.m_DisTopPin, "m_DisTopPinLower", "m_DisTopPinUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("下针宽度间距", ret.m_DisButtomPin, "m_DisButtomPinLower", "m_DisButtomPinUpper");
+    checkRange("成型不良", ret.m_DisButtomPin, "m_DisButtomPinLower", "m_DisButtomPinUpper");
     if (hasAnyFail) return -1;
 
     checkRange("针最大宽度", ret.m_DisPinWid, "m_DisPinWidLower", "m_DisPinWidUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("中间缺陷总面积", ret.m_totalArea, "m_totalAreaLower", "m_totalAreaUpper");
+    checkRange("中间胶带破洞", ret.m_totalArea, "m_totalAreaLower", "m_totalAreaUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("胶带宽度", ret.m_DisTapeWid, "m_DisTapeWidLower", "m_DisTapeWidUpper");
+    checkRange("粘胶不牢", ret.m_DisTapeWid, "m_DisTapeWidLower", "m_DisTapeWidUpper");
     if (hasAnyFail) return -1;
 
     if (currentPaintDataIndex != m_PaintData.size()) {

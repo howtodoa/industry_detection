@@ -54,13 +54,13 @@ void RezultInfo_Side::updateSidePaintVector(Parameters* rangePara)
         else if (item.label == "针脚状态") {
             if (paramMap.contains("m_PinOK")) item.check = paramMap["m_PinOK"].check;
         }
-        else if (item.label == "针脚间距") {
+        else if (item.label == "成型脚距F") {
             bool hasLower = paramMap.contains("m_PinDisLower");
             bool hasUpper = paramMap.contains("m_PinDisUpper");
             item.check = (hasLower && paramMap["m_PinDisLower"].check) || (hasUpper && paramMap["m_PinDisUpper"].check);
             item.offset = hasLower ? paramMap["m_PinDisLower"].compensation : (hasUpper ? paramMap["m_PinDisUpper"].compensation : 0.0);
         }
-        else if (item.label == "套管与胶带间距") {
+        else if (item.label == "编带尺寸H") {
             bool hasLower = paramMap.contains("m_Case2TapeDisLower");
             bool hasUpper = paramMap.contains("m_Case2TapeDisUpper");
             item.check = (hasLower && paramMap["m_Case2TapeDisLower"].check) || (hasUpper && paramMap["m_Case2TapeDisUpper"].check);
@@ -81,7 +81,7 @@ void RezultInfo_Side::updateSidePaintVector(Parameters* rangePara)
             item.check = (hasLower && paramMap["m_CaseHeighLower"].check) || (hasUpper && paramMap["m_CaseHeighUpper"].check);
             item.offset = hasLower ? paramMap["m_CaseHeighLower"].compensation : (hasUpper ? paramMap["m_CaseHeighUpper"].compensation : 0.0);
         }
-        else if (item.label == "套管与针间距") {
+        else if (item.label == "H-H0") {
             bool hasLower = paramMap.contains("m_Case2PinDisLower");
             bool hasUpper = paramMap.contains("m_Case2PinDisUpper");
             item.check = (hasLower && paramMap["m_Case2PinDisLower"].check) || (hasUpper && paramMap["m_Case2PinDisUpper"].check);
@@ -96,7 +96,7 @@ void RezultInfo_Side::updateSidePaintVector(Parameters* rangePara)
         else if (item.label == "套管颜色") {
             if (paramMap.contains("m_CaseColor")) item.check = paramMap["m_CaseColor"].check;
         }
-        else if (item.label == "胶带间隔") {
+        else if (item.label == "胶带跑上跑下") {
             bool hasLower = paramMap.contains("m_TapeDisLower");
             bool hasUpper = paramMap.contains("m_TapeDisUpper");
             item.check = (hasLower && paramMap["m_TapeDisLower"].check) || (hasUpper && paramMap["m_TapeDisUpper"].check);
@@ -285,7 +285,7 @@ int RezultInfo_Side::judge_side(const OutSideParam& ret)
     checkExistence("套管状态", ret.m_CaseOK, "m_CaseOK");
     if (hasAnyFail) return -1;
 
-    checkRange("针脚间距", ret.m_PinDis, "m_PinDisLower", "m_PinDisUpper");
+    checkRange("成型脚距F", ret.m_PinDis, "m_PinDisLower", "m_PinDisUpper");
     if (hasAnyFail) return -1;
 
     checkRange("针脚宽度", ret.m_PinWidth, "m_PinWidthLower", "m_PinWidthUpper");
@@ -294,16 +294,16 @@ int RezultInfo_Side::judge_side(const OutSideParam& ret)
     checkRange("套管高度", ret.m_CaseHeigh, "m_CaseHeighLower", "m_CaseHeighUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("套管与针间距", ret.m_Case2PinDis, "m_Case2PinDisLower", "m_Case2PinDisUpper");
+    checkRange("H-H0", ret.m_Case2PinDis, "m_Case2PinDisLower", "m_Case2PinDisUpper");
     if (hasAnyFail) return -1;
 
     checkRange("套管Y差值", ret.m_CaseYSite, "m_CaseYSiteLower", "m_CaseYSiteUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("胶带间隔", ret.m_TapeDis, "m_TapeDisLower", "m_TapeDisUpper");
+    checkRange("胶带跑上跑下", ret.m_TapeDis, "m_TapeDisLower", "m_TapeDisUpper");
     if (hasAnyFail) return -1;
 
-    checkRange("套管与胶带间距", ret.m_Case2TapeDis, "m_Case2TapeDisLower", "m_Case2TapeDisUpper");
+    checkRange("编带尺寸H", ret.m_Case2TapeDis, "m_Case2TapeDisLower", "m_Case2TapeDisUpper");
     if (hasAnyFail) return -1;
 
 

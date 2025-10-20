@@ -53,7 +53,7 @@ void RezultInfo_Top::updateTopPaintVector(Parameters* rangePara)
                 // offset 对布尔类型无意义，保持默认
             }
         }
-        else if (item.label == "负极角度") {
+        else if (item.label == "极性检测") {
             bool hasLower = paramMap.contains("m_NegAngleTopLower");
             bool hasUpper = paramMap.contains("m_NegAngleTopUpper");
             item.check = (hasLower && paramMap["m_NegAngleTopLower"].check) || (hasUpper && paramMap["m_NegAngleTopUpper"].check);
@@ -221,7 +221,7 @@ int RezultInfo_Top::judge_top(const OutTopParam& ret)
     checkExistence("防爆阀类型", ret.m_FBFClassOKTop, "m_FBFClassOKTop");
     if (hasAnyFail) return -1;
 
-    checkRange("负极角度", ret.m_NegAngleTop, "m_NegAngleTopLower", "m_NegAngleTopUpper");
+    checkRange("极性检测", ret.m_NegAngleTop, "m_NegAngleTopLower", "m_NegAngleTopUpper");
     if (hasAnyFail) return -1;
 
     checkRange("防爆阀圆度", ret.m_CirNumTop, "m_CirNumTopLower", "m_CirNumTopUpper");

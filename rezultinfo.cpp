@@ -288,15 +288,15 @@ void RezultInfo::initSidePaintVector(Parameters* rangePara)
     addBoolItem("m_BreakOK", "破损检测");
     addBoolItem("m_CaseColor", "套管颜色");
     addBoolItem("m_CaseOK", "套管状态");
-    addPaintItem("m_PinDisLower", "m_PinDisUpper", "针脚间距");
+    addPaintItem("m_PinDisLower", "m_PinDisUpper", "成型脚距F");
     addPaintItem("m_PinWidthLower", "m_PinWidthUpper", "针脚宽度");
 
     addPaintItem("m_CaseHeighLower", "m_CaseHeighUpper", "套管高度");
-    addPaintItem("m_Case2PinDisLower", "m_Case2PinDisUpper", "套管与针间距");
+    addPaintItem("m_Case2PinDisLower", "m_Case2PinDisUpper", "H-H0");
     addPaintItem("m_CaseYSiteLower", "m_CaseYSiteUpper", "套管Y差值");
 
-    addPaintItem("m_TapeDisLower", "m_TapeDisUpper", "胶带间隔");
-    addPaintItem("m_Case2TapeDisUpper", "m_Case2TapeDisLower", "套管与胶带间距");
+    addPaintItem("m_TapeDisLower", "m_TapeDisUpper", "胶带跑上跑下");
+    addPaintItem("m_Case2TapeDisUpper", "m_Case2TapeDisLower", "编带尺寸H");
 
 
     qDebug() << "m_PaintData(Side) 初始化完成，大小:" << m_PaintData.size();
@@ -419,7 +419,7 @@ void RezultInfo::initTopPaintVector(Parameters* rangePara)
 
     // ==== 顺序需严格与 OutTopParam 一致 ====
     addBoolItem("m_FBFClassOKTop", "防爆阀类型");
-    addPaintItem("m_NegAngleTopLower", "m_NegAngleTopUpper", "负极角度");
+    addPaintItem("m_NegAngleTopLower", "m_NegAngleTopUpper", "极性检测");
     addPaintItem("m_CirNumTopLower", "m_CirNumTopUpper", "防爆阀圆度");
     addPaintItem("m_RadiusTopLower", "m_RadiusTopUpper", "防爆阀半径");
 
@@ -600,13 +600,13 @@ void RezultInfo::initPinPaintVector(Parameters* rangePara)
         };
 
     // === 顺序必须与 OutPinParam 一致 ===
-    addRangeFloatItem("m_MaoCiAreaLower", "m_MaoCiAreaUpper","毛刺面积");
+    addRangeFloatItem("m_MaoCiAreaLower", "m_MaoCiAreaUpper","孔毛刺");
     addRangeFloatItem("m_DisCircleLower", "m_DisCircleUpper", "定位圆间距");
-    addRangeFloatItem("m_DisTopPinLower", "m_DisTopPinUpper", "上针宽度间距");
-    addRangeFloatItem("m_DisButtomPinLower", "m_DisButtomPinUpper", "下针宽度间距");
+    addRangeFloatItem("m_DisTopPinLower", "m_DisTopPinUpper", "成型脚距F");
+    addRangeFloatItem("m_DisButtomPinLower", "m_DisButtomPinUpper", "成型不良");
     addRangeFloatItem("m_DisPinWidUpper", "m_DisPinWidUpper", "针最大宽度");
-    addRangeFloatItem("m_totalAreaLower", "m_totalAreaUpper", "缺陷总面积");
-    addRangeFloatItem("m_DisTapeWidUpper", "m_DisTapeWidUpper", "胶带宽度");
+    addRangeFloatItem("m_totalAreaLower", "m_totalAreaUpper", "胶带破洞");
+    addRangeFloatItem("m_DisTapeWidUpper", "m_DisTapeWidUpper", "粘胶不牢");
 
     qDebug() << "m_PaintData(Pin) 初始化完成，大小:" << m_PaintData.size();
 }

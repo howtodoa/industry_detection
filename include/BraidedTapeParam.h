@@ -24,7 +24,7 @@ struct OutSideParam
 	float m_CaseHeigh;                                          //套管宽度
 	float m_Case2PinDis;                                        //套筒与针的间距
 	float m_CaseYSite;                                          //套管Y轴坐标差
-	float m_TapeDis;                                            //胶带间隔
+	float m_TapeDis;                                            //胶带跑上跑下
 	float m_Case2TapeDis;                                       //套管到胶带间距
 };
 
@@ -61,8 +61,8 @@ struct OutPinParam
 	float m_DisTopPin;          //上针间距
 	float m_DisButtomPin;       //上下针间距
 	float m_DisPinWid;          //针最大宽度
-	float m_totalArea;             //胶带缺陷总面积
-	float m_DisTapeWid;            //胶带宽度
+	float m_totalArea;             //胶带胶带破洞
+	float m_DisTapeWid;            //粘胶不牢
 };
 
 

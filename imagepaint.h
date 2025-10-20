@@ -13,6 +13,9 @@ public:
     static void drawPaintDataEx_V(QPixmap& pixmap,
         QVector<PaintDataItem> paintDataList,
         QSize displaySize);
+    static void drawPaintDataEx_VI(QPixmap& pixmap,
+        QVector<PaintDataItem> paintDataList,
+        QSize displaySize);
     static void drawDetectionResultEx(cv::Mat& image, const DetectInfo& info);
     static void drawPaintDataOnImage(QImage& canvas,const QVector<PaintDataItem>& paintDataList);
     static void drawDetectionResultExQt(QPixmap& pixmap, const DetectInfo& info);

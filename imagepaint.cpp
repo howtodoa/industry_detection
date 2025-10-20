@@ -624,6 +624,126 @@ void ImagePaint::drawPaintDataEx_V(QPixmap& pixmap,
 }
 
 
+void ImagePaint::drawPaintDataEx_VI(QPixmap& pixmap,
+    QVector<PaintDataItem> paintDataList,
+    QSize displaySize)
+{
+    // 1. 安全检查，与原函数相同
+    if (pixmap.isNull()) {
+        qWarning() << "传入的 pixmap 为空，无法绘制。";
+        // 假设 GlobalLog 和 _T 宏已定义
+        // LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
+        return;
+    }
+
+    // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制，与原函数相同
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 3. 尺寸处理，与原函数相同
+    if (displaySize.isEmpty() || !displaySize.isValid()) {
+        displaySize = pixmap.size();
+    }
+
+    // 4. 计算缩放比例，与原函数相同
+    QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
+    const QSize canvasSize = pixmap.size();
+
+    // 5. 定义视觉设计参数，与原函数相同
+    constexpr int TARGET_VISUAL_FONT_SIZE = 12;
+    constexpr double ROW_SPACING_VISUAL_PX = 4.0;
+    constexpr double X_MARGIN_RATIO = 0.01;
+    constexpr double Y_MARGIN_RATIO = 0.05;
+    // 原函数中 COLUMN_GAP_RATIO 仅在多列时使用，这里保持定义但可能不会用到
+    // constexpr double COLUMN_GAP_RATIO = 0.02;
+
+    // 6. 字体尺寸计算，与原函数相同
+    if (actualOnScreenSize.height() == 0) return;
+
+    double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
+    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
+    if (fontSizeOnCanvas < 1) return;
+
+    double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
+    int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
+
+    // 7. 设置字体，与原函数相同
+    QFont font;
+    font.setWeight(QFont::DemiBold);
+    font.setPixelSize(fontSizeOnCanvas);
+    painter.setFont(font);
+
+    // 8. **核心改动：预计算需要绘制的总数（只筛选“引线总长度”）**
+    int itemsToDraw = 0;
+    for (const auto& item : paintDataList) {
+        if (!item.check) {
+            continue;
+        }
+
+        // 新的过滤逻辑：只绘制包含“引线总长度”字符的项目
+        if (item.label.contains("引线总长度")) {
+            itemsToDraw++;
+        }
+    }
+
+    // 注意：通常引线总长度只有一个，但为了兼容性，我们仍然使用循环计数。
+    if (itemsToDraw == 0) {
+        return;
+    }
+
+    // 9. 动态计算布局参数，简化为单列布局
+    QFontMetrics fm(font);
+    int lineHeightOnCanvas = fm.height() + rowSpacingOnCanvas;
+    if (lineHeightOnCanvas <= 0) return;
+
+    int xMarginOnCanvas = qRound(canvasSize.width() * X_MARGIN_RATIO);
+    int yMarginOnCanvas = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+
+    // 因为只绘制一个（或少数几个）项目，我们总是使用单列布局
+    int currentColumn = 0; // 总是第0列
+    int currentRow = 0;    // 总是第0行（对于第一个找到的项目）
+
+    // 单列宽度计算
+    int columnWidth = canvasSize.width() - 2 * xMarginOnCanvas;
+    int columnGapOnCanvas = 0; // 单列时没有列间距
+
+    if (columnWidth <= 0) return;
+
+    // 10. **核心改动：循环绘制并修改显示的标签**
+    int drawIndex = 0; // 实际上只会绘制一个
+    for (const auto& item : paintDataList) {
+        if (!item.check) {
+            continue;
+        }
+
+        // 过滤逻辑 (必须与计数循环中的逻辑保持一致)
+        if (!item.label.contains("引线总长度")) {
+            continue;
+        }
+
+        // 颜色判断，与原函数中颜色逻辑相同，假设 result = 1 表示合格（绿色）
+#ifdef USE_MAIN_WINDOW_CAPACITY
+        QColor color = (item.result == 1) ? Qt::green : Qt::blue;
+#else
+        QColor color = (item.result == 1) ? Qt::green : Qt::red;
+#endif
+        painter.setPen(color);
+
+        // 新的标签显示逻辑：固定显示为“引线总长度: [值]”
+        QString text = QString("引线总长度: %1").arg(item.value);
+
+        // 布局计算：因为只绘制一个，所以 drawIndex 总是 0
+        int x = xMarginOnCanvas + currentColumn * (columnWidth + columnGapOnCanvas);
+        int y = yMarginOnCanvas + currentRow * lineHeightOnCanvas;
+
+        painter.drawText(QRect(x, y, columnWidth, lineHeightOnCanvas), Qt::AlignLeft | Qt::AlignVCenter, text);
+
+        ++drawIndex;
+        // 如果我们只需要绘制找到的第一个“引线总长度”，可以在这里 break
+        // break; 
+    }
+}
+
 void ImagePaint::drawDetectionResultExQt(QPixmap& pixmap, const DetectInfo& info)
 {
     if (pixmap.isNull()) return;

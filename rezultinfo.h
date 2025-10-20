@@ -58,6 +58,7 @@ public:
         }
         else if constexpr (std::is_same_v<T, OutPlateResParam>) {
             // OutPlateResParam 
+			const double epsilon = 1e-6; // 容差值
             data.m_PlateHeight *= scaleFactor;
             data.m_PlateArea *= scaleFactor * scaleFactor;
             data.m_PlateWid *= scaleFactor;
@@ -69,9 +70,15 @@ public:
             data.m_PlatePinRightWid *= scaleFactor;
             data.m_PlatePinLeftExceLen *= scaleFactor;
             data.m_PlatePinRightExceLen *= scaleFactor;
-            data.m_PlatePinTotalLen *= scaleFactor;
             data.m_PlatePinLeftBendAngle *= scaleFactor;
             data.m_PlatePinRightBendAngle *= scaleFactor;
+
+            for(auto item: m_PaintData){
+                if(item.label == "引线总长度"){
+                    double finalScale = (std::abs(item.scale - 1.00) < epsilon) ? scaleFactor : item.scale;
+                    data.m_PlatePinTotalLen *= finalScale;
+                }
+			}
             // 其他字段不做操作
             qDebug() << "Scaled OutPlateResParam dimensions.";
             return true;
@@ -114,7 +121,7 @@ public:
             const double epsilon = 1e-6;
             for (const auto& item : m_PaintData) {
                 double finalScale = (std::abs(item.scale - 1.00) < epsilon) ? scaleFactor : item.scale;
-                if (item.label == "针脚间距") {
+                if (item.label == "成型脚距F") {
                     data.m_PinDis *= finalScale;
                 }
                 else if (item.label == "针脚宽度") {
@@ -123,16 +130,16 @@ public:
                 else if (item.label == "套管高度") {
                     data.m_CaseHeigh *= finalScale;
                 }
-                else if (item.label == "套管与针间距") {
+                else if (item.label == "H-H0") {
                     data.m_Case2PinDis *= finalScale;
                 }
                 else if (item.label == "套管Y差值") {
                     data.m_CaseYSite *= finalScale;
                 }
-                else if (item.label == "胶带间隔") {
+                else if (item.label == "胶带跑上跑下") {
                     data.m_TapeDis *= finalScale;
                 }
-                else if (item.label == "套管与胶带间距") {
+                else if (item.label == "编带尺寸H") {
                     data.m_Case2TapeDis *= finalScale;
                 }
             }
@@ -142,25 +149,25 @@ public:
             const double epsilon = 1e-6;
             for (const auto& item : m_PaintData) {
                 double finalScale = (std::abs(item.scale - 1.00) < epsilon) ? scaleFactor : item.scale;
-                if (item.label == "毛刺面积") {
+                if (item.label == "孔毛刺") {
                     data.m_MaoCiArea *= finalScale * finalScale;
                 }
                 else if (item.label == "定位圆间距") {
                     data.m_DisCircle *= finalScale;
                 }
-                else if (item.label == "上针宽度间距") {
+                else if (item.label == "成型脚距F") {
                     data.m_DisTopPin *= finalScale;
                 }
-                else if (item.label == "下针宽度间距") {
+                else if (item.label == "成型不良") {
                     data.m_DisButtomPin *= finalScale;
                 }
                 else if (item.label == "针最大宽度") {
                     data.m_DisPinWid *= finalScale;
                 }
-                else if (item.label == "缺陷总面积") {
+                else if (item.label == "胶带破洞") {
                     data.m_totalArea *= finalScale * finalScale;
                 }
-                else if (item.label == "胶带宽度") {
+                else if (item.label == "粘胶不牢") {
                     data.m_DisTapeWid *= finalScale;
                 }
             }

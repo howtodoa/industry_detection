@@ -1159,6 +1159,9 @@ void MainWindow::initcams(int camnumber)
            cam->RI=new RezultInfo_Plate(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify=caminfo[i-1].mapping.toStdString();
+           cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
+           cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
+           cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
        }
        else if(caminfo[i-1].mapping=="Lift")
        {

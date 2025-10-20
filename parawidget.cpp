@@ -72,7 +72,23 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC,Cameral *
         tabWidget->setTabVisible(1, false); // 隐藏 CameralTab 的标题 (索引从0开始)
         tabWidget->setTabVisible(2, false); // 隐藏 AlgorithmTab 的标题
     }
+#ifndef USE_MAIN_WINDOW_CAPACITY
+    if (Role::GetCurrentRole() != "厂商" && Role::GetCurrentRole() != "机修")
+    {
+        // 获取 RangeTab 对应的顶层 QWidget 指针 (索引 0)
+        QWidget* rangePageWidget = tabWidget->widget(0);
 
+        // 禁用这个顶层 Widget。
+        // 由于所有编辑控件都嵌套在这个 Widget 内，它将递归禁用所有子控件。
+        if (rangePageWidget)
+        {
+            rangePageWidget->setEnabled(false);
+
+            // 可选：禁用 Tab 标签，让用户知道此页面不可用
+            // tabWidget->setTabEnabled(0, false); 
+        }
+    }
+#endif
     // 设置主布局
     setLayout(mainLayout);
 }

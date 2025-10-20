@@ -15,7 +15,7 @@ ZoomableLabel::ZoomableLabel(QWidget *parent)
 void ZoomableLabel::setPixmap(const QPixmap& pixmap)
 {
 #ifdef USE_MAIN_WINDOW_CAPACITY
-    if (CheckRAM() == -1) return;
+   // if (CheckRAM() == -1) return;
 #endif
     if (CheckPixmap(pixmap) == -1) return;
     // 浅拷贝

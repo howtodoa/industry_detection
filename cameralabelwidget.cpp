@@ -1267,13 +1267,22 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 				
 			}
-			//else if(info.ret==0) ImagePaint::drawPaintDataEx_V(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			else if(info.ret==0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 			m_cam->noneDisplay.store(false);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 			
 		}
-		cv::Mat mat = QPixmapToMat(currentPixmap).clone();
-		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>(mat);
+		std::shared_ptr<cv::Mat> afterImagePtr;
+		try
+		{
+			cv::Mat mat = QPixmapToMat(currentPixmap).clone();
+			afterImagePtr = std::make_shared<cv::Mat>(mat);
+		}
+		catch (...)
+		{
+			GlobalLog::logger.Mz_AddLog(L"!!! 捕获到致命错误 ...");
+			return; // 失败了，直接从函数返回
+		}
 
 		if (!afterImagePtr || afterImagePtr->empty()) {			
 			LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
