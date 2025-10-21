@@ -443,12 +443,12 @@ void MainWindow::init_algo()
     {
  
         //捺印
-      if(cams[i]->indentify=="NaYin" || cams[i]->indentify == "Carrier_NaYin")  ret = ExportSpace::InitializeStamp();
+      if(cams[i]->indentify=="NaYin")  ret = ExportSpace::InitializeStamp();
 
 
         //座板
 
-      if (cams[i]->indentify == "Plate" || cams[i]->indentify == "Carrier_Plate")  ret = ExportSpace::InitializePlate();
+      if (cams[i]->indentify == "Plate")  ret = ExportSpace::InitializePlate();
         if (ret == 1) std::cout << "InitializePlate fail" << std::endl;
         else std::cout << "InitializePlate successful" << std::endl;
 

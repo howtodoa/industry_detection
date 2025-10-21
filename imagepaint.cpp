@@ -674,7 +674,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     painter.setFont(font);
 
     // 8. 设置画笔颜色。由于现在不区分 OK/NG，我们设置一个中性的颜色 (例如，白色或黑色)
-    QColor color = Qt::white; // 默认使用白色以便在图像上可见
+    QColor color = Qt::green; // 默认使用白色以便在图像上可见
     painter.setPen(color);
 
     // 9. 初始化起始绘制位置和行计数器

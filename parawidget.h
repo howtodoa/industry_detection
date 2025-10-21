@@ -54,7 +54,7 @@ private:
     // T 是 RangeClass, AlgoClass, CameralClass 中的任意一种
     template<typename T>
     QString validateParametersRange(T* settingsManager, const QString& settingType) const;
-
+    bool saveParamsToJsonFile(const AllUnifyParams& paramsToSave);
 
     // 3. 通用 QLineEdit 验证器设置 (只依赖 ParamDetail)
     // 注意：这里的 ParamDetail 不包含 name，name 需要在外部传入或从 QMap 的 key 获取
@@ -70,7 +70,9 @@ private:
      QMap<QString, QMap<QString, QCheckBox*>> m_paramCheckboxes;
      QMap<QString, QMap<QString, QLineEdit*>> m_paramCompensationEdits; // 
      QMap<QString, QLineEdit*> m_lineEditMap;
-
+     QMap<QString, QComboBox*> m_paramBoolModeComboBoxes;
+     QMap<QString, QLineEdit*> m_rangeLineEditMap;
+     QMap<QString, QMap<QString, QCheckBox*>> m_rangeCheckboxes;
      DebugInfo *DI;
      Cameral *m_cam=nullptr;
      QTabWidget* tabWidget = nullptr;
@@ -83,6 +85,7 @@ public:
      void onRecipeClicked();
      void onChooseImageClicked();
      void onTransMat(cv::Mat);
+     void onSaveClicked();
 };
 
 #endif // PARAWIDGET_H
