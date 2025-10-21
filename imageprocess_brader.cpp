@@ -189,6 +189,12 @@ void Imageprocess_Brader::run()
 					QString logMsg = QString("Pin ret=%1").arg(ret);
 					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 				}
+				else if (ret == 3)
+				{
+					
+					QString logMsg = QString("Pin ret=%1").arg(ret);
+					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				}
 				else ret = -1;
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
@@ -284,7 +290,7 @@ void Imageprocess_Brader::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret==3))
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);

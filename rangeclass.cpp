@@ -153,3 +153,101 @@ void RangeClass::updateParamCheck(const QString& projectKey, const QString& para
         qWarning() << "RangeClass::updateParamCheck: Project" << projectKey << "not found.";
     }
 }
+
+UnifyParam RangeClass::parseSingleParam(const QJsonObject& paramObject)
+{
+
+    UnifyParam p; // p.upperLimit/lowerLimit 已经被默认构造函数初始化 (例如 -9999.0)
+    // p.upfix/lowfix = 0.0, p.value = 1.0
+
+// 1. 描述和可见/检测状态 (所有模式通用)
+    p.label = paramObject.value("映射变量").toString();
+    p.unit = paramObject.value("单位").toString();
+    p.check = paramObject.value("检测").toString().toLower() == "true";
+    p.visible = paramObject.value("可见").toString().toLower() == "true";
+
+    // 2. 模式判断：是否存在 "布尔值" 键？
+    bool isBooleanMode = paramObject.value("布尔值").toBool(false);
+    p.need_value = isBooleanMode;
+
+    if (isBooleanMode)
+    {
+        // 模式 A: 布尔检测 (need_value = true)
+        // 所有数值相关字段保持 UnifyParam 默认构造值。
+    }
+    else
+    {
+        // 模式 B: 范围检测 (need_value = false)
+
+        // 针对 "上限" 和 "下限"：检查键是否存在，如果存在，则覆盖默认值。
+        // 如果键不存在，则保持 p.upperLimit/lowerLimit 的默认构造值。
+        if (paramObject.contains("上限")) {
+            p.upperLimit = paramObject.value("上限").toDouble();
+        }
+        if (paramObject.contains("下限")) {
+            p.lowerLimit = paramObject.value("下限").toDouble();
+        }
+
+        // 针对 "补偿值" 和 "标定值"：这些字段的默认值是 0.0/1.0，
+        // 即使键不存在，QJsonValue::toDouble(0.0/p.value) 也能保证使用默认值。
+        // 但为了和上下限保持一致，采用 contains 检查也是更清晰的做法。
+
+        // 解析补偿值 (如果键缺失，保持默认值 0.0)
+        if (paramObject.contains("上限补偿值")) {
+            p.upfix = paramObject.value("上限补偿值").toDouble();
+        }
+        if (paramObject.contains("下限补偿值")) {
+            p.lowfix = paramObject.value("下限补偿值").toDouble();
+        }
+
+        // 解析标定值 (如果键缺失，保持默认值 1.0)
+        if (paramObject.contains("标定值")) {
+            p.scaleFactor = paramObject.value("标定值").toDouble();
+        }
+    }
+
+    return p;
+}
+
+AllUnifyParams RangeClass::loadUnifiedParameters(const QString& jsonFilePath)
+{
+    AllUnifyParams resultParams;
+
+    QJsonObject root = FileOperator::readJsonObject(jsonFilePath);
+
+    if (root.isEmpty()) {
+        qCritical() << "统一参数加载失败: 无法读取或解析 JSON 文件。";
+        return resultParams;
+    }
+
+    // 根对象 root 现在直接就是参数集合
+    QJsonObject paramItems = root;
+
+    if (paramItems.isEmpty()) {
+        qCritical() << "统一参数加载失败: JSON 文件根对象为空。";
+        return resultParams;
+    }
+
+    // 遍历并解析所有参数
+    for (auto it = paramItems.constBegin(); it != paramItems.constEnd(); ++it)
+    {
+        QString mapKey = it.key();
+        QJsonValue val = it.value();
+
+        if (val.isObject()) {
+            QJsonObject paramObj = val.toObject();
+
+            // 调用辅助函数解析单个参数
+            UnifyParam p = parseSingleParam(paramObj);
+
+            // 插入到 QMap 中
+            resultParams.insert(mapKey, p);
+        }
+        else {
+            qWarning() << "警告: 键 '" << mapKey << "' 的值不是对象，跳过。";
+        }
+    }
+
+    qDebug() << "统一参数加载成功，总共加载了" << resultParams.size() << "个参数。";
+    return resultParams;
+}

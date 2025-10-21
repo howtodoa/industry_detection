@@ -14,14 +14,20 @@ ZoomableLabel::ZoomableLabel(QWidget *parent)
 
 void ZoomableLabel::setPixmap(const QPixmap& pixmap)
 {
-#ifdef USE_MAIN_WINDOW_CAPACITY
-   // if (CheckRAM() == -1) return;
-#endif
+
     if (CheckPixmap(pixmap) == -1) return;
     // 浅拷贝
-    originalPixmap = pixmap;
-    scaleFactor = 1.0;
-    updateScaledPixmap();
+    try
+    {
+        originalPixmap = pixmap;
+        scaleFactor = 1.0;
+        updateScaledPixmap();
+    }
+    catch (...)
+    {
+        GlobalLog::logger.Mz_AddLog(L"!!! 捕获到致命错误 ...");
+        return; // 失败了，直接从函数返回
+    }
 }
 void ZoomableLabel::setOriginalPixmap(const QPixmap &pixmap)
 {

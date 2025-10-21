@@ -8,7 +8,7 @@ class RezultInfo_Abut : public RezultInfo
 {
     Q_OBJECT
 public:
-     explicit RezultInfo_Abut(Parameters *rangepara, QObject *parent = nullptr);
+     explicit RezultInfo_Abut(AllUnifyParams& unifyParams, QObject *parent = nullptr);
 
     void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange) override;
 

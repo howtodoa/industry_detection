@@ -14,6 +14,7 @@ class RezultInfo : public QObject
 {
     Q_OBJECT
 public:
+    explicit RezultInfo();
     explicit RezultInfo(Parameters *rangepara, QObject *parent = nullptr);
     virtual ~RezultInfo();
     const QList<ProcessedParam>& getProcessedData() const;
@@ -37,8 +38,8 @@ public:
     float getAdjustedUpperThreshold(const QString& key) const;
     float getCompensationValue(const QString& mappedKey) const;
    void printPaintDataVector(const QVector<PaintDataItem>& dataVector, const QString& description = "");
+    void updateActualValues(const OutAbutResParam& ret);
     template<typename T>
-
     bool scaleDimensions(T& data, double scaleFactor)
     {
         if (scaleFactor <= 0) {
@@ -93,17 +94,18 @@ public:
             return true;
         }
         else if constexpr (std::is_same_v<T, OutAbutResParam>) {
-            // OutAbutResParam 的处理
-            data.Pin_C *= scaleFactor; // 引脚总长
-            data.shuyao_width *= scaleFactor; // 束腰宽度
-            data.plate_width *= scaleFactor; // 底座宽度
-            data.p_pin_over_pln *= scaleFactor; // 左引脚超板
-            data.n_pin_over_pln *= scaleFactor; // 右引脚超板
-            data.p_pin_H *= scaleFactor; // 左引脚翘脚
-            data.n_pin_H *= scaleFactor; // 右引脚翘脚
-            data.p_n_height_diff *= scaleFactor; // 左右引脚高度差
-            // 其他字段（布尔、角度、毛刺个数）不做操作
-            qDebug() << "Scaled OutAbutResParam dimensions.";
+
+            //// OutAbutResParam 的处理
+            //data.Pin_C *= scaleFactor; // 引脚总长
+            //data.shuyao_width *= scaleFactor; // 束腰宽度
+            //data.plate_width *= scaleFactor; // 底座宽度
+            //data.p_pin_over_pln *= scaleFactor; // 左引脚超板
+            //data.n_pin_over_pln *= scaleFactor; // 右引脚超板
+            //data.p_pin_H *= scaleFactor; // 左引脚翘脚
+            //data.n_pin_H *= scaleFactor; // 右引脚翘脚
+            //data.p_n_height_diff *= scaleFactor; // 左右引脚高度差
+
+            //qDebug() << "Scaled OutAbutResParam dimensions.";
             return true;
         }
         else if constexpr (std::is_same_v<T, OutTopParam>) {
@@ -189,6 +191,7 @@ public:
     void initTopPaintVector(Parameters* rangePara);
     QVector<SimpleParam> initScale(QString ScalePath);
     void printPaintDataItems();
+    void applyScaleFactors();
     QVector<PaintDataItem> m_PaintData;
     std::vector<float>score_pos;
     std::vector<float>score_neg;
@@ -202,7 +205,7 @@ public:
     int flage;
     double fix;
     void processRangeParameters(Parameters *rangePara);
-    
+    AllUnifyParams unifyParams;
 public:
     float getThresholdValue(const QString& key) const;
     void  appendPaintData(const QString& name, bool check, float value, int result);

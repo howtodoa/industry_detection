@@ -623,6 +623,111 @@ void ImagePaint::drawPaintDataEx_V(QPixmap& pixmap,
     }
 }
 
+void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
+    const AllUnifyParams unifyParams,
+    QSize displaySize)
+{
+    // 1. 安全检查
+    if (pixmap.isNull()) {
+        qWarning() << "传入的 pixmap 为空，无法绘制。";
+        // LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null")); 
+        return;
+    }
+
+    // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 3. 如果传入的UI控件尺寸无效，则将其视为与原图等大（此时无缩放）。
+    if (displaySize.isEmpty() || !displaySize.isValid()) {
+        displaySize = pixmap.size();
+    }
+
+    // 4. 计算缩放比率和画布尺寸
+    QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
+    const QSize canvasSize = pixmap.size();
+
+    // 5. 定义视觉设计参数
+    constexpr int TARGET_VISUAL_FONT_SIZE = 12;
+    constexpr double ROW_SPACING_VISUAL_PX = 4.0;
+    constexpr double X_MARGIN_RATIO = 0.01;
+    constexpr double Y_MARGIN_RATIO = 0.05;
+
+    // 6. 根据“实际”显示尺寸，计算出字体/元素在高清画布上应有的像素大小
+    if (actualOnScreenSize.height() == 0) return;
+
+    // 字体高度和行间距的画布尺寸计算
+    double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
+    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
+    if (fontSizeOnCanvas < 1) return;
+
+    double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
+    int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
+
+    // 每行文本占据的高度：字体大小 + 行间距
+    int totalRowHeight = fontSizeOnCanvas + rowSpacingOnCanvas;
+
+    // 7. 设置字体
+    QFont font;
+    font.setWeight(QFont::Medium);
+    font.setPixelSize(fontSizeOnCanvas);
+    painter.setFont(font);
+
+    // 8. 设置画笔颜色。由于现在不区分 OK/NG，我们设置一个中性的颜色 (例如，白色或黑色)
+    QColor color = Qt::white; // 默认使用白色以便在图像上可见
+    painter.setPen(color);
+
+    // 9. 初始化起始绘制位置和行计数器
+    int xMarginOnCanvas = qRound(canvasSize.width() * X_MARGIN_RATIO);
+    int yMarginOnCanvas = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+
+    int currentRow = 0; // 用于计算垂直偏移量
+
+    // 10. **核心查找和绘制逻辑：遍历 Map 绘制所有满足条件的项**
+    for (auto it = unifyParams.constBegin(); it != unifyParams.constEnd(); ++it)
+    {
+        const UnifyParam& item = it.value();
+
+        // 核心条件：只有当 item.check 和 item.visible 都为 true 时才绘制
+        if (item.check && item.visible)
+        {
+            // 构建要绘制的文本 (中文标签: 实测值)
+            // 假设保留三位小数
+            QString formattedValue = QString::number(item.value, 'f', 3);
+
+            // 为了显示检测结果 (1=通过, 0=不通过)，我们在标签后面添加 [PASS] 或 [FAIL]
+            QString resultText = (item.result == 1) ? "[PASS]" : "[FAIL]";
+
+            // 完整文本格式：标签: 实测值 [结果]
+            QString text = QString("%1: %2 %3").arg(item.label, formattedValue, resultText);
+
+            // 检查 NG 项并设置颜色 (可选，如果您仍想用颜色区分)
+            if (item.result != 1) {
+                // 如果是 NG 项，使用红色
+                painter.setPen(Qt::red);
+            }
+            else {
+                // 如果是 OK 项，使用默认的白色
+                painter.setPen(Qt::white);
+            }
+
+            // 计算当前行的垂直位置 (y 轴)
+            // y 坐标是基线位置 (Baseline)，所以我们加上 fontSizeOnCanvas
+            int y = yMarginOnCanvas + currentRow * totalRowHeight;
+
+            // 绘制文本
+            painter.drawText(xMarginOnCanvas, y + fontSizeOnCanvas, text);
+
+            // 移动到下一行
+            currentRow++;
+
+            // 可选：检查是否超出图像边界，如果超出则停止绘制
+            if (y + totalRowHeight > canvasSize.height() - yMarginOnCanvas) {
+                break;
+            }
+        }
+    }
+}
 
 void ImagePaint::drawPaintDataEx_VI(QPixmap& pixmap,
     QVector<PaintDataItem> paintDataList,
@@ -635,7 +740,10 @@ void ImagePaint::drawPaintDataEx_VI(QPixmap& pixmap,
         // LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
         return;
     }
-
+    if(paintDataList.isEmpty()) {
+        qWarning() << "传入的 paintDataList 为空，无法绘制。";
+        return;
+	}
     // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制，与原函数相同
     QPainter painter(&pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -946,6 +1054,71 @@ void ImagePaint::drawPaintDataEx_I(QPixmap& pixmap,
         painter.setPen(color);
 
         QString text = QStringLiteral("算法NG");
+
+        int x = qRound(canvasSize.width() * X_MARGIN_RATIO);
+        int y = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+
+        painter.drawText(QRect(x, y, canvasSize.width() - 2 * x, canvasSize.height() - 2 * y),
+            Qt::AlignLeft | Qt::AlignTop, text);
+        return; // 只画第一个
+    }
+    // 没有NG则不画任何内容
+}
+
+void ImagePaint::drawPaintDataEx_II(QPixmap& pixmap,
+    QVector<PaintDataItem> paintDataList,
+    QSize displaySize)
+{
+    // 1. 安全检查
+    if (pixmap.isNull()) {
+        qWarning() << "传入的 pixmap 为空，无法绘制。";
+        return;
+    }
+
+    // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 3. 尺寸处理
+    if (displaySize.isEmpty() || !displaySize.isValid()) {
+        displaySize = pixmap.size();
+    }
+
+    // 4. 计算缩放比例
+    QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
+    const QSize canvasSize = pixmap.size();
+
+    // 5. 定义视觉设计参数
+    constexpr int TARGET_VISUAL_FONT_SIZE = 20;
+    constexpr double X_MARGIN_RATIO = 0.01;
+    constexpr double Y_MARGIN_RATIO = 0.05;
+
+    // 6. 字体尺寸计算
+    if (actualOnScreenSize.height() == 0) return;
+
+    double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
+    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
+    if (fontSizeOnCanvas < 1) return;
+
+    // 7. 设置字体
+    QFont font;
+    font.setWeight(QFont::DemiBold);
+    font.setPixelSize(fontSizeOnCanvas);
+    painter.setFont(font);
+
+    // 8. 只查找并绘制第一个算法NG
+    for (const auto& item : paintDataList) {
+        if (!item.check) continue;
+        if (item.result == 1) continue; // 只找NG
+
+#ifdef USE_MAIN_WINDOW_CAPACITY
+        QColor color = Qt::blue;
+#else
+        QColor color = Qt::red;
+#endif
+        painter.setPen(color);
+
+        QString text = QStringLiteral("打孔未穿");
 
         int x = qRound(canvasSize.width() * X_MARGIN_RATIO);
         int y = qRound(canvasSize.height() * Y_MARGIN_RATIO);

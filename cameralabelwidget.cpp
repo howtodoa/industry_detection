@@ -1264,10 +1264,11 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 		{
 			if (m_cam->noneDisplay.load() == false&&info.ret==-1)
 			{
-				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-				
+				//ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
 			}
-			else if(info.ret==0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			//else if(info.ret==0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			else if(info.ret==0)  ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
 			m_cam->noneDisplay.store(false);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 			
@@ -1342,7 +1343,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		//return;
 	}
-	if (info.ret == -1||info.ret==1)
+	if (info.ret == -1||info.ret==1 || info.ret==3)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
@@ -1381,6 +1382,11 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 				ImagePaint::drawPaintDataEx_I(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 				this->ngDisplay.store(true);
 			}
+			else if (info.ret == 3)
+			{
+				ImagePaint::drawPaintDataEx_II(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				this->ngDisplay.store(true);
+			}
 			m_cam->noneDisplay.store(false);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 
@@ -1398,7 +1404,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 
 
 		// 存图
-		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && info.ret == -1)))
+		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && (info.ret == -1 || info.ret==3))))
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex); // 获取互斥锁，保护保存队列
 

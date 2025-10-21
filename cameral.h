@@ -47,7 +47,7 @@ public:
     std::string indentify="";
     QVector<SimpleParam> ScaleArray;
     int rounte = 0;
-    
+	AllUnifyParams unifyParams;
     double scaleFactor=0.01;
     DebugInfo DI;
     Mz_CameraConn::COperation *camOp=nullptr;

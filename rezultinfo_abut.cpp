@@ -1,9 +1,9 @@
 #include "rezultinfo_abut.h"
 
-RezultInfo_Abut::RezultInfo_Abut(Parameters *rangepara, QObject *parent)
-    : RezultInfo(rangepara, parent) // 调用基类 RezultInfo 的构造函数，它会负责加载和处理参数
+RezultInfo_Abut::RezultInfo_Abut(AllUnifyParams &unifyParams,QObject *parent)
+    : RezultInfo()
 {
-
+	this->unifyParams = unifyParams;    
 }
 
 
@@ -20,115 +20,109 @@ void RezultInfo_Abut::printCheckInfo(const QString& paramName, float actualValue
 
 int RezultInfo_Abut::judge_abut(const OutAbutResParam& ret)
 {
-    //const QMap<QString, float>& thresholds = this->getProcessedData();
+  
 
-    //auto getParamFloatValue = [&](const QString& key) -> float {
-    //    return thresholds.contains(key) ? thresholds.value(key) : std::numeric_limits<float>::quiet_NaN();
-    //};
+    bool allPassed = true;
 
-    //// 所有检测项是否有失败
-    //bool hasFail = false;
+    // 1. 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // !!! 必须使用非 const 引用来修改 config !!!
 
-    //// 所有参数值统一初始化
-    //float isHaveProdExpectedFloat = getParamFloatValue("isHaveProd");
-    //float isHavePpinExpectedFloat = getParamFloatValue("isHavePpin");
-    //float isHaveNpinExpectedFloat = getParamFloatValue("isHaveNpin");
-    //float isHaveBplnExpectedFloat = getParamFloatValue("isHaveBpln");
+        // 1.1 检查是否启用了检测
+        if (!config.check) {
+            config.result = 1; // 未启用检测，默认通过
+            continue;
+        }
 
-    //float Pin_CUpper = getParamFloatValue("Pin_CUpper");
-    //float Pin_CLower = getParamFloatValue("Pin_CLower");
-    //float shuyao_widthUpper = getParamFloatValue("shuyao_widthUpper");
-    //float shuyao_widthLower = getParamFloatValue("shuyao_widthLower");
-    //float plate_widthUpper = getParamFloatValue("plate_widthUpper");
-    //float plate_widthLower = getParamFloatValue("plate_widthLower");
-    //float p_pin_over_plnUpper = getParamFloatValue("p_pin_over_plnUpper");
-    //float p_pin_over_plnLower = getParamFloatValue("p_pin_over_plnLower");
-    //float n_pin_over_plnUpper = getParamFloatValue("n_pin_over_plnUpper");
-    //float n_pin_over_plnLower = getParamFloatValue("n_pin_over_plnLower");
-    //float p_pin_HUpper = getParamFloatValue("p_pin_HUpper");
-    //float p_pin_HLower = getParamFloatValue("p_pin_HLower");
-    //float n_pin_HUpper = getParamFloatValue("n_pin_HUpper");
-    //float n_pin_HLower = getParamFloatValue("n_pin_HLower");
-    //float p_n_height_diffUpper = getParamFloatValue("p_n_height_diffUpper");
-    //float p_n_height_diffLower = getParamFloatValue("p_n_height_diffLower");
-    //float p_pin_AngleUpper = getParamFloatValue("p_pin_AngleUpper");
-    //float p_pin_AngleLower = getParamFloatValue("p_pin_AngleLower");
-    //float n_pin_AngleUpper = getParamFloatValue("n_pin_AngleUpper");
-    //float n_pin_AngleLower = getParamFloatValue("n_pin_AngleLower");
-    //float p_pin_McUpper = getParamFloatValue("p_pin_McUpper");
-    //float n_pin_McUpper = getParamFloatValue("n_pin_McUpper");
-    //float b_pln_McUpper = getParamFloatValue("b_pln_McUpper");
+        // 1.2 统计更新：增加总检测次数
+        config.count++;
 
-    //// --- 辅助函数 ---
-    //auto checkRange = [&](const QString& name, float val, float low, float up) {
-    //    bool out = false, configValid = true;
-    //    float failThresh = 0.0f;
-    //    bool isUpper = false;
+        bool checkResult = false;
 
-    //    if (!std::isnan(low) && !std::isnan(up) && low > up) {
-    //        configValid = false;
-    //        qWarning() << "WARNING:" << name << "下限 > 上限，配置无效，视为FAIL";
-    //        out = true; failThresh = up; isUpper = true;
-    //    }
+        qDebug() << "--- JUDGING (" << config.count << "):" << config.label << "---";
 
-    //    if (configValid) {
-    //        if (!std::isnan(low) && val < low) { out = true; failThresh = low; isUpper = false; }
-    //        if (!std::isnan(up) && val > up) { out = true; failThresh = up; isUpper = true; }
-    //    }
+        // 2. 执行您指定的 If-Else If 匹配和判定 (调用结构体内部函数)
 
-    //    this->printCheckInfo(name, val, failThresh, isUpper, out);
-    //    if (out) hasFail = true;
-    //};
+        // --- 布尔检测项：调用 config.checkBool() ---
+        if (paramKey == "isHaveProd") {
+            // 注意：config.value 已经被 updateActualValues 赋值为 ret.isHaveProd
+            checkResult = config.checkBool();
+        }
+        else if (paramKey == "isHavePpin") {
+            checkResult = config.checkBool();
+        }
+        else if (paramKey == "isHaveNpin") {
+            checkResult = config.checkBool();
+        }
+        else if (paramKey == "isHaveBpln") {
+            checkResult = config.checkBool();
+        }
 
-    //auto checkUpper = [&](const QString& name, float val, float upper) {
-    //    bool out = false;
-    //    if (!std::isnan(upper)) out = (val > upper);
-    //    this->printCheckInfo(name, val, upper, true, out);
-    //    if (out) hasFail = true;
-    //};
+        // --- 数值检测项：调用 config.checkRange() ---
+        else if (paramKey == "Pin_C") {
+            // 注意：config.value 已经被 applyScaleFactors 缩放
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "shuyao_width") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "plate_width") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "p_pin_over_pln") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "n_pin_over_pln") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "p_pin_H") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "n_pin_H") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "p_n_height_diff") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "p_pin_Angle") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "n_pin_Angle") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "p_pin_Mc") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "n_pin_Mc") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "b_pln_Mc") {
+            checkResult = config.checkRange();
+        }
+        else
+        {
+            qWarning() << "警告: 配置项" << paramKey << "未在匹配列表中找到，跳过判定。";
+            // 匹配失败的项，不进行后续结果处理，但需要恢复 allPassed 状态
+            continue;
+        }
 
-    //auto checkBool = [&](const QString& name, float expected, bool actual) {
-    //    bool exp = (expected == 1.0f);
-    //    bool out = (actual != exp);
-    //    this->printCheckInfo(name, static_cast<float>(actual), expected, false, out);
-    //    if (out) hasFail = true;
-    //};
+        // 3. 汇总结果和统计更新
+        if (checkResult)
+        {
+            config.result = 1; // 通过
+        }
+        else
+        {
+            qCritical() << "!!! FAILED:" << config.label << "未通过检测 !!!";
+            config.result = 0; // 不通过
+            config.ng_count++; // 增加 NG 次数
+            allPassed = false;
+            // 注意：如果您希望发现 NG 后立即返回，可以在这里添加 return 1;
+        }
+    }
 
-    //// --- 检测流程 ---
-
-    //if (!std::isnan(isHaveProdExpectedFloat)) checkBool("是否有料检测", isHaveProdExpectedFloat, ret.isHaveProd);
-    //else qDebug() << "INFO: 是否有料检测 skipped.";
-
-    //if (!std::isnan(isHavePpinExpectedFloat)) checkBool("是否有左引脚检测", isHavePpinExpectedFloat, ret.isHavePpin);
-    //else qDebug() << "INFO: 是否有左引脚检测 skipped.";
-
-    //if (!std::isnan(isHaveNpinExpectedFloat)) checkBool("是否有右引脚检测", isHaveNpinExpectedFloat, ret.isHaveNpin);
-    //else qDebug() << "INFO: 是否有右引脚检测 skipped.";
-
-    //if (!std::isnan(isHaveBplnExpectedFloat)) checkBool("是否有座板检测", isHaveBplnExpectedFloat, ret.isHaveBpln);
-    //else qDebug() << "INFO: 是否有座板检测 skipped.";
-
-    //checkRange("引脚总长检测", ret.Pin_C, Pin_CLower, Pin_CUpper);
-    //checkRange("束腰宽度检测", ret.shuyao_width, shuyao_widthLower, shuyao_widthUpper);
-    //checkRange("底座宽度检测", ret.plate_width, plate_widthLower, plate_widthUpper);
-    //checkRange("左引脚超板检测", ret.p_pin_over_pln, p_pin_over_plnLower, p_pin_over_plnUpper);
-    //checkRange("右引脚超板检测", ret.n_pin_over_pln, n_pin_over_plnLower, n_pin_over_plnUpper);
-    //checkRange("左引脚翘脚检测", ret.p_pin_H, p_pin_HLower, p_pin_HUpper);
-    //checkRange("右引脚翘脚检测", ret.n_pin_H, n_pin_HLower, n_pin_HUpper);
-    //checkRange("左右引脚高度差检测", ret.p_n_height_diff, p_n_height_diffLower, p_n_height_diffUpper);
-    //checkRange("左引脚角度检测", ret.p_pin_Angle, p_pin_AngleLower, p_pin_AngleUpper);
-    //checkRange("右引脚角度检测", ret.n_pin_Angle, n_pin_AngleLower, n_pin_AngleUpper);
-
-    //checkUpper("左引脚毛刺检测", ret.p_pin_Mc, p_pin_McUpper);
-    //checkUpper("右引脚毛刺检测", ret.n_pin_Mc, n_pin_McUpper);
-    //checkUpper("基座毛刺检测", ret.b_pln_Mc, b_pln_McUpper);
-
-    //if (hasFail) {
-    //    qDebug() << "--- Some Abut checks failed ---";
-    //    return -1;
-    //}
-
-    //qDebug() << "--- All Abut checks passed ---";
-    //return 0;
-return 0;
+    // 返回整数结果：0 为全部通过，1 为存在 NG
+    return allPassed ? 0 : 1;
 }

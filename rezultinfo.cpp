@@ -11,6 +11,10 @@ RezultInfo::RezultInfo(Parameters *rangepara, QObject *parent)
     m_PaintData.reserve(30);
 }
 
+RezultInfo::RezultInfo()
+{
+
+}
 
 RezultInfo::~RezultInfo()
 {
@@ -698,6 +702,135 @@ void RezultInfo::processRangeParameters(Parameters* rangePara)
 //    }
 //    qDebug() << "--- End of RezultInfo Processed Flat Key-Value Data ---";
 //}
+
+void RezultInfo::applyScaleFactors()
+{
+    qDebug() << "--- START: 应用缩放因子 ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
+
+        // 检查缩放因子是否是默认的 1.0，以避免不必要的计算和日志打印
+        if (config.scaleFactor == 1.0) {
+            continue;
+        }
+
+        // 记录原始值
+        double originalValue = config.value;
+
+        // 执行乘法操作
+        config.value *= config.scaleFactor;
+
+        // 打印操作信息
+        qDebug().nospace() << "  -> SUCCESS: " << config.label
+            << " | Original: " << originalValue
+            << " * Factor: " << config.scaleFactor
+            << " = Scaled: " << config.value;
+    }
+
+    qDebug() << "--- END: 缩放因子应用完成 ---";
+}
+
+void RezultInfo::updateActualValues(const OutAbutResParam& ret)
+{
+    qDebug() << "--- START: 更新实测值 ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
+
+        QVariant actualValue;
+
+        // 执行最直接的 If-Else If 匹配
+
+        // --- 布尔检测项 ---
+        if (paramKey == "isHaveProd") {
+            actualValue = ret.isHaveProd;
+            config.value = ret.isHaveProd;
+        }
+        else if (paramKey == "isHavePpin") {
+            actualValue = ret.isHavePpin;
+            config.value = ret.isHavePpin;
+        }
+        else if (paramKey == "isHaveNpin") {
+            actualValue = ret.isHaveNpin;
+            config.value = ret.isHaveNpin; 
+        }
+        else if (paramKey == "isHaveBpln") {
+            actualValue = ret.isHaveBpln;
+            config.value = ret.isHaveBpln;
+        }
+
+        // --- 数值检测项 ---
+        else if (paramKey == "Pin_C") {
+            actualValue = ret.Pin_C;
+            config.value = ret.Pin_C;
+        }
+        else if (paramKey == "shuyao_width") {
+            actualValue = ret.shuyao_width;
+            config.value = ret.shuyao_width;
+        }
+        else if (paramKey == "plate_width") {
+            actualValue = ret.plate_width;
+            config.value = ret.plate_width;
+        }
+        else if (paramKey == "p_pin_over_pln") {
+            actualValue = ret.p_pin_over_pln;
+            config.value = ret.p_pin_over_pln;
+        }
+        else if (paramKey == "n_pin_over_pln") {
+            actualValue = ret.n_pin_over_pln;
+            config.value = ret.n_pin_over_pln;
+        }
+        else if (paramKey == "p_pin_H") {
+            actualValue = ret.p_pin_H;
+            config.value = ret.p_pin_H;
+        }
+        else if (paramKey == "n_pin_H") {
+            actualValue = ret.n_pin_H;
+            config.value = ret.n_pin_H;
+        }
+        else if (paramKey == "p_n_height_diff") {
+            actualValue = ret.p_n_height_diff;
+            config.value = ret.p_n_height_diff;
+        }
+        else if (paramKey == "p_pin_Angle") {
+            actualValue = ret.p_pin_Angle;
+            config.value = ret.p_pin_Angle;
+        }
+        else if (paramKey == "n_pin_Angle") {
+            actualValue = ret.n_pin_Angle;
+            config.value = ret.n_pin_Angle;
+        }
+        else if (paramKey == "p_pin_Mc") {
+            actualValue = ret.p_pin_Mc;
+            config.value = ret.p_pin_Mc;
+        }
+        else if (paramKey == "n_pin_Mc") {
+            actualValue = ret.n_pin_Mc;
+            config.value = ret.n_pin_Mc;
+        }
+        else if (paramKey == "b_pln_Mc") {
+            actualValue = ret.b_pln_Mc;
+            config.value = ret.b_pln_Mc;
+        }
+        else
+        {
+            qWarning() << "警告: 配置项" << paramKey << "未在匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS: " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 ---";
+}
+
 
 
 void RezultInfo::printOutPlateResParam(const OutPlateResParam& param)

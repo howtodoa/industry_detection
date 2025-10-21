@@ -55,6 +55,13 @@ AlgoClass_Pin::AlgoClass_Pin(QString algopath, int al_core, float* Angle, QObjec
         ParamDetail detail(map.value("PinThresh").toMap());
         LearnPara::inParam5.PinThresh = detail.value.toInt();
     }
+
+    if (map.contains("pinLength"))
+    {
+        ParamDetail detail(map.value("pinLength").toMap());
+        LearnPara::inParam5.pinLength = detail.value.toInt();
+    }
+
     
 }
 
@@ -102,6 +109,13 @@ QWidget* AlgoClass_Pin::createLeftPanel(QWidget* parent)
     PinThreshLayout->addWidget(editPinThresh);
     layout->addLayout(PinThreshLayout);
 
+    QHBoxLayout* pinLengthLayout = new QHBoxLayout;
+    QLabel* lblpinLength = new QLabel("针脚长度参数:", panel);
+    QLineEdit* editpinLength = new QLineEdit(QString::number(LearnPara::inParam5.pinLength), panel);
+    pinLengthLayout->addWidget(lblpinLength);
+    pinLengthLayout->addWidget(editpinLength);
+    layout->addLayout(pinLengthLayout);
+
     // 保存按钮
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
@@ -115,6 +129,7 @@ QWidget* AlgoClass_Pin::createLeftPanel(QWidget* parent)
         LearnPara::inParam5.Diameter = editDia->text().toFloat();
         LearnPara::inParam5.thresh = editThresh->text().toInt();
         LearnPara::inParam5.PinThresh = editPinThresh->text().toInt();
+		LearnPara::inParam5.pinLength = editpinLength->text().toInt();
         saveParamAsync();
         });
 
@@ -131,7 +146,7 @@ void AlgoClass_Pin::saveParamAsync()
     mapToSave["Diameter"] = QVariantMap{ {"值", LearnPara::inParam5.Diameter} };
     mapToSave["thresh"] = QVariantMap{ {"值", LearnPara::inParam5.thresh} };
     mapToSave["PinThresh"] = QVariantMap{ {"值", LearnPara::inParam5.PinThresh} };
-
+    mapToSave["pinLength"] = QVariantMap{ {"值", LearnPara::inParam5.pinLength} };
     // 捕获文件路径和数据
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;

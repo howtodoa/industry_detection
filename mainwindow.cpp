@@ -438,34 +438,38 @@ void MainWindow::loadjson_layer2(const QString& filePath)
 
 void MainWindow::init_algo()
 {
-
-    //捺印
-   int ret= ExportSpace::InitializeStamp();
-
-
-      //座板
-
-     ret= ExportSpace::InitializePlate();
-      if(ret==1) std::cout<<"InitializePlate fail"<<std::endl;
-      else std::cout<<"InitializePlate successful"<<std::endl;
-
-      qDebug()<<"ret:   ="<<ret;
-
-     //翘脚
-      ret=ExportSpace::InitializeLift();
-
-      if(ret==1) std::cout<<"InitializeLift fail"<<std::endl;
-      else std::cout<<"InitializeLift successful"<<std::endl;
-
-      qDebug()<<"ret:   ="<<ret;
+    int ret;
+    for (int i = 0; i < cams.size(); i++)
+    {
+ 
+        //捺印
+      if(cams[i]->indentify=="NaYin" || cams[i]->indentify == "Carrier_NaYin")  ret = ExportSpace::InitializeStamp();
 
 
-      //拱脚正光
-      ret=ExportSpace::InitializeGJ();
+        //座板
 
-      if(ret==1) std::cout<<"InitializeGJ fail"<<std::endl;
-          else std::cout<<"InitializeGJ successful"<<std::endl;
-      qDebug()<<"ret:   ="<<ret;
+      if (cams[i]->indentify == "Plate" || cams[i]->indentify == "Carrier_Plate")  ret = ExportSpace::InitializePlate();
+        if (ret == 1) std::cout << "InitializePlate fail" << std::endl;
+        else std::cout << "InitializePlate successful" << std::endl;
+
+        qDebug() << "ret:   =" << ret;
+
+        //翘脚
+        if(cams[i]->indentify=="Lift")ret = ExportSpace::InitializeLift();
+
+        if (ret == 1) std::cout << "InitializeLift fail" << std::endl;
+        else std::cout << "InitializeLift successful" << std::endl;
+
+        qDebug() << "ret:   =" << ret;
+
+
+        //拱脚正光
+        if (cams[i]->indentify == "YYGJ")ret = ExportSpace::InitializeGJ();
+
+        if (ret == 1) std::cout << "InitializeGJ fail" << std::endl;
+        else std::cout << "InitializeGJ successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
+    }
 
 
       std::string temppath = "../../../resources/images/Carrier_NaYin.jpg";
@@ -592,7 +596,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     //ui->mainToolBar->setVisible(false);
-    setWindowTitle("电容视觉检测系统V1.0.1_Beta");
+    setWindowTitle("电容视觉检测系统V2.0.0_Beta");
 
     setWindowIcon(QIcon(":/images/resources/images/oo.ico"));
 
@@ -676,7 +680,7 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
 {
     ui->setupUi(this);
     //ui->mainToolBar->setVisible(false);
-    setWindowTitle("编带机视觉检测系统V1.00_Beta");
+    setWindowTitle("编带机视觉检测系统V2.0.0_Beta");
 
     setWindowIcon(QIcon(":/images/resources/images/oo.ico"));
 
@@ -1169,11 +1173,19 @@ void MainWindow::initcams(int camnumber)
            cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
             cam->indentify=caminfo[i-1].mapping.toStdString();
        }
-       else if(caminfo[i-1].mapping=="YYGJ")//abut
+       else if(caminfo[i-1].mapping=="YYGJ")
        {
-           cam->RI=new RezultInfo_Abut(&cam->RC->m_parameters,nullptr);
+           cam->RI=new RezultInfo(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
             cam->indentify=caminfo[i-1].mapping.toStdString();
+			//cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+       }
+       else if (caminfo[i - 1].mapping == "Abut")
+       {
+           cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Abut(cam->unifyParams , nullptr);
        }
        else if(caminfo[i-1].mapping=="Carrier_NaYin")
        {
@@ -1222,6 +1234,16 @@ void MainWindow::initcams(int camnumber)
            LearnPara::inParam5.angleNum = caminfo[i - 1].Angle;
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->ScalePath = caminfo[i - 1].path + "/scale-pin.json";
+           cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
+           cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
+       }
+       else  if (caminfo[i - 1].mapping == "null")
+       {
+           cam->RI = new RezultInfo_Side(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_Side(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           LearnPara::inParam4.imgAngleNum = caminfo[i - 1].Angle;
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->ScalePath = caminfo[i - 1].path + "/scale-side.json";
            cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
            cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
        }

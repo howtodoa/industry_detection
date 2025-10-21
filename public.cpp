@@ -37,7 +37,26 @@ InSideParam LearnPara::inParam4 = {
 };
 
 InPinParam LearnPara::inParam5 = {
- 0,999,0,40,false
+ 0,999,0,40,200,false,0
+};
+
+InAbutParam LearnPara::inParam6 = {
+	0,        // angleNum
+	0.0f,     // p_pin_min
+	0.43f,    // p_pin_max
+	0.45f,    // b_pln_min
+	0.75f,    // b_pln_max
+	0.78f,    // n_pin_min
+	1.0f,     // n_pin_max
+	160.0f,   // plateOffsetY
+	100.0f,   // plateHeight
+	250.0f,   // waistOffsetY
+	50.0f,    // waistHeight
+	5,        // gauss_ksize
+	60,       // bin_thres_value
+	0.1f,     // prodAreaMin
+	100.0f,   // pinMcHeight
+	100.0f    // plnMcHeight
 };
 
 int LearnPara::inNum = 15;

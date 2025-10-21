@@ -7,6 +7,7 @@
 #include <QFuture>         
 #include <QFutureWatcher> 
 #include "fileoperator.h"
+#include "typdef.h"
 
 
 
@@ -39,6 +40,8 @@ public:
     void updateParamCompensation(const QString& projectName, const QString& paramName, double compensationValue); // <-- 在这里添加这个声明
     void updateParamCheck(const QString& projectKey, const QString& paramName, bool checkValue);
 
+    static UnifyParam parseSingleParam(const QJsonObject& paramObject);
+    static AllUnifyParams loadUnifiedParameters(const QString& jsonFilePath);
 public:
     // 内部保存文件路径，以便加载和保存
     QString m_rangePath;
