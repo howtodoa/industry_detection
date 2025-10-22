@@ -8,6 +8,7 @@
 class Cameral;
 class QLabel;
 class QGroupBox;
+class QLineEdit;
 
 class RightControlPanel : public QWidget
 {
@@ -46,6 +47,7 @@ private:
     QVector<QLabel*> m_yieldRateLabels;
     QVector<QLabel*> m_ngCountLabels;
     QVector<QLabel*> m_totalCountLabels;
+    QLineEdit* m_machineIdEdit = nullptr;
 };
 
 #endif // RIGHTCONTROLPANEL_H

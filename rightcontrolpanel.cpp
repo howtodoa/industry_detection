@@ -45,11 +45,11 @@ void RightControlPanel::setupUi(const QVector<Camerinfo>& caminfo)
     );
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(10, 10, 10, 10);
+    mainLayout->setContentsMargins(2, 10, 10, 10);
     //增大主模块之间的垂直间距
-    mainLayout->setSpacing(20);
+    mainLayout->setSpacing(8);
 
-   // mainLayout->addWidget(createMachineParamsArea());
+    mainLayout->addWidget(createMachineParamsArea());
     mainLayout->addWidget(createAllShieldButtonArea());
     mainLayout->addWidget(createParameterButtonsArea(caminfo));
     mainLayout->addWidget(createStatisticsArea(caminfo), 1); 
@@ -96,16 +96,32 @@ void RightControlPanel::setMachineId(const QString& id) {
 
 QGroupBox* RightControlPanel::createMachineParamsArea() {
     QGroupBox* groupBox = new QGroupBox("机台参数");
-    m_machineIdLabel = new QLabel("N/A");
-    // 增大特定数值的字号
-    m_machineIdLabel->setFont(QFont("Arial", 18, QFont::Bold));
+
+    m_machineIdEdit = new QLineEdit(GlobalPara::DeviceId);
+    m_machineIdEdit->setFont(QFont("Arial", 16)); 
+    m_machineIdEdit->setFrame(false);         
+    m_machineIdEdit->setReadOnly(false);      
+    m_machineIdEdit->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    m_machineIdEdit->setFixedHeight(25);      
+    m_machineIdEdit->setStyleSheet(
+        "QLineEdit { background: transparent; border: none; }"
+        "QLineEdit:focus { outline: none; }"
+    );
+
+  
+    connect(m_machineIdEdit, &QLineEdit::editingFinished, this, [this]() {
+        GlobalPara::DeviceId = m_machineIdEdit->text().trimmed();
+        });
+
 
     QFormLayout* layout = new QFormLayout(groupBox);
-    layout->setSpacing(10); // 增加表单内行间距
-    layout->addRow("机台编号:", m_machineIdLabel);
+    layout->setSpacing(10);                   
+    layout->setContentsMargins(0, 0, 0, 0);   
+    layout->addRow("机台编号:", m_machineIdEdit);
 
     return groupBox;
 }
+
 
 QGroupBox* RightControlPanel::createParameterButtonsArea(const QVector<Camerinfo>& caminfo) {
     QGroupBox* groupBox = new QGroupBox("参数设定");

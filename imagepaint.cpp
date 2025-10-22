@@ -708,7 +708,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
             }
             else {
                 // 如果是 OK 项，使用默认的白色
-                painter.setPen(Qt::white);
+                painter.setPen(Qt::green);
             }
 
             // 计算当前行的垂直位置 (y 轴)

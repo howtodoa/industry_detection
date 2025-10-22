@@ -34,8 +34,8 @@
 #include <QMetaObject>
 
 
-ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC,Cameral *cam, DebugInfo* DI, QWidget *parent)
-    : QWidget{parent}
+ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC, Cameral* cam, DebugInfo* DI, QWidget* parent)
+    : QWidget{ parent }
 {
     // 设置窗口属性
     setWindowFlags(Qt::Window);
@@ -47,7 +47,7 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC,Cameral *
     QFont font = this->font();
     font.setPointSize(font.pointSize() * 2); // 字体放大两倍
     setFont(font);
- 
+
     // 创建主布局
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
@@ -56,46 +56,85 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC,Cameral *
     mainLayout->addWidget(tabWidget); // 将tabWidget添加到主布局
 
     // 赋值传入的参数管理类指针
-
     this->m_cam = cam;
     this->m_algoSettings = AC;
     this->m_rangeSettings = RC;
     this->m_cameralSettings = CC;
-    this->DI=DI;
+    this->DI = DI;
 
     connect(m_algoSettings, &AlgoClass::TransMat, this, &ParaWidget::onTransMat);
 
-    // 设置各个选项卡
-    setupRangeTab(tabWidget);    // 第一个选项卡：范围参数
-    setupCameralTab(tabWidget);  // 第二个选项卡：相机参数
-    setupAlgorithmTab(tabWidget); // 第三个选项卡：算法参数
-    setupDebugTab(tabWidget);//第四个选项卡：调试功能
-    setupScaleTab(tabWidget);
-
-
-    if (Role::GetCurrentRole() != "厂商" && Role::GetCurrentRole() != "机修")
-    {
-        // 隐藏第二个和第三个选项卡的标题
-        tabWidget->setTabVisible(1, false); // 隐藏 CameralTab 的标题 (索引从0开始)
-        tabWidget->setTabVisible(2, false); // 隐藏 AlgorithmTab 的标题
-    }
 #ifndef USE_MAIN_WINDOW_CAPACITY
-    if (Role::GetCurrentRole() != "厂商" && Role::GetCurrentRole() != "机修")
-    {
-        // 获取 RangeTab 对应的顶层 QWidget 指针 (索引 0)
-        QWidget* rangePageWidget = tabWidget->widget(0);
+    // (情况 1: 普通版)
+    qDebug() << "Constructor: Using Normal setup functions.";
+    setupRangeTab(tabWidget); // 索引 0
+    setupScaleTab(tabWidget); // 索引 1
+#else
+    // (情况 2: EX 版)
+    qDebug() << "Constructor: Using EX setup functions.";
+    setupRangeTab_EX(tabWidget); // 索引 0
+    setupScaleTabEX(tabWidget);  // 索引 1
+#endif // USE_MAIN_WINDOW_CAPACITY
 
-        // 禁用这个顶层 Widget。
-        // 由于所有编辑控件都嵌套在这个 Widget 内，它将递归禁用所有子控件。
+    setupAlgorithmTab(tabWidget); // 索引 2
+    setupDebugTab(tabWidget);     // 索引 3
+    setupCameralTab(tabWidget);   // 索引 4
+
+
+    // --- 2. 根据角色设置可见性和可编辑性 ---
+    const QString role = Role::GetCurrentRole();
+    qDebug() << "Constructor: Current role is:" << role;
+
+    if (role == "厂商" || role == "机修")
+    {
+        qDebug() << "Constructor: Manufacturer/Mechanic role. All tabs visible.";
+        // “厂商”和“机修”权限：所有选项卡默认可见且可用。
+        // 无需执行任何操作。
+    }
+    else
+    {
+        // 其他所有角色 (如 “操作员” 等)
+        qDebug() << "Constructor: Other role detected. Applying restrictions...";
+
+#ifndef USE_MAIN_WINDOW_CAPACITY
+        // --- 情况 1 (普通版) 逻辑 ---
+        // 显示: 范围(禁用), 标定(索引1), 算法, 调试, 相机
+        // 隐藏: 无 (根据您的新要求，不隐藏标定)
+
+            // 【修改】注释掉隐藏标定页的代码
+            // tabWidget->setTabVisible(1, false);
+        qDebug() << "Constructor (Normal): Scale tab (1) remains visible.";
+
+
+        // 禁用 "范围参数" (索引 0)
+        qDebug() << "Constructor (Normal): Disabling Range tab (0).";
+        QWidget* rangePageWidget = tabWidget->widget(0);
         if (rangePageWidget)
         {
             rangePageWidget->setEnabled(false);
-
-            // 可选：禁用 Tab 标签，让用户知道此页面不可用
-            // tabWidget->setTabEnabled(0, false); 
         }
+
+#else
+        // --- 情况 2 (EX 版) 逻辑 ---
+        // 显示: 范围, 标定(索引1), 调试, 相机
+        // 隐藏: 算法 (索引 2)
+
+            // 【修改】注释掉隐藏标定页的代码
+            // tabWidget->setTabVisible(1, false); // 隐藏 ScaleTab
+        qDebug() << "Constructor (EX): Scale tab (1) remains visible.";
+
+        qDebug() << "Constructor (EX): Hiding Algorithm tab (2).";
+        tabWidget->setTabVisible(2, false); // 隐藏 AlgorithmTab
+
+#endif // USE_MAIN_WINDOW_CAPACITY
     }
-#endif
+
+    // --- 针对特定角色的额外处理 ---
+    if (role == "操作员") {
+        qDebug() << "Constructor: Operator role detected. Hiding Cameral tab (4).";
+        tabWidget->setTabVisible(4, false); // 隐藏 CameralTab (索引 4)
+    }
+
     // 设置主布局
     setLayout(mainLayout);
 }
@@ -114,7 +153,7 @@ void ParaWidget::onTransMat(cv::Mat mat)
 
 void ParaWidget::closeEvent(QCloseEvent* event)
 {
-#if 0
+#ifndef USED_MAIN_WINDOW_CAPACITY
     // 获取当前活动页面的索引
     int currentIndex = tabWidget->currentIndex();
     // 获取当前活动页面的文本
@@ -236,6 +275,94 @@ void ParaWidget::closeEvent(QCloseEvent* event)
 }
 
 
+void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
+{
+    // 1. 初始化和安全检查
+    if (m_cam == nullptr) {
+        return;
+    }
+    const AllUnifyParams& allParams = m_cam->unifyParams;
+    if (allParams.isEmpty()) {
+        return;
+    }
+
+    // 2. UI 结构设置
+    QWidget* scaleTab = new QWidget(this);
+    // 【重要】确保选项卡标题是正确的
+    tabWidget->addTab(scaleTab, "标定参数配置");
+    QVBoxLayout* mainLayout = new QVBoxLayout(scaleTab);
+
+    // --- 【关键】确保这里清除的是 m_scale... Map ---
+    m_scaleCheckboxes.clear();    // 清除 scale 的 CheckBox Map
+    m_scaleLineEditMap.clear(); // 清除 scale 的 LineEdit Map
+    // ---
+
+    QScrollArea* scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    mainLayout->addWidget(scrollArea);
+
+    // 布局
+    QWidget* subTabContent = new QWidget;
+    QVBoxLayout* scrollLayout = new QVBoxLayout(subTabContent);
+    QGridLayout* gridLayout = new QGridLayout;
+    scrollLayout->addLayout(gridLayout);
+    scrollLayout->addStretch(1);
+    scrollArea->setWidget(subTabContent);
+
+    gridLayout->setVerticalSpacing(8);
+    gridLayout->setHorizontalSpacing(10);
+
+    QDoubleValidator* validator = new QDoubleValidator(this);
+    validator->setLocale(QLocale::C);
+    validator->setDecimals(8);
+
+    // 3. 遍历参数并创建 UI 控件
+    int row = 0;
+    for (auto it = allParams.constBegin(); it != allParams.constEnd(); ++it)
+    {
+        const QString& paramName = it.key();
+        const UnifyParam& config = it.value();
+
+        QLabel* nameLabel = new QLabel(config.label, this);
+        nameLabel->setWordWrap(true);
+
+        QCheckBox* checkCheckBox = new QCheckBox("启用检测", this);
+        checkCheckBox->setChecked(config.check);
+
+        QLabel* scaleLabel = new QLabel("标定参数:", this);
+        QLineEdit* scaleEdit = new QLineEdit(QString::number(config.scaleFactor, 'f', 6), this);
+        scaleEdit->setValidator(validator);
+
+        // 存入专属 Map
+        m_scaleCheckboxes.insert(paramName, checkCheckBox);
+        m_scaleLineEditMap.insert(paramName, scaleEdit);
+
+        // 布局
+        gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
+        gridLayout->addWidget(checkCheckBox, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        gridLayout->addWidget(scaleLabel, row, 2, Qt::AlignRight | Qt::AlignVCenter);
+        gridLayout->addWidget(scaleEdit, row, 3, Qt::AlignLeft | Qt::AlignVCenter);
+
+        row++;
+    }
+
+    // 4. 调整列拉伸比例
+    gridLayout->setColumnStretch(0, 3); gridLayout->setColumnStretch(1, 1);
+    gridLayout->setColumnStretch(2, 1); gridLayout->setColumnStretch(3, 2);
+    gridLayout->setColumnStretch(4, 3);
+
+    // 5. 添加保存按钮
+    QPushButton* saveButton = new QPushButton("保存标定配置", this);
+    saveButton->setMinimumHeight(30);
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
+    buttonLayout->addStretch(1);
+    buttonLayout->addWidget(saveButton);
+    mainLayout->addLayout(buttonLayout);
+
+    // 连接到专属的槽函数
+    connect(saveButton, &QPushButton::clicked, this, &ParaWidget::onScaleSaveClicked);
+}
+
 void ParaWidget::setupScaleTab(QTabWidget* tabWidget)
 {
     QWidget* scaleTab = new QWidget(tabWidget);
@@ -356,161 +483,161 @@ void ParaWidget::saveScaleArrayAsync(const QString& filePath, const QVector<Simp
 }
 
 
-//void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
-//{
-//    if (m_rangeSettings == nullptr) {
-//        // 使用新的通用错误处理函数
-//        handleSettingsInitializationError(tabWidget, "范围参数", "范围参数管理器未正确初始化。");
-//        return;
-//    }
-//
-//    QWidget* rangeTab = new QWidget;
-//    tabWidget->addTab(rangeTab, "范围参数");
-//
-//    QVBoxLayout* mainLayout = new QVBoxLayout(rangeTab);
-//    QTabWidget* subTabWidget = new QTabWidget(this);
-//    mainLayout->addWidget(subTabWidget);
-//
-//    QFont defaultFont = rangeTab->font();
-//    // 创建一个新字体，字号减一
-//    QFont smallerFont = defaultFont;
-//    smallerFont.setPointSize(defaultFont.pointSize() - 1);
-//
-//    // 将新字体应用于 rangeTab 的所有子控件
-//    rangeTab->setFont(smallerFont);
-//
-//    // 清空 map，防止重复添加。
-//    m_paramValueEdits.clear();
-//    m_paramCheckboxes.clear();
-//    m_paramCompensationEdits.clear();
-//
-//    const Parameters& allRangeParameters = m_rangeSettings->getRangeParameters();
-//
-//    if (allRangeParameters.detectionProjects.isEmpty()) {
-//        displayNoParametersMessage(mainLayout, "范围");
-//        return;
-//    }
-//
-//    // 根据角色判断补偿值是否可见
-//    bool isManufacturer = (Role::CurrentRole == "厂商");
-//
-//    for (auto projectIt = allRangeParameters.detectionProjects.begin();
-//        projectIt != allRangeParameters.detectionProjects.end();
-//        ++projectIt)
-//    {
-//        const QString& projectName = projectIt.key();
-//        const DetectionProject& detectionProject = projectIt.value();
-//
-//        // 为每个项目创建一个包含滚动区域的子标签页
-//        QWidget* subTabContent = new QWidget;
-//        QVBoxLayout* subTabContentLayout = new QVBoxLayout(subTabContent);
-//        QGridLayout* gridLayout = new QGridLayout;
-//        gridLayout->setVerticalSpacing(5);
-//        gridLayout->setHorizontalSpacing(10);
-//
-//        int row = 0;
-//
-//        // 为当前项目创建内层 QMap
-//        m_paramValueEdits[projectName] = QMap<QString, QLineEdit*>();
-//        m_paramCheckboxes[projectName] = QMap<QString, QCheckBox*>();
-//        m_paramCompensationEdits[projectName] = QMap<QString, QLineEdit*>();
-//
-//        for (auto paramIt = detectionProject.params.begin();
-//            paramIt != detectionProject.params.end();
-//            ++paramIt)
-//        {
-//            const QString& paramName = paramIt.key();
-//            const ParamDetail& paramDetail = paramIt.value();
-//
-//            if (!paramDetail.visible) {
-//                continue;
-//            }
-//
-//            // 参数名称和值
-//            QLabel* nameLabel = new QLabel(paramName, this);
-//            QLineEdit* valueEdit = new QLineEdit(paramDetail.value.toString(), this);
-//            QLabel* unitLabel = new QLabel(QString("单位: %1").arg(paramDetail.unit), this);
-//            QLabel* checkLabel = new QLabel("检测:", this);
-//            QCheckBox* checkCheckBox = new QCheckBox(this);
-//            checkCheckBox->setChecked(paramDetail.check);
-//
-//            // 补偿值控件
-//            QLabel* compensationLabel = new QLabel("补偿值:", this);
-//            // 确保显示足够的小数位，例如3位
-//            QLineEdit* compensationEdit = new QLineEdit(QString::number(paramDetail.compensation, 'f', 3), this);
-//
-//            // 设置控件样式和大小
-//            nameLabel->setMinimumWidth(100);
-//            valueEdit->setMaximumWidth(80);
-//            unitLabel->setMinimumWidth(30);
-//            checkLabel->setMinimumWidth(40);
-//            checkCheckBox->setMinimumWidth(20);
-//            compensationLabel->setMinimumWidth(60);
-//            compensationEdit->setMaximumWidth(80);
-//
-//            // 只有当角色是“厂商”时，补偿值相关控件才可见
-//            compensationLabel->setVisible(isManufacturer);
-//            compensationEdit->setVisible(isManufacturer);
-//
-//            // 使用新的通用验证函数，只校验类型，不校验范围
-//            validateInputType(valueEdit, paramDetail.type);
-//
-//            // 为补偿值编辑框设置验证器，只允许浮点数
-//            QDoubleValidator* compensationValidator = new QDoubleValidator(this);
-//            compensationValidator->setLocale(QLocale::C); // 使用C语言环境，点号作为小数分隔符
-//            compensationEdit->setValidator(compensationValidator);
-//
-//            // 将 QLineEdit 和 QCheckBox 指针存储到各自的成员变量中
-//            m_paramValueEdits[projectName].insert(paramName, valueEdit);
-//            m_paramCheckboxes[projectName].insert(paramName, checkCheckBox);
-//            m_paramCompensationEdits[projectName].insert(paramName, compensationEdit);
-//
-//            // 将控件添加到网格布局
-//            // 注意：因为移除了“范围”，列索引需要调整
-//            gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
-//            gridLayout->addWidget(valueEdit, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
-//            gridLayout->addWidget(unitLabel, row, 2, Qt::AlignLeft | Qt::AlignVCenter);
-//            gridLayout->addWidget(checkLabel, row, 3, Qt::AlignRight | Qt::AlignVCenter);
-//            gridLayout->addWidget(checkCheckBox, row, 4, Qt::AlignLeft | Qt::AlignVCenter);
-//            gridLayout->addWidget(compensationLabel, row, 5, Qt::AlignRight | Qt::AlignVCenter);
-//            gridLayout->addWidget(compensationEdit, row, 6, Qt::AlignLeft | Qt::AlignVCenter);
-//            row++;
-//        }
-//
-//        // 调整列拉伸比例
-//        gridLayout->setColumnStretch(0, 2);
-//        gridLayout->setColumnStretch(1, 0);
-//        gridLayout->setColumnStretch(2, 1);
-//        gridLayout->setColumnStretch(3, 1);
-//        gridLayout->setColumnStretch(4, 0);
-//        gridLayout->setColumnStretch(5, 1);
-//        gridLayout->setColumnStretch(6, 0);
-//        gridLayout->setColumnStretch(7, 1);
-//
-//        subTabContentLayout->addLayout(gridLayout);
-//        subTabContentLayout->addStretch(1);
-//
-//        // 创建 QScrollArea 并将 subTabContent 设置为其内容
-//        QScrollArea* scrollArea = new QScrollArea(this);
-//        scrollArea->setWidgetResizable(true);
-//        scrollArea->setWidget(subTabContent);
-//
-//        // 将带有滚动条的 scrollArea 添加到 subTabWidget
-//        subTabWidget->addTab(scrollArea, projectName);
-//    }
-//}
-
 void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
 {
-    qDebug() << "============ setupRangeTab: START ============";
+    if (m_rangeSettings == nullptr) {
+        // 使用新的通用错误处理函数
+        handleSettingsInitializationError(tabWidget, "范围参数", "范围参数管理器未正确初始化。");
+        return;
+    }
+
+    QWidget* rangeTab = new QWidget;
+    tabWidget->addTab(rangeTab, "范围参数");
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(rangeTab);
+    QTabWidget* subTabWidget = new QTabWidget(this);
+    mainLayout->addWidget(subTabWidget);
+
+    QFont defaultFont = rangeTab->font();
+    // 创建一个新字体，字号减一
+    QFont smallerFont = defaultFont;
+    smallerFont.setPointSize(defaultFont.pointSize() - 1);
+
+    // 将新字体应用于 rangeTab 的所有子控件
+    rangeTab->setFont(smallerFont);
+
+    // 清空 map，防止重复添加。
+    m_paramValueEdits.clear();
+    m_paramCheckboxes.clear();
+    m_paramCompensationEdits.clear();
+
+    const Parameters& allRangeParameters = m_rangeSettings->getRangeParameters();
+
+    if (allRangeParameters.detectionProjects.isEmpty()) {
+        displayNoParametersMessage(mainLayout, "范围");
+        return;
+    }
+
+    // 根据角色判断补偿值是否可见
+    bool isManufacturer = (Role::CurrentRole == "厂商");
+
+    for (auto projectIt = allRangeParameters.detectionProjects.begin();
+        projectIt != allRangeParameters.detectionProjects.end();
+        ++projectIt)
+    {
+        const QString& projectName = projectIt.key();
+        const DetectionProject& detectionProject = projectIt.value();
+
+        // 为每个项目创建一个包含滚动区域的子标签页
+        QWidget* subTabContent = new QWidget;
+        QVBoxLayout* subTabContentLayout = new QVBoxLayout(subTabContent);
+        QGridLayout* gridLayout = new QGridLayout;
+        gridLayout->setVerticalSpacing(5);
+        gridLayout->setHorizontalSpacing(10);
+
+        int row = 0;
+
+        // 为当前项目创建内层 QMap
+        m_paramValueEdits[projectName] = QMap<QString, QLineEdit*>();
+        m_paramCheckboxes[projectName] = QMap<QString, QCheckBox*>();
+        m_paramCompensationEdits[projectName] = QMap<QString, QLineEdit*>();
+
+        for (auto paramIt = detectionProject.params.begin();
+            paramIt != detectionProject.params.end();
+            ++paramIt)
+        {
+            const QString& paramName = paramIt.key();
+            const ParamDetail& paramDetail = paramIt.value();
+
+            if (!paramDetail.visible) {
+                continue;
+            }
+
+            // 参数名称和值
+            QLabel* nameLabel = new QLabel(paramName, this);
+            QLineEdit* valueEdit = new QLineEdit(paramDetail.value.toString(), this);
+            QLabel* unitLabel = new QLabel(QString("单位: %1").arg(paramDetail.unit), this);
+            QLabel* checkLabel = new QLabel("检测:", this);
+            QCheckBox* checkCheckBox = new QCheckBox(this);
+            checkCheckBox->setChecked(paramDetail.check);
+
+            // 补偿值控件
+            QLabel* compensationLabel = new QLabel("补偿值:", this);
+            // 确保显示足够的小数位，例如3位
+            QLineEdit* compensationEdit = new QLineEdit(QString::number(paramDetail.compensation, 'f', 3), this);
+
+            // 设置控件样式和大小
+            nameLabel->setMinimumWidth(100);
+            valueEdit->setMaximumWidth(80);
+            unitLabel->setMinimumWidth(30);
+            checkLabel->setMinimumWidth(40);
+            checkCheckBox->setMinimumWidth(20);
+            compensationLabel->setMinimumWidth(60);
+            compensationEdit->setMaximumWidth(80);
+
+            // 只有当角色是“厂商”时，补偿值相关控件才可见
+            compensationLabel->setVisible(isManufacturer);
+            compensationEdit->setVisible(isManufacturer);
+
+            // 使用新的通用验证函数，只校验类型，不校验范围
+            validateInputType(valueEdit, paramDetail.type);
+
+            // 为补偿值编辑框设置验证器，只允许浮点数
+            QDoubleValidator* compensationValidator = new QDoubleValidator(this);
+            compensationValidator->setLocale(QLocale::C); // 使用C语言环境，点号作为小数分隔符
+            compensationEdit->setValidator(compensationValidator);
+
+            // 将 QLineEdit 和 QCheckBox 指针存储到各自的成员变量中
+            m_paramValueEdits[projectName].insert(paramName, valueEdit);
+            m_paramCheckboxes[projectName].insert(paramName, checkCheckBox);
+            m_paramCompensationEdits[projectName].insert(paramName, compensationEdit);
+
+            // 将控件添加到网格布局
+            // 注意：因为移除了“范围”，列索引需要调整
+            gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(valueEdit, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(unitLabel, row, 2, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(checkLabel, row, 3, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(checkCheckBox, row, 4, Qt::AlignLeft | Qt::AlignVCenter);
+            gridLayout->addWidget(compensationLabel, row, 5, Qt::AlignRight | Qt::AlignVCenter);
+            gridLayout->addWidget(compensationEdit, row, 6, Qt::AlignLeft | Qt::AlignVCenter);
+            row++;
+        }
+
+        // 调整列拉伸比例
+        gridLayout->setColumnStretch(0, 2);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 1);
+        gridLayout->setColumnStretch(3, 1);
+        gridLayout->setColumnStretch(4, 0);
+        gridLayout->setColumnStretch(5, 1);
+        gridLayout->setColumnStretch(6, 0);
+        gridLayout->setColumnStretch(7, 1);
+
+        subTabContentLayout->addLayout(gridLayout);
+        subTabContentLayout->addStretch(1);
+
+        // 创建 QScrollArea 并将 subTabContent 设置为其内容
+        QScrollArea* scrollArea = new QScrollArea(this);
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setWidget(subTabContent);
+
+        // 将带有滚动条的 scrollArea 添加到 subTabWidget
+        subTabWidget->addTab(scrollArea, projectName);
+    }
+}
+
+void ParaWidget::setupRangeTab_EX(QTabWidget* tabWidget) // 修改函数定义
+{
+    qDebug() << "============ setupRangeTab_EX: START ============"; // 保留入口日志
     // 1. 初始化和安全检查
     if (m_cam == nullptr || m_rangeSettings == nullptr) {
-        qWarning() << "setupRangeTab: Aborted. m_cam or m_rangeSettings is null.";
+        qWarning() << "setupRangeTab_EX: Aborted. m_cam or m_rangeSettings is null.";
         return;
     }
     const AllUnifyParams& allParams = m_cam->unifyParams;
     if (allParams.isEmpty()) {
-        qWarning() << "setupRangeTab: Aborted. allParams is empty.";
+        qWarning() << "setupRangeTab_EX: Aborted. allParams is empty.";
         return;
     }
 
@@ -520,30 +647,23 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
     QVBoxLayout* mainLayout = new QVBoxLayout(rangeTab);
 
     // 【修复】使用专属 Map 并清空
-    qDebug() << "setupRangeTab: Using m_rangeLineEditMap at address:" << &m_rangeLineEditMap;
-    qDebug() << "setupRangeTab: m_rangeLineEditMap size BEFORE clear:" << m_rangeLineEditMap.size();
     m_rangeLineEditMap.clear();
     if (!m_rangeCheckboxes.contains("Visible")) {
         m_rangeCheckboxes.insert("Visible", QMap<QString, QCheckBox*>());
     }
     m_rangeCheckboxes["Visible"].clear();
-    qDebug() << "setupRangeTab: m_rangeLineEditMap size AFTER clear:" << m_rangeLineEditMap.size();
-
 
     QScrollArea* scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     mainLayout->addWidget(scrollArea);
 
-    // --- 【修复】正确的布局层级 (解决 QLayout 错误) ---
+    // 布局
     QWidget* subTabContent = new QWidget;
     QVBoxLayout* scrollLayout = new QVBoxLayout(subTabContent);
     QGridLayout* gridLayout = new QGridLayout;
-
     scrollLayout->addLayout(gridLayout);
     scrollLayout->addStretch(1);
-
     scrollArea->setWidget(subTabContent);
-    // --- 布局修复结束 ---
 
     gridLayout->setVerticalSpacing(8);
     gridLayout->setHorizontalSpacing(10);
@@ -553,7 +673,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
     QDoubleValidator* validator = new QDoubleValidator(this);
     validator->setLocale(QLocale::C);
 
-    // 【修复】使用专属 Map
     QMap<QString, QCheckBox*>& visibleCheckboxesMap = m_rangeCheckboxes["Visible"];
 
     // 3. 遍历参数并创建 UI 控件
@@ -562,7 +681,10 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         const QString& paramName = it.key();
         const UnifyParam& config = it.value();
 
-        if (config.need_value)
+        // (您的日志已证明此逻辑有效)
+        bool isBooleanMode = config.unit.isEmpty();
+
+        if (isBooleanMode)
         {
             // --- A. 布尔模式 (单行布局) ---
             QString labelText = QString("%1 (%2)").arg(config.label).arg(config.unit.isEmpty() ? "N/A" : config.unit);
@@ -570,7 +692,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             QLabel* valueLabel = new QLabel("期望值:", this);
             QLineEdit* valueEdit = new QLineEdit(QString::number(config.value, 'f', 3), this);
             valueEdit->setValidator(validator);
-            // 【修复】使用专属 Map
             m_rangeLineEditMap.insert(paramName + "_Value", valueEdit);
 
             QCheckBox* visibleCheckBox = new QCheckBox(this);
@@ -583,6 +704,7 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             gridLayout->addWidget(valueEdit, row, 2, Qt::AlignLeft | Qt::AlignVCenter);
             gridLayout->addWidget(visibleLabel, row, 5, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(visibleCheckBox, row, 6, Qt::AlignLeft | Qt::AlignVCenter);
+
             row++;
         }
         else
@@ -599,41 +721,51 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             QLabel* upperLabel = new QLabel("上限:", this);
             QLineEdit* upperLimitEdit = new QLineEdit(QString::number(config.upperLimit, 'f', 3), this);
             upperLimitEdit->setValidator(validator);
-            m_rangeLineEditMap.insert(paramName + "_Upper", upperLimitEdit); // 【修复】
+            m_rangeLineEditMap.insert(paramName + "_Upper", upperLimitEdit);
 
+            // 【恢复】补偿值控件
             QLabel* compLabel1 = new QLabel("补偿值:", this);
             QLineEdit* upfixEdit = new QLineEdit(QString::number(config.upfix, 'f', 3), this);
             upfixEdit->setValidator(validator);
-            m_rangeLineEditMap.insert(paramName + "_Upfix", upfixEdit); // 【修复】
-            compLabel1->setVisible(isManufacturer);
-            upfixEdit->setVisible(isManufacturer);
+            m_rangeLineEditMap.insert(paramName + "_Upfix", upfixEdit);
+            compLabel1->setVisible(isManufacturer); // 【恢复】可见性控制
+            upfixEdit->setVisible(isManufacturer); // 【恢复】可见性控制
+
 
             // 第二行
             QLabel* lowerLabel = new QLabel("下限:", this);
             QLineEdit* lowerLimitEdit = new QLineEdit(QString::number(config.lowerLimit, 'f', 3), this);
             lowerLimitEdit->setValidator(validator);
-            m_rangeLineEditMap.insert(paramName + "_Lower", lowerLimitEdit); // 【修复】
+            m_rangeLineEditMap.insert(paramName + "_Lower", lowerLimitEdit);
 
+            // 【恢复】补偿值控件
             QLabel* compLabel2 = new QLabel("补偿值:", this);
             QLineEdit* lowfixEdit = new QLineEdit(QString::number(config.lowfix, 'f', 3), this);
             lowfixEdit->setValidator(validator);
-            m_rangeLineEditMap.insert(paramName + "_Lowfix", lowfixEdit); // 【修复】
-            compLabel2->setVisible(isManufacturer);
-            lowfixEdit->setVisible(isManufacturer);
+            m_rangeLineEditMap.insert(paramName + "_Lowfix", lowfixEdit);
+            compLabel2->setVisible(isManufacturer); // 【恢复】可见性控制
+            lowfixEdit->setVisible(isManufacturer); // 【恢复】可见性控制
+
 
             // 布局
             gridLayout->addWidget(mainLabel, row, 0, 2, 1, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(visibleLabel, row, 5, 2, 1, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(visibleCheckBox, row, 6, 2, 1, Qt::AlignLeft | Qt::AlignVCenter);
+
+            // 第一行布局
             gridLayout->addWidget(upperLabel, row, 1, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(upperLimitEdit, row, 2);
-            gridLayout->addWidget(compLabel1, row, 3, Qt::AlignRight | Qt::AlignVCenter);
-            gridLayout->addWidget(upfixEdit, row, 4);
+            gridLayout->addWidget(compLabel1, row, 3, Qt::AlignRight | Qt::AlignVCenter); // 【恢复】添加到布局
+            gridLayout->addWidget(upfixEdit, row, 4); // 【恢复】添加到布局
+
             row++;
+
+            // 第二行布局
             gridLayout->addWidget(lowerLabel, row, 1, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(lowerLimitEdit, row, 2);
-            gridLayout->addWidget(compLabel2, row, 3, Qt::AlignRight | Qt::AlignVCenter);
-            gridLayout->addWidget(lowfixEdit, row, 4);
+            gridLayout->addWidget(compLabel2, row, 3, Qt::AlignRight | Qt::AlignVCenter); // 【恢复】添加到布局
+            gridLayout->addWidget(lowfixEdit, row, 4); // 【恢复】添加到布局
+
             row++;
         }
 
@@ -642,15 +774,24 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             QFrame* line = new QFrame(this);
             line->setFrameShape(QFrame::HLine);
             line->setFrameShadow(QFrame::Sunken);
-            gridLayout->addWidget(line, row++, 0, 1, 7);
+            gridLayout->addWidget(line, row++, 0, 1, 7); // 跨越所有7列
         }
     }
 
     // 5. 调整列拉伸比例
-    gridLayout->setColumnStretch(0, 4); gridLayout->setColumnStretch(1, 1);
-    gridLayout->setColumnStretch(2, 2); gridLayout->setColumnStretch(3, 1);
-    gridLayout->setColumnStretch(4, 2); gridLayout->setColumnStretch(5, 1);
-    gridLayout->setColumnStretch(6, 0); gridLayout->setColumnStretch(7, 3);
+    // Col 0: 主标签, Col 1: 值标签, Col 2: 值Edit, 
+    // Col 3: 补偿标签, Col 4: 补偿Edit, 
+    // Col 5: 可见标签, Col 6: 可见Check, Col 7: 额外空间
+
+    // 【修改】调整拉伸因子以适应恢复的补偿值列
+    gridLayout->setColumnStretch(0, 4); // 主标签
+    gridLayout->setColumnStretch(1, 1); // 值标签
+    gridLayout->setColumnStretch(2, 2); // 值输入框
+    gridLayout->setColumnStretch(3, 1); // 补偿标签
+    gridLayout->setColumnStretch(4, 2); // 补偿输入框
+    gridLayout->setColumnStretch(5, 1); // 可见标签
+    gridLayout->setColumnStretch(6, 0); // 可见 CheckBox
+    gridLayout->setColumnStretch(7, 1); // 额外空间 (减少)
 
     // 6. 添加保存按钮
     QPushButton* saveButton = new QPushButton("保存配置", this);
@@ -661,21 +802,16 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
     mainLayout->addLayout(buttonLayout);
     connect(saveButton, &QPushButton::clicked, this, &ParaWidget::onSaveClicked);
 
-    qDebug() << "setupRangeTab: m_rangeLineEditMap size AFTER population:" << m_rangeLineEditMap.size();
-    qDebug() << "============ setupRangeTab: END ============";
+    qDebug() << "setupRangeTab_EX: m_rangeLineEditMap size AFTER population:" << m_rangeLineEditMap.size();
+    qDebug() << "============ setupRangeTab_EX: END ============";
 }
 
-// =======================================================================
-// 【修复】ParaWidget::onSaveClicked (.cpp)
-// 1. 使用了 m_rangeLineEditMap 和 m_rangeCheckboxes
-// 2. 移除了调试日志，恢复了简洁的验证逻辑
-// =======================================================================
+
 void ParaWidget::onSaveClicked()
 {
-    qDebug() << "\n============ onSaveClicked: START ============";
+    qDebug() << "\n============ onSaveClicked: START ============"; // 添加日志标识
     // 1. 安全检查
     if (m_cam == nullptr || m_rangeSettings == nullptr) {
-        qWarning() << "onSaveClicked: Aborted. m_cam or m_rangeSettings is null.";
         QMessageBox::critical(this, "错误", "内部组件未初始化，无法保存。");
         return;
     }
@@ -683,60 +819,76 @@ void ParaWidget::onSaveClicked()
     AllUnifyParams updatedParams = m_cam->unifyParams;
     bool hasInvalidInput = false;
 
-    // 【修复】使用专属 Map
-    qDebug() << "onSaveClicked: Using m_rangeLineEditMap at address:" << &m_rangeLineEditMap;
-    qDebug() << "onSaveClicked: m_rangeLineEditMap total size at start:" << m_rangeLineEditMap.size();
-    if (m_rangeLineEditMap.isEmpty()) {
-        qWarning() << "onSaveClicked: m_rangeLineEditMap is EMPTY. This indicates an issue in setupRangeTab.";
+    // --- 检查 CheckBox Map 状态 ---
+    if (!m_rangeCheckboxes.contains("Visible")) {
+        qWarning() << "onSaveClicked: FATAL: m_rangeCheckboxes does not contain 'Visible' key!";
+        QMessageBox::critical(this, "内部错误", "界面控件映射丢失 (Visible)，无法保存。");
+        return;
+    }
+    QMap<QString, QCheckBox*>& visibleCheckboxesMap = m_rangeCheckboxes["Visible"];
+    if (visibleCheckboxesMap.isEmpty() && !updatedParams.isEmpty()) { // Check against updatedParams size
+        qWarning() << "onSaveClicked: FATAL: m_rangeCheckboxes['Visible'] is EMPTY. UI setup likely failed or map cleared.";
+        QMessageBox::critical(this, "内部错误", "无法找到界面可见性控件，请重新打开参数窗口。");
+        return;
+    }
+    // --- 检查结束 ---
+
+    // 检查 LineEdit Map
+    if (m_rangeLineEditMap.isEmpty() && !updatedParams.isEmpty()) { // Check against updatedParams size
+        qWarning() << "onSaveClicked: m_rangeLineEditMap is EMPTY. UI setup likely failed or map cleared.";
+        QMessageBox::critical(this, "内部错误", "无法找到界面输入控件，请重新打开参数窗口。");
+        return;
     }
 
-    QMap<QString, QCheckBox*>& visibleCheckboxesMap = m_rangeCheckboxes["Visible"];
 
     // 3. 遍历副本，从UI控件中读取数据进行更新
     for (auto it = updatedParams.begin(); it != updatedParams.end(); ++it)
     {
         const QString& paramName = it.key();
-        UnifyParam& config = it.value();
-        qDebug() << "\n--- Checking Param:" << config.label << "---";
+        UnifyParam& config = it.value(); // 获取引用以便修改
+        qDebug() << "\n--- Checking Param:" << config.label << "---"; // 添加日志标识
 
-        // 更新可见性
-        if (visibleCheckboxesMap.contains(paramName)) {
-            config.visible = visibleCheckboxesMap[paramName]->isChecked();
-            qDebug() << "  -> Visible Checkbox found. Set visible to:" << config.visible;
+        // --- 更新可见性 ---
+        if (!visibleCheckboxesMap.contains(paramName)) {
+            qWarning() << "onSaveClicked: Checkbox key for '" << paramName << "' not found in map. Skipping visibility update.";
         }
         else {
-            qDebug() << "  -> Visible Checkbox NOT found for param:" << paramName;
+            QCheckBox* cb = visibleCheckboxesMap.value(paramName);
+            if (cb == nullptr) {
+                qWarning() << "onSaveClicked: Checkbox pointer for '" << paramName << "' is unexpectedly NULL in map. Skipping visibility update.";
+            }
+            else {
+                bool isChecked = cb->isChecked(); // 读取 CheckBox 状态到临时变量
+                config.visible = isChecked;       // 赋值给 config
+                // --- 【新增调试日志】 ---
+                qDebug() << "  -> Read CheckBox state for '" << paramName << "' : " << isChecked << "(Pointer:" << cb << ")";
+                // ---
+            }
         }
+        // --- 可见性更新结束 ---
 
-        if (!config.visible) {
-            qDebug() << "  -> Param is NOT visible. Skipping value read.";
-            continue;
-        }
+        // --- 读取数值 (Bug 1 已修复：不再检查 visible 状态) ---
+        bool isBooleanMode = config.unit.isEmpty();
+        qDebug() << "  -> Determined Mode based on unit.isEmpty():" << (isBooleanMode ? "Boolean" : "Range"); // 添加日志标识
 
-        // 根据检测模式读取相应输入框
-        if (config.need_value)
+        if (isBooleanMode)
         {
             // --- 布尔模式 ---
-            qDebug() << "  -> Mode: Boolean";
+            qDebug() << "  -> Mode Processing: Boolean"; // 添加日志标识
             QString key = paramName + "_Value";
             QLineEdit* valueEdit = m_rangeLineEditMap.value(key);
 
-            // 【调试】检查指针是否为 null，这是最关键的检查点
             if (valueEdit == nullptr) {
-                qWarning() << "  -> FATAL: QLineEdit* for key '" << key << "' is NULL.";
-                qWarning() << "     (This is the root cause of memory save failure! Check setupRangeTab.)";
+                qWarning() << "onSaveClicked: FATAL: QLineEdit* for Boolean key '" << key << "' is NULL.";
                 hasInvalidInput = true;
                 break;
             }
 
-            QString text = valueEdit->text();
-            bool isAcceptable = valueEdit->hasAcceptableInput();
-            qDebug() << "  -> Reading Key: '" << key << "' | Text: '" << text << "' | Valid:" << isAcceptable;
-            if (isAcceptable) {
-                config.value = text.toDouble();
+            if (valueEdit->hasAcceptableInput()) {
+                config.value = valueEdit->text().toDouble();
             }
             else {
-                qWarning() << "  -> INVALID INPUT for key '" << key << "'.";
+                qWarning() << "onSaveClicked: INVALID INPUT for key '" << key << "'.";
                 valueEdit->setFocus();
                 hasInvalidInput = true;
                 break;
@@ -744,8 +896,7 @@ void ParaWidget::onSaveClicked()
         }
         else // 范围模式
         {
-            qDebug() << "  -> Mode: Range";
-
+            qDebug() << "  -> Mode Processing: Range"; // 添加日志标识
             // --- 上限/补偿 ---
             QString upperKey = paramName + "_Upper";
             QString upfixKey = paramName + "_Upfix";
@@ -753,23 +904,14 @@ void ParaWidget::onSaveClicked()
             QLineEdit* upfixEdit = m_rangeLineEditMap.value(upfixKey);
 
             if (upperEdit == nullptr || upfixEdit == nullptr) {
-                qWarning() << "  -> FATAL: QLineEdit* for Upper/Upfix is NULL.";
-                qWarning() << "     Upper Key '" << upperKey << "' -> Ptr:" << upperEdit;
-                qWarning() << "     Upfix Key '" << upfixKey << "' -> Ptr:" << upfixEdit;
+                qWarning() << "onSaveClicked: FATAL: QLineEdit* for Upper/Upfix is NULL.";
                 hasInvalidInput = true;
                 break;
             }
 
-            QString upperText = upperEdit->text();
-            QString upfixText = upfixEdit->text();
-            bool isUpperAcceptable = upperEdit->hasAcceptableInput();
-            bool isUpfixAcceptable = upfixEdit->hasAcceptableInput();
-            qDebug() << "    -> Upper: Key: '" << upperKey << "' | Text: '" << upperText << "' | Valid:" << isUpperAcceptable;
-            qDebug() << "    -> Upfix: Key: '" << upfixKey << "' | Text: '" << upfixText << "' | Valid:" << isUpfixAcceptable;
-
-            if (!isUpperAcceptable || !isUpfixAcceptable) {
-                qWarning() << "  -> INVALID INPUT for Upper/Upfix.";
-                if (!isUpperAcceptable) upperEdit->setFocus(); else upfixEdit->setFocus();
+            if (!upperEdit->hasAcceptableInput() || !upfixEdit->hasAcceptableInput()) {
+                qWarning() << "onSaveClicked: INVALID INPUT for Upper/Upfix.";
+                if (!upperEdit->hasAcceptableInput()) upperEdit->setFocus(); else upfixEdit->setFocus();
                 hasInvalidInput = true;
                 break;
             }
@@ -781,51 +923,50 @@ void ParaWidget::onSaveClicked()
             QLineEdit* lowfixEdit = m_rangeLineEditMap.value(lowfixKey);
 
             if (lowerEdit == nullptr || lowfixEdit == nullptr) {
-                qWarning() << "  -> FATAL: QLineEdit* for Lower/Lowfix is NULL.";
-                qWarning() << "     Lower Key '" << lowerKey << "' -> Ptr:" << lowerEdit;
-                qWarning() << "     Lowfix Key '" << lowfixKey << "' -> Ptr:" << lowfixEdit;
+                qWarning() << "onSaveClicked: FATAL: QLineEdit* for Lower/Lowfix is NULL.";
                 hasInvalidInput = true;
                 break;
             }
 
-            QString lowerText = lowerEdit->text();
-            QString lowfixText = lowfixEdit->text();
-            bool isLowerAcceptable = lowerEdit->hasAcceptableInput();
-            bool isLowfixAcceptable = lowfixEdit->hasAcceptableInput();
-            qDebug() << "    -> Lower: Key: '" << lowerKey << "' | Text: '" << lowerText << "' | Valid:" << isLowerAcceptable;
-            qDebug() << "    -> Lowfix: Key: '" << lowfixKey << "' | Text: '" << lowfixText << "' | Valid:" << isLowfixAcceptable;
-
-            if (!isLowerAcceptable || !isLowfixAcceptable) {
-                qWarning() << "  -> INVALID INPUT for Lower/Lowfix.";
-                if (!isLowerAcceptable) lowerEdit->setFocus(); else lowfixEdit->setFocus();
+            if (!lowerEdit->hasAcceptableInput() || !lowfixEdit->hasAcceptableInput()) {
+                qWarning() << "onSaveClicked: INVALID INPUT for Lower/Lowfix.";
+                if (!lowerEdit->hasAcceptableInput()) lowerEdit->setFocus(); else lowfixEdit->setFocus();
                 hasInvalidInput = true;
                 break;
             }
 
             // 只有全部通过才赋值
-            config.upperLimit = upperText.toDouble();
-            config.upfix = upfixText.toDouble();
-            config.lowerLimit = lowerText.toDouble();
-            config.lowfix = lowfixText.toDouble();
+            config.upperLimit = upperEdit->text().toDouble();
+            config.upfix = upfixEdit->text().toDouble();
+            config.lowerLimit = lowerEdit->text().toDouble();
+            config.lowfix = lowfixEdit->text().toDouble();
         }
+        // --- 数值读取结束 ---
     }
 
-    qDebug() << "\n============ onSaveClicked: END LOOP ============";
 
     if (hasInvalidInput) {
-        qDebug() << "onSaveClicked: Invalid input or NULL pointer detected. Aborting save.";
-        QMessageBox::warning(this, "保存失败", "存在无效的参数输入或内部控件错误 (map_key_null)，请检查控制台。");
+        QMessageBox::warning(this, "保存失败", "存在无效的参数输入或内部控件错误，请检查。");
         return;
     }
 
+    // --- 【新增调试日志】 ---
+    qDebug() << "\n============ onSaveClicked: Before Commit ============";
+    qDebug() << "Final state of 'updatedParams' before assigning to m_cam->unifyParams:";
+    // 打印几个关键参数的 visible 状态
+    if (updatedParams.contains("Pin_C")) qDebug() << "  -> Pin_C Visible:" << updatedParams["Pin_C"].visible;
+    if (updatedParams.contains("isHaveBpln")) qDebug() << "  -> isHaveBpln Visible:" << updatedParams["isHaveBpln"].visible;
+    // 您可以根据需要添加更多参数
+    // ---
+
     // 5. 应用更改到内存
-    qDebug() << "onSaveClicked: All inputs valid. Committing to m_cam->unifyParams.";
     m_cam->unifyParams = updatedParams;
+    qDebug() << "onSaveClicked: Committed updatedParams to m_cam->unifyParams."; // 添加日志标识
 
     // 6. 调用异步保存
-    qDebug() << "onSaveClicked: Calling asynchronous saveParamsToJsonFile...";
     saveParamsToJsonFile(updatedParams);
 }
+
 
 /**
  * @brief 【最终异步版】将参数保存到 JSON 文件，并自动处理UI反馈。
@@ -835,13 +976,13 @@ void ParaWidget::onSaveClicked()
  *
  * @param paramsToSave 需要保存的参数数据。
  */
-bool ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
+void ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
 {
     // 1. 路径解析和目录创建 (此逻辑已验证无误)
     const QString relativePath = m_cam->rangepath;
     if (relativePath.isEmpty()) {
         qWarning() << "Save Failed: Config file path is empty.";
-        return false;
+        return ;
     }
     QDir appDir(QCoreApplication::applicationDirPath());
     QString absolutePath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
@@ -850,7 +991,7 @@ bool ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
     QDir fileDir = QFileInfo(absolutePath).dir();
     if (!fileDir.exists() && !fileDir.mkpath(".")) {
         qWarning() << "Sync Save: CRITICAL: Failed to create directory path:" << fileDir.path();
-        return false;
+        return ;
     }
 
     // 2. 【核心修改】序列化数据到 QJsonObject，并使用中文键名
@@ -893,7 +1034,7 @@ bool ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
     if (!saveFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
         qWarning() << "Sync Save: FAILED to open file for writing!";
         qWarning() << "  -> Error:" << saveFile.errorString();
-        return false;
+        return ;
     }
 
     qint64 bytesWritten = saveFile.write(saveDoc.toJson(QJsonDocument::Indented));
@@ -901,12 +1042,12 @@ bool ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
 
     if (bytesWritten > 0) {
         qDebug() << "Sync Save: Successfully wrote" << bytesWritten << "bytes to file.";
-        return true;
+        return ;
     }
     else {
         qWarning() << "Sync Save: FAILED to write data to opened file.";
         qWarning() << "  -> Error:" << saveFile.errorString();
-        return false;
+        return ;
     }
 }
 
@@ -1024,7 +1165,195 @@ void ParaWidget::setupCameralTab(QTabWidget* tabWidget)
         });
 }
 
+void ParaWidget::saveScaleParamsToFile(const AllUnifyParams& paramsToSave)
+{
+    qDebug() << "saveScaleParamsToFile: Starting background task...";
+    QtConcurrent::run([this, params = paramsToSave]() {
+        // =======================================================
+        //  后台线程
+        // =======================================================
+        qDebug() << "Background Thread (Scale): Task started.";
 
+        // 1. 路径解析和目录创建 (此部分不变)
+        const QString relativePath = this->m_cam->rangepath;
+        if (relativePath.isEmpty()) {
+            qWarning() << "Background Thread (Scale): FAILED. Config file path is empty.";
+            QMetaObject::invokeMethod(this, [this]() {
+                QMessageBox::critical(this, "保存失败", "(Scale) 配置文件路径未设置。");
+                }, Qt::QueuedConnection);
+            return;
+        }
+        QDir appDir(QCoreApplication::applicationDirPath());
+        QString absolutePath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
+        QDir fileDir = QFileInfo(absolutePath).dir();
+        if (!fileDir.exists() && !fileDir.mkpath(".")) {
+            qWarning() << "Background Thread (Scale): FAILED. Could not create directory" << fileDir.path();
+            QMetaObject::invokeMethod(this, [this]() {
+                QMessageBox::critical(this, "保存失败", "(Scale) 无法创建目标目录，请检查权限。");
+                }, Qt::QueuedConnection);
+            return;
+        }
+
+        // 2. 【修复】序列化数据 (使用与 saveParamsToJsonFile 完全一致的中文键和格式)
+        qDebug() << "Background Thread (Scale): Serializing data (using specified Chinese keys)...";
+        QJsonObject rootObject;
+        for (auto it = params.constBegin(); it != params.constEnd(); ++it)
+        {
+            const UnifyParam& item = it.value();
+            QJsonObject paramJson;
+
+            // --- 【核心】使用您JSON示例中的键和格式 ---
+            paramJson["映射变量"] = item.label;
+            paramJson["单位"] = item.unit;
+            paramJson["检测"] = item.check ; // 字符串 "true" / "false"
+            paramJson["可见"] = item.visible ; // 字符串 "true" / "false"
+            paramJson["标定值"] = item.scaleFactor; // 所有项都有标定值
+
+            // --- 根据 need_value 决定是布尔模式还是范围模式 ---
+            if (item.need_value) {
+                // A. 布尔模式 (如 isHaveNpin)
+                paramJson["布尔值"] = (item.value == 1.0); // true / false
+            }
+            else {
+                // B. 范围模式 (如 n_pin_H)
+                paramJson["上限"] = item.upperLimit;
+                paramJson["下限"] = item.lowerLimit;
+                paramJson["上限补偿值"] = item.upfix;
+                paramJson["下限补偿值"] = item.lowfix;
+            }
+            // (我们不保存 "期望值" "检测总数" "NG总数" 等，因为您的JSON示例中没有)
+
+            rootObject[it.key()] = paramJson;
+        }
+        qDebug() << "Background Thread (Scale): Serialization complete.";
+
+
+        // 3. 使用 QFile 直接写入文件 (此部分不变)
+        bool success = false;
+        QJsonDocument saveDoc(rootObject);
+        QFile saveFile(absolutePath);
+
+        if (!saveFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            qWarning() << "Background Thread (Scale): FAILED to open file for writing!";
+            qWarning() << "  -> Error:" << saveFile.errorString();
+        }
+        else {
+            qint64 bytesWritten = saveFile.write(saveDoc.toJson(QJsonDocument::Indented));
+            saveFile.close();
+            success = (bytesWritten > 0);
+        }
+
+        // 4. 将最终的弹窗任务发送回主线程执行 (此部分不变)
+        qDebug() << "Background Thread (Scale): Posting result (" << success << ") back to main thread.";
+        QMetaObject::invokeMethod(this, [this, success]() {
+            qDebug() << "Main Thread: Received scale save result:" << success;
+            if (success) {
+                QMessageBox::information(this, "保存成功", "标定参数已成功写入配置文件。");
+            }
+            else {
+                QMessageBox::critical(this, "保存失败", "(Scale) 写入配置文件时发生错误。");
+            }
+            }, Qt::QueuedConnection);
+        });
+}
+
+
+void ParaWidget::onScaleSaveClicked()
+{
+    qDebug() << "\n============ onScaleSaveClicked: START ============";
+    // 1. 安全检查
+    if (m_cam == nullptr) {
+        qWarning() << "onScaleSaveClicked: Aborted. m_cam is null.";
+        QMessageBox::critical(this, "错误", "内部组件未初始化，无法保存。");
+        return;
+    }
+
+    // 2. 获取参数的可编辑副本
+    AllUnifyParams updatedParams = m_cam->unifyParams;
+    bool hasInvalidInput = false;
+
+    // --- 【新增】检查“可见” CheckBox Map 状态 ---
+    if (!m_rangeCheckboxes.contains("Visible")) {
+        qWarning() << "onScaleSaveClicked: FATAL: m_rangeCheckboxes does not contain 'Visible' key! Cannot preserve visibility state.";
+        // 即使没有Visible Map，仍然尝试保存 Check 和 ScaleFactor
+        // return; // 或者根据业务逻辑决定是否中断
+    }
+    QMap<QString, QCheckBox*>& visibleCheckboxesMap = m_rangeCheckboxes["Visible"];
+    // 不检查 visibleCheckboxesMap 是否为空，因为即使为空也应尝试保存 scale 数据
+    // --- 检查结束 ---
+
+
+    qDebug() << "onScaleSaveClicked: Using m_scaleLineEditMap and m_scaleCheckboxes.";
+
+    // 3. 遍历副本，从UI控件中读取数据进行更新
+    for (auto it = updatedParams.begin(); it != updatedParams.end(); ++it)
+    {
+        const QString& paramName = it.key();
+        UnifyParam& config = it.value(); // 获取引用
+
+        // --- 【核心修复】首先，从 Range Tab 读取并更新 visible 状态 ---
+        if (visibleCheckboxesMap.contains(paramName)) {
+            QCheckBox* visCb = visibleCheckboxesMap.value(paramName);
+            if (visCb != nullptr) {
+                config.visible = visCb->isChecked();
+                qDebug() << "  -> Preserving visible state for '" << paramName << "' : " << config.visible;
+            }
+            else {
+                qWarning() << "  -> Warning: Visible checkbox pointer for '" << paramName << "' is NULL in map.";
+            }
+        }
+        else {
+            qWarning() << "  -> Warning: Visible checkbox key for '" << paramName << "' not found in map. Preserving existing visible state:" << config.visible;
+        }
+        // --- 可见状态保留结束 ---
+
+
+        // A. 读取 "启用检测" (check)
+        QCheckBox* checkCheckBox = m_scaleCheckboxes.value(paramName);
+        if (checkCheckBox) {
+            config.check = checkCheckBox->isChecked();
+            qDebug() << "  -> Reading CheckBox state for '" << paramName << "' : " << config.check;
+        }
+        else {
+            qWarning() << "onScaleSaveClicked: CheckBox for" << paramName << "is NULL!";
+            // 根据业务逻辑决定是否中断或跳过
+        }
+
+        // B. 读取 "标定参数" (scaleFactor)
+        QLineEdit* scaleEdit = m_scaleLineEditMap.value(paramName);
+        if (scaleEdit) {
+            if (scaleEdit->hasAcceptableInput()) {
+                config.scaleFactor = scaleEdit->text().toDouble();
+                qDebug() << "  -> Reading ScaleFactor for '" << paramName << "' : " << config.scaleFactor;
+            }
+            else {
+                qWarning() << "onScaleSaveClicked: Invalid scale input for" << config.label;
+                scaleEdit->setFocus();
+                hasInvalidInput = true;
+                break; // 中断循环
+            }
+        }
+        else {
+            qWarning() << "onScaleSaveClicked: LineEdit for" << paramName << "is NULL!";
+            // 根据业务逻辑决定是否中断或跳过
+        }
+    }
+
+    qDebug() << "\n============ onScaleSaveClicked: END LOOP ============";
+
+    if (hasInvalidInput) {
+        QMessageBox::warning(this, "保存失败", "存在无效的标定参数输入，请检查。");
+        return;
+    }
+
+    // 5. 应用更改到内存
+    qDebug() << "onScaleSaveClicked: All inputs valid. Committing to m_cam->unifyParams.";
+    m_cam->unifyParams = updatedParams; // 现在 updatedParams 包含了正确的 visible 状态
+
+    // 6. 【重要】调用专属的异步保存函数
+    qDebug() << "onScaleSaveClicked: Calling asynchronous save function (saveScaleParamsToFile)...";
+    saveScaleParamsToFile(updatedParams); // 使用专属保存函数
+}
 
 void ParaWidget::setupAlgorithmTab(QTabWidget* tabWidget)
 {

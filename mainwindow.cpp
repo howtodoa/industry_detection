@@ -1274,6 +1274,7 @@ void MainWindow::initcams(int camnumber)
 
 MainWindow::~MainWindow()
 {
+    updateDeviceId();
     int result = 0;
      qDebug() << "MainWindow()析构函数被调用";
     delete ui;
@@ -2265,6 +2266,58 @@ void MainWindow::updateCameraStats()
     }
 }
 
+
+
+bool MainWindow::updateDeviceId()
+{
+    const QString filePath = SystemPara::GLOBAL_DIR;
+
+    // --- 1. 使用 FileOperator 读取 JSON ---
+    // 你的 readJsonObject 函数在失败时会打印错误并返回空对象
+    QJsonObject rootObj = FileOperator::readJsonObject(filePath);
+
+    if (rootObj.isEmpty()) {
+        // readJsonObject 内部已经打印了 qCritical 错误
+        qWarning() << "Error: 无法读取或解析 JSON 文件:" << filePath;
+        return false;
+    }
+
+    // --- 2. 修改值 ---
+    // 检查 "DeviceId" 是否存在且是否为一个对象
+    if (!rootObj.contains("DeviceId") || !rootObj["DeviceId"].isObject()) {
+        qWarning() << "Error: 在" << filePath << "中未找到 'DeviceId' 键，或者它不是一个对象。";
+        return false;
+    }
+
+    // 获取 DeviceId 对象的副本
+    QJsonObject deviceIdObj = rootObj["DeviceId"].toObject();
+
+    // 检查 "值" 键是否存在
+    if (!deviceIdObj.contains("值")) {
+        qWarning() << "Error: 在 'DeviceId' 中未找到 '值' 键。";
+        return false;
+    }
+
+    // 更新 "值"
+    deviceIdObj["值"] = GlobalPara::DeviceId;
+
+    // 将修改后的 deviceIdObj 对象放回根对象
+    rootObj["DeviceId"] = deviceIdObj;
+
+    // --- 3. 使用 FileOperator 写回文件 ---
+    if (!FileOperator::writeJsonObject(filePath, rootObj)) {
+        // 你的 writeJsonObject 比较简单，我们在这里添加错误日志
+        qWarning() << "Error: FileOperator::writeJsonObject 失败，无法写入文件:" << filePath;
+        return false;
+    }
+
+    return true;
+}
+
+//void MainWindow::closeEvent(QCloseEvent* event)
+//{
+//    closeEvent(event);
+//}
 
 int MainWindow::initPCI_VC3000H()
 {

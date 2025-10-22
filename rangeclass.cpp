@@ -163,8 +163,8 @@ UnifyParam RangeClass::parseSingleParam(const QJsonObject& paramObject)
 // 1. 描述和可见/检测状态 (所有模式通用)
     p.label = paramObject.value("映射变量").toString();
     p.unit = paramObject.value("单位").toString();
-    p.check = paramObject.value("检测").toString().toLower() == "true";
-    p.visible = paramObject.value("可见").toString().toLower() == "true";
+    p.check = paramObject.value("检测").toBool();
+    p.visible = paramObject.value("可见").toBool();
 
     // 2. 模式判断：是否存在 "布尔值" 键？
     bool isBooleanMode = paramObject.value("布尔值").toBool(false);
@@ -223,7 +223,7 @@ AllUnifyParams RangeClass::loadUnifiedParameters(const QString& jsonFilePath)
     // 根对象 root 现在直接就是参数集合
     QJsonObject paramItems = root;
 
-    if (paramItems.isEmpty()) {
+     if (paramItems.isEmpty()) {
         qCritical() << "统一参数加载失败: JSON 文件根对象为空。";
         return resultParams;
     }

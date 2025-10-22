@@ -29,16 +29,20 @@ public:
     void closeEvent(QCloseEvent* event) override;
 private:
     void setupRangeTab(QTabWidget* tabWidget);
+    void setupRangeTab_EX(QTabWidget* tabWidget);
     void setupCameralTab(QTabWidget* tabWidget);
     void setupAlgorithmTab(QTabWidget* tabWidget) ;
     void setupDebugTab(QTabWidget* tabWidget) ;
     void setupScaleTab(QTabWidget* tabWidget);
     void validateInputType(QLineEdit* lineEdit, const QString& type);
     void saveScaleArrayAsync(const QString& filePath, const QVector<SimpleParam>& scaleArray);
+    void saveScaleParamsToFile(const AllUnifyParams& paramsToSave);
+
+    void setupScaleTabEX(QTabWidget* tabWidget);
 private slots:
 
     void closeWindow();
-
+    void onScaleSaveClicked();
 signals:
     void parametersChanged(const QVariantMap& paramMap); //临时保存修改
     void SaveDebugInfo(DebugInfo* DI);
@@ -54,7 +58,7 @@ private:
     // T 是 RangeClass, AlgoClass, CameralClass 中的任意一种
     template<typename T>
     QString validateParametersRange(T* settingsManager, const QString& settingType) const;
-    bool saveParamsToJsonFile(const AllUnifyParams& paramsToSave);
+    void saveParamsToJsonFile(const AllUnifyParams& paramsToSave);
 
     // 3. 通用 QLineEdit 验证器设置 (只依赖 ParamDetail)
     // 注意：这里的 ParamDetail 不包含 name，name 需要在外部传入或从 QMap 的 key 获取
@@ -73,6 +77,8 @@ private:
      QMap<QString, QComboBox*> m_paramBoolModeComboBoxes;
      QMap<QString, QLineEdit*> m_rangeLineEditMap;
      QMap<QString, QMap<QString, QCheckBox*>> m_rangeCheckboxes;
+     QMap<QString, QCheckBox*> m_scaleCheckboxes;   
+     QMap<QString, QLineEdit*> m_scaleLineEditMap;
      DebugInfo *DI;
      Cameral *m_cam=nullptr;
      QTabWidget* tabWidget = nullptr;

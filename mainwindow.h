@@ -26,6 +26,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     explicit MainWindow(int mode,QWidget* parent = 0);
+	//void closeEvent(QCloseEvent* event) override;
     ~MainWindow();
     void init_log(); 
     void prospect(int code,std::string temppath);
@@ -57,6 +58,7 @@ public:
     void  initCameralPara();
     void updateDB_Brader();
     void updateDB_Plater();
+    bool updateDeviceId();
     Role role;
 public slots:
     void onStartAllCamerasClicked();
