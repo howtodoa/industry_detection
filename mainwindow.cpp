@@ -33,6 +33,7 @@
 #include "algoclass_pin.h"
 #include "algoclass_side.h"
 #include "aboutwidget.h"
+#include "algoclass_abut.h"
 
 namespace AppConfig
 {
@@ -1182,7 +1183,7 @@ void MainWindow::initcams(int camnumber)
        }
        else if (caminfo[i - 1].mapping == "Abut")
        {
-           cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->AC = new AlgoClass_Abut(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Abut(cam->unifyParams , nullptr);

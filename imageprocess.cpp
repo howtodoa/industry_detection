@@ -178,7 +178,7 @@ void ImageProcess::run()
 				ExportSpace::ResultOutAbut(*afterImagePtr, OutResParam);
 				qint64 elapsed = timer.elapsed();
 				cam_instance->RI->updateActualValues(OutResParam);
-				cam_instance->RI->applyScaleFactors();
+				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 				ret=cam_instance->RI->judge_abut(OutResParam);
 				if (ret == 1) ret = -1;
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";

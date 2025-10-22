@@ -60,6 +60,7 @@ set(SOURCES
     rightcontrolpanel.cpp
     aboutwidget.cpp
     debugtool.cpp
+    algoclass_abut.cpp
 )
 
 set(HEADERS
@@ -114,6 +115,7 @@ set(HEADERS
     rightcontrolpanel.h
     aboutwidget.h
     debugtool.h
+    algoclass_abut.h
 )
 
 set(UI_FILES

@@ -696,7 +696,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
             QString formattedValue = QString::number(item.value, 'f', 3);
 
             // 为了显示检测结果 (1=通过, 0=不通过)，我们在标签后面添加 [PASS] 或 [FAIL]
-            QString resultText = (item.result == 1) ? "[PASS]" : "[FAIL]";
+            QString resultText = "";
 
             // 完整文本格式：标签: 实测值 [结果]
             QString text = QString("%1: %2 %3").arg(item.label, formattedValue, resultText);

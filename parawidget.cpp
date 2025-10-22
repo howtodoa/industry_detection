@@ -690,7 +690,7 @@ void ParaWidget::setupRangeTab_EX(QTabWidget* tabWidget) // 修改函数定义
             QString labelText = QString("%1 (%2)").arg(config.label).arg(config.unit.isEmpty() ? "N/A" : config.unit);
             QLabel* mainLabel = new QLabel(labelText, this);
             QLabel* valueLabel = new QLabel("期望值:", this);
-            QLineEdit* valueEdit = new QLineEdit(QString::number(config.value, 'f', 3), this);
+            QLineEdit* valueEdit = new QLineEdit(QString::number(config.need_value, 'f', 3), this);
             valueEdit->setValidator(validator);
             m_rangeLineEditMap.insert(paramName + "_Value", valueEdit);
 
@@ -885,7 +885,7 @@ void ParaWidget::onSaveClicked()
             }
 
             if (valueEdit->hasAcceptableInput()) {
-                config.value = valueEdit->text().toDouble();
+                config.need_value = valueEdit->text().toDouble();
             }
             else {
                 qWarning() << "onSaveClicked: INVALID INPUT for key '" << key << "'.";
@@ -961,6 +961,7 @@ void ParaWidget::onSaveClicked()
 
     // 5. 应用更改到内存
     m_cam->unifyParams = updatedParams;
+    m_cam->RI->updateUnifyParams(m_cam->unifyParams);
     qDebug() << "onSaveClicked: Committed updatedParams to m_cam->unifyParams."; // 添加日志标识
 
     // 6. 调用异步保存
@@ -978,79 +979,99 @@ void ParaWidget::onSaveClicked()
  */
 void ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
 {
-    // 1. 路径解析和目录创建 (此逻辑已验证无误)
-    const QString relativePath = m_cam->rangepath;
-    if (relativePath.isEmpty()) {
-        qWarning() << "Save Failed: Config file path is empty.";
-        return ;
-    }
-    QDir appDir(QCoreApplication::applicationDirPath());
-    QString absolutePath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
-    qDebug() << "Sync Save: Attempting to save to:" << absolutePath;
+    qDebug() << "saveParamsToJsonFile: Starting background task...";
+    QtConcurrent::run([this, params = paramsToSave]() {
+        qDebug() << "Background Thread: Task started.";
 
-    QDir fileDir = QFileInfo(absolutePath).dir();
-    if (!fileDir.exists() && !fileDir.mkpath(".")) {
-        qWarning() << "Sync Save: CRITICAL: Failed to create directory path:" << fileDir.path();
-        return ;
-    }
+        // --- 调试: 打印传入副本的初始值 ---
+        qDebug() << "Background Thread: Initial values in captured 'params':";
+        if (params.contains("isHaveBpln")) {
+            const auto& p = params["isHaveBpln"];
+            qDebug() << "  -> isHaveBpln | Unit:" << p.unit << "| ScaleF:" << p.scaleFactor << "| Value:" << p.value << "| Upper:" << p.upperLimit << "| Lower:" << p.lowerLimit;
+        }
+        if (params.contains("Pin_C")) {
+            const auto& p = params["Pin_C"];
+            qDebug() << "  -> Pin_C      | Unit:" << p.unit << "| ScaleF:" << p.scaleFactor << "| Value:" << p.value << "| Upper:" << p.upperLimit << "| Lower:" << p.lowerLimit;
+        }
+        // ---
 
-    // 2. 【核心修改】序列化数据到 QJsonObject，并使用中文键名
-    qDebug() << "Sync Save: Serializing data with Chinese keys...";
-    QJsonObject rootObject;
-    for (auto it = paramsToSave.constBegin(); it != paramsToSave.constEnd(); ++it)
-    {
-        const UnifyParam& item = it.value();
-        QJsonObject paramJson;
+        // 1. 路径解析和目录创建 (逻辑不变)
+        // ... (省略路径检查代码) ...
+        const QString relativePath = this->m_cam->rangepath;
+        QDir appDir(QCoreApplication::applicationDirPath());
+        QString absolutePath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
+        QDir fileDir = QFileInfo(absolutePath).dir();
+        if (!fileDir.exists() && !fileDir.mkpath(".")) { /* ... 错误处理 ... */ return; }
 
-        // --- 通用字段 ---
-        paramJson["单位"] = item.unit;
-        paramJson["可见"] = item.visible; // JSON 会自动处理 bool 值
-        paramJson["映射变量"] = item.label;
-        paramJson["检测"] = item.check;
 
-        // --- 根据模式写入特定字段 ---
-        if (item.need_value) {
-            // 布尔模式
-            // 注意: 您的 UnifyParam 结构体中没有 "布尔值" 字段，这里我们假设用 item.value 来表示
-            // 如果 item.value 是 1.0 代表 true, 0.0 代表 false
-            paramJson["布尔值"] = (item.value == 1.0);
+        // 2. 序列化数据到 QJsonObject
+        qDebug() << "Background Thread: Serializing data with detailed mode check...";
+        QJsonObject rootObject;
+        for (auto it = params.constBegin(); it != params.constEnd(); ++it)
+        {
+            const UnifyParam& item = it.value();
+            QJsonObject paramJson;
+            QString paramKey = it.key(); // 获取参数的键名，如 "isHaveBpln"
+
+            // --- 【核心调试】详细打印模式判断过程 ---
+            qDebug().nospace().noquote() << "  -> Processing Param: " << item.label << " (" << paramKey << ")";
+            qDebug() << "     -> Unit Read:" << item.unit;
+            bool isBooleanMode = item.unit.isEmpty();
+            qDebug() << "     -> Mode Determined:" << (isBooleanMode ? "Boolean" : "Range");
+            // ---
+
+            paramJson["映射变量"] = item.label;
+            paramJson["单位"] = item.unit;
+            paramJson["检测"] = item.check;
+            paramJson["可见"] = item.visible;
+            paramJson["标定值"] = item.scaleFactor;
+
+            if (isBooleanMode) {
+                qDebug() << "     -> Adding Boolean specific key: '布尔值'";
+                paramJson["布尔值"] = (item.value != 0.0);
+            }
+            else {
+                qDebug() << "     -> Adding Range specific keys: '上限', '下限', '上限补偿值', '下限补偿值'";
+                paramJson["上限"] = item.upperLimit;
+                paramJson["下限"] = item.lowerLimit;
+                paramJson["上限补偿值"] = item.upfix;
+                paramJson["下限补偿值"] = item.lowfix;
+            }
+
+            // --- 【核心调试】打印最终添加的键 ---
+            qDebug() << "     -> Final keys added to JSON:" << paramJson.keys();
+            // ---
+            rootObject[paramKey] = paramJson;
+        }
+        qDebug() << "Background Thread: Serialization complete.";
+
+
+        // 3. 使用 QFile 直接写入文件 (逻辑不变)
+        // ... (省略文件写入代码) ...
+        bool success = false;
+        QJsonDocument saveDoc(rootObject);
+        QFile saveFile(absolutePath);
+        if (saveFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            qint64 bytesWritten = saveFile.write(saveDoc.toJson(QJsonDocument::Indented));
+            saveFile.close();
+            success = (bytesWritten > 0);
         }
         else {
-            // 范围模式
-            paramJson["上限"] = item.upperLimit;
-            paramJson["下限"] = item.lowerLimit;
-            paramJson["上限补偿值"] = item.upfix;
-            paramJson["下限补偿值"] = item.lowfix;
-            paramJson["标定值"] = item.value;
+            qWarning() << "Background Thread: FAILED to open file for writing! Error:" << saveFile.errorString();
         }
 
-        rootObject[it.key()] = paramJson;
-    }
-
-    // 3. 使用 QFile 直接写入文件 (此逻辑已验证无误)
-    QJsonDocument saveDoc(rootObject);
-    QFile saveFile(absolutePath);
-
-    if (!saveFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        qWarning() << "Sync Save: FAILED to open file for writing!";
-        qWarning() << "  -> Error:" << saveFile.errorString();
-        return ;
-    }
-
-    qint64 bytesWritten = saveFile.write(saveDoc.toJson(QJsonDocument::Indented));
-    saveFile.close();
-
-    if (bytesWritten > 0) {
-        qDebug() << "Sync Save: Successfully wrote" << bytesWritten << "bytes to file.";
-        return ;
-    }
-    else {
-        qWarning() << "Sync Save: FAILED to write data to opened file.";
-        qWarning() << "  -> Error:" << saveFile.errorString();
-        return ;
-    }
+        // 4. 将最终的弹窗任务发送回主线程执行 (逻辑不变)
+        // ... (省略 invokeMethod 代码) ...
+        QMetaObject::invokeMethod(this, [this, success]() {
+            if (success) {
+                QMessageBox::information(this, "保存成功", "统一参数已成功写入配置文件。");
+            }
+            else {
+                QMessageBox::critical(this, "保存失败", "写入配置文件时发生错误。");
+            }
+            }, Qt::QueuedConnection);
+        });
 }
-
 void ParaWidget::setupCameralTab(QTabWidget* tabWidget)
 {
     if (!m_cameralSettings) {
@@ -1349,7 +1370,7 @@ void ParaWidget::onScaleSaveClicked()
     // 5. 应用更改到内存
     qDebug() << "onScaleSaveClicked: All inputs valid. Committing to m_cam->unifyParams.";
     m_cam->unifyParams = updatedParams; // 现在 updatedParams 包含了正确的 visible 状态
-
+    m_cam->RI->updateUnifyParams(m_cam->unifyParams);
     // 6. 【重要】调用专属的异步保存函数
     qDebug() << "onScaleSaveClicked: Calling asynchronous save function (saveScaleParamsToFile)...";
     saveScaleParamsToFile(updatedParams); // 使用专属保存函数
@@ -1550,6 +1571,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
             if (m_cam->indentify == "Top") LearnPara::inParam3.angleNum = angleValue;
             if (m_cam->indentify == "Side") LearnPara::inParam4.imgAngleNum = angleValue;
             if (m_cam->indentify == "Pin") LearnPara::inParam5.angleNum = angleValue;
+            if (m_cam->indentify == "Abut") LearnPara::inParam6.angleNum = angleValue;
             emit SaveDebugInfo(DI);
         }
         });

@@ -18,6 +18,7 @@ public:
     explicit RezultInfo(Parameters *rangepara, QObject *parent = nullptr);
     virtual ~RezultInfo();
     const QList<ProcessedParam>& getProcessedData() const;
+    void updateUnifyParams(AllUnifyParams unifyParams);
     void printProcessedData() const;
     void printScore();
     void updatefix(double fix);
@@ -191,7 +192,7 @@ public:
     void initTopPaintVector(Parameters* rangePara);
     QVector<SimpleParam> initScale(QString ScalePath);
     void printPaintDataItems();
-    void applyScaleFactors();
+    void applyScaleFactors(double scale);
     QVector<PaintDataItem> m_PaintData;
     std::vector<float>score_pos;
     std::vector<float>score_neg;

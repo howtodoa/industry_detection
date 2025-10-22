@@ -703,7 +703,12 @@ void RezultInfo::processRangeParameters(Parameters* rangePara)
 //    qDebug() << "--- End of RezultInfo Processed Flat Key-Value Data ---";
 //}
 
-void RezultInfo::applyScaleFactors()
+void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
+{
+	this->unifyParams = unifyParams;
+}
+
+void RezultInfo::applyScaleFactors(double scale)
 {
     qDebug() << "--- START: 应用缩放因子 ---";
 
@@ -712,21 +717,19 @@ void RezultInfo::applyScaleFactors()
     {
         UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
 
-        // 检查缩放因子是否是默认的 1.0，以避免不必要的计算和日志打印
-        if (config.scaleFactor == 1.0) {
-            continue;
-        }
-
         // 记录原始值
         double originalValue = config.value;
 
+        // 判断 scaleFactor
+        double factor = (config.scaleFactor == 1.0) ? scale : config.scaleFactor;
+
         // 执行乘法操作
-        config.value *= config.scaleFactor;
+        config.value *= factor;
 
         // 打印操作信息
         qDebug().nospace() << "  -> SUCCESS: " << config.label
             << " | Original: " << originalValue
-            << " * Factor: " << config.scaleFactor
+            << " * Factor: " << factor
             << " = Scaled: " << config.value;
     }
 
@@ -827,7 +830,7 @@ void RezultInfo::updateActualValues(const OutAbutResParam& ret)
         // 打印赋值信息
         qDebug().nospace() << "  -> SUCCESS: " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
     }
-
+    
     qDebug() << "--- END: 实测值更新完成 ---";
 }
 
