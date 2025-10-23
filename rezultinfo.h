@@ -40,6 +40,7 @@ public:
     float getCompensationValue(const QString& mappedKey) const;
    void printPaintDataVector(const QVector<PaintDataItem>& dataVector, const QString& description = "");
     void updateActualValues(const OutAbutResParam& ret);
+    void updateActualValues(const OutPlateResParam& ret);
     template<typename T>
     bool scaleDimensions(T& data, double scaleFactor)
     {

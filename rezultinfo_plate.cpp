@@ -6,6 +6,12 @@ RezultInfo_Plate::RezultInfo_Plate(Parameters* params, QObject *parent)
     initPlatePaintVector(params);
 }
 
+RezultInfo_Plate::RezultInfo_Plate(AllUnifyParams&unifyParams, QObject* parent)
+    : RezultInfo()
+{
+	this->unifyParams = unifyParams;
+}
+
 void RezultInfo_Plate::printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange)
 {
     QString status = outOfRange ? "FAIL" : "PASS";
@@ -24,197 +30,138 @@ void RezultInfo_Plate::updatePaintData(Parameters *params)
 }
 
 
-int RezultInfo_Plate::judge_plate(const OutPlateResParam& ret)
-{
-    int currentPaintDataIndex = 0;
-    bool hasAnyFail = false;
+int RezultInfo_Plate::judge_plate(const OutPlateResParam & ret)
+    {
+        qDebug() << "--- START: 判定参数 (Plate) ---";
+        bool allPassed = true;
 
-    auto getProcessedParam = [&](const QString& key) -> const ProcessedParam* {
-        for (const auto& p : m_processedData) {
-            if (p.mappedVariable == key)
-                return &p;
-        }
-        return nullptr;
-        };
+        // 1. 遍历成员变量 unifyParams 中的所有配置项
+        for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+        {
+            const QString paramKey = it.key();
+            UnifyParam& config = it.value(); // !!! 必须使用非 const 引用来修改 config !!!
 
-    auto updatePaintDataItem = [&](double shownVal, int result, double offset) {
-        if (currentPaintDataIndex < m_PaintData.size()) {
-            m_PaintData[currentPaintDataIndex].value = QString::number(shownVal, 'f', 3);
-            m_PaintData[currentPaintDataIndex].result = result;
-            m_PaintData[currentPaintDataIndex].offset = offset;
-        }
-        else {
-            qWarning() << "judge_plate - PaintData 索引超出范围:" << currentPaintDataIndex << "/" << m_PaintData.size();
-        }
-        ++currentPaintDataIndex;
-        };
-
-    auto checkRange = [&](const QString& name, double val, const QString& keyLower, const QString& keyUpper) {
-       // bool detectEnabled = (currentPaintDataIndex < m_PaintData.size()) ? m_PaintData[currentPaintDataIndex].check : true;
-        bool detectEnabled =  m_PaintData[currentPaintDataIndex].check;
-        int random_num = QRandomGenerator::global()->bounded(10);
-        if (!detectEnabled) {
-            updatePaintDataItem(val, 1, 0.0);
-            return;
-        }
-
-        const ProcessedParam* lowerParam = keyLower.isEmpty() ? nullptr : getProcessedParam(keyLower);
-        const ProcessedParam* upperParam = keyUpper.isEmpty() ? nullptr : getProcessedParam(keyUpper);
-
-        double low = (lowerParam) ? lowerParam->value.toDouble() : std::numeric_limits<double>::quiet_NaN();
-        double up = (upperParam) ? upperParam->value.toDouble() : std::numeric_limits<double>::quiet_NaN();
-        double compLow = (lowerParam) ? lowerParam->compensationValue : 0.0;
-        double compUp = (upperParam) ? upperParam->compensationValue : 0.0;
-
-        bool hasLow = !std::isnan(low);
-        bool hasUp = !std::isnan(up);
-
-        bool passed = false;
-        double shownValue = val;
-        double offset = 0.0;
-
-        if (hasLow && hasUp) {
-            if (val >= low && val <= up) {
-                passed = true;
+            // 1.1 检查是否启用了检测
+            if (!config.check) {
+                config.result = 1; // 未启用检测，默认通过
+                qDebug() << "  -> Skipping judgement for disabled param:" << config.label;
+                continue;
             }
-            else if (val < low && val >= (low - compLow)) {
-                passed = true;
-                offset = compLow;
-                shownValue = val + compLow;
-                if (shownValue > up || shownValue < low)
-                {
-                    
-                    if (shownValue > up) shownValue = up - (up - low) * random_num * 0.1;
-                    else shownValue = low + (up - low) * random_num * 0.1;
-                }
-            }
-            else if (val > up && val <= (up + compUp)) {
-                passed = true;
-                offset = -compUp;
-                shownValue = val - compUp;
-                if (shownValue > up || shownValue < low)
-                {
-                    
-                    if (shownValue > up) shownValue = up - (up - low) * random_num * 0.1;
-                    else shownValue = low + (up - low) * random_num * 0.1;
-                }
-            }
-        }
-        else if (hasLow) {
-            if (val >= low) {
-                passed = true;
-            }
-            else if (val >= (low - compLow)) {
-                passed = true;
-                offset = compLow;
-                shownValue = val + compLow;
-           
-            }
-        }
-        else if (hasUp) {
-            if (val <= up) {
-                passed = true;
-            }
-            else if (val <= (up + compUp)) {
-                passed = true;
-                offset = -compUp;
-                shownValue = val - compUp;
-                
-            }
-        }
-        else {
-            passed = true;
-        }
 
-        double threshold = 0.0;
-        bool isUpper = false;
-        if (!passed) {
-            if (hasLow && val < low) {
-                threshold = low;
-                isUpper = false;
-            }
-            else if (hasUp && val > up) {
-                threshold = up;
-                isUpper = true;
-            }
-        }
-        else {
-            if (hasUp) {
-                threshold = up;
-                isUpper = true;
-            }
-            else if (hasLow) {
-                threshold = low;
-                isUpper = false;
-            }
-        }
+            // 1.2 统计更新：增加总检测次数
+            config.count++;
 
-        printCheckInfo(name, static_cast<float>(val), static_cast<float>(threshold), isUpper, !passed);
-        updatePaintDataItem(shownValue, passed ? 1 : 0, offset);
-        hasAnyFail |= !passed;
-        };
+            bool checkResult = false; // 当前项的判定结果 (true=通过)
 
-    auto checkExistence = [&](const QString& name, bool actualStatus, const QString& keyExpected) {
-        bool detectEnabled = (currentPaintDataIndex < m_PaintData.size()) ? m_PaintData[currentPaintDataIndex].check : true;
+            qDebug() << "--- JUDGING (" << config.count << "):" << config.label << " (" << paramKey << ") ---";
 
-        if (!detectEnabled) {
-            updatePaintDataItem(actualStatus ? 1.0 : 0.0, 1, 0.0);
-            return;
+            // 2. 根据 paramKey 匹配，并调用判定方法
+            // (config.value 应该已经被 updateActualValues 更新了)
+
+            // --- 布尔类型 ---
+            if (paramKey == "m_PlatExist") {
+                checkResult = config.checkBool();
+            }
+            else if (paramKey == "m_PlatePinLeftExist") {
+                checkResult = config.checkBool();
+            }
+            else if (paramKey == "m_PlatePinRightExist") {
+                checkResult = config.checkBool();
+            }
+
+            // --- 数值类型 ---
+            else if (paramKey == "m_PlateArea") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateCrushNum") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateErrNum") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateHeight") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateHypDownLen") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateHypUpLen") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftBendAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftExceLen") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftHeight") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftParalAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinLeftWid") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightBendAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightExceLen") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightHeight") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightParalAngle") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinRightWid") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlatePinTotalLen") {
+                checkResult = config.checkRange();
+            }
+            else if (paramKey == "m_PlateWid") {
+                checkResult = config.checkRange();
+            }
+
+            // --- 未匹配 ---
+            else
+            {
+                qWarning() << "警告 (Plate Judge): 配置项" << paramKey << "未在匹配列表中找到，跳过判定。";
+                // 对于未匹配的项，我们不改变其 result 状态，也不影响 allPassed
+                continue;
+            }
+
+            // 3. 汇总结果和统计更新
+            if (checkResult)
+            {
+                config.result = 1; // 通过
+                qDebug() << "  -> PASSED.";
+            }
+            else
+            {
+                config.result = 0; // 不通过
+                config.ng_count++; // 增加 NG 次数
+                allPassed = false; // 标记存在 NG 项
+                qCritical() << "  -> !!! FAILED:" << config.label << " (" << paramKey << ") 未通过检测 !!!";
+                // 注意：如果您希望发现 NG 后立即返回，可以在这里添加 return 1;
+            }
         }
 
-        const ProcessedParam* p = getProcessedParam(keyExpected);
-        float expectedFloat = p ? p->value.toFloat() : std::numeric_limits<float>::quiet_NaN();
-        bool expected = (expectedFloat == 1.0f);
-        bool passed = (actualStatus == expected);
-
-        printCheckInfo(name, actualStatus ? 1.0f : 0.0f, expectedFloat, false, !passed);
-        updatePaintDataItem(actualStatus ? 1.0 : 0.0, passed ? 1 : 0, 0.0);
-        hasAnyFail |= !passed;
-        };
-
-    printPaintDataVector(m_PaintData);
-
-    // === 顺序必须与 initPlatePaintVector 完全一致 ===
-    checkExistence("底座存在", ret.m_PlatExist, "m_PlatExist");
-    checkRange("底座面积", ret.m_PlateArea, "m_PlateAreaLower","");
-    checkRange("底座高度", ret.m_PlateHeight, "m_PlateHeightLower", "m_PlateHeightUpper");
-    checkRange("底座宽度", ret.m_PlateWid, "m_PlateWidLower", "m_PlateWidUpper");
-    checkRange("座板上斜边长度", ret.m_PlateHypUpLen, "m_PlateHypUpLenLower", "m_PlateHypUpLenUpper");
-    checkRange("座板下斜边长度", ret.m_PlateHypDownLen, "m_PlateHypDownLenLower", "m_PlateHypDownLenUpper");
-
-    checkRange("底座瑕疵区域", ret.m_PlateErrNum, "", "m_PlateErrNumUpper");
-    checkRange("底座压伤区域", ret.m_PlateCrushNum, "", "m_PlateCrushNumUpper");
-
-    checkExistence("左引脚存在", ret.m_PlatePinLeftExist, "m_PlatePinLeftExist");
-    checkExistence("右引脚存在", ret.m_PlatePinRightExist, "m_PlatePinRightExist");
-
-    checkRange("左引脚高度", ret.m_PlatePinLeftHeight, "m_PlatePinLeftHeightLower", "m_PlatePinLeftHeightUpper");
-    checkRange("右引脚高度", ret.m_PlatePinRightHeight, "m_PlatePinRightHeightLower", "m_PlatePinRightHeightUpper");
-
-    checkRange("左引脚宽度", ret.m_PlatePinLeftWid, "m_PlatePinLeftWidLower", "m_PlatePinLeftWidUpper");
-    checkRange("右引脚宽度", ret.m_PlatePinRightWid, "m_PlatePinRightWidLower", "m_PlatePinRightWidUpper");
-
-    checkRange("左引脚角度", ret.m_PlatePinLeftAngle, "m_PlatePinLeftAngleLower", "m_PlatePinLeftAngleUpper");
-    checkRange("右引脚角度", ret.m_PlatePinRightAngle, "m_PlatePinRightAngleLower", "m_PlatePinRightAngleUpper");
-
-    checkRange("左引脚弯脚", ret.m_PlatePinLeftBendAngle, "m_PlatePinLeftBendAngleLower", "m_PlatePinLeftBendAngleUpper");
-    checkRange("右引脚弯脚", ret.m_PlatePinRightBendAngle, "m_PlatePinRightBendAngleLower", "m_PlatePinRightBendAngleUpper");
-
-    checkRange("左引脚平行度", ret.m_PlatePinLeftParalAngle, "m_PlatePinLeftParalAngleLower", "m_PlatePinLeftParalAngleUpper");
-    checkRange("右引脚平行度", ret.m_PlatePinRightParalAngle, "m_PlatePinRightParalAngleLower", "m_PlatePinRightParalAngleUpper");
-
-    checkRange("左引脚超底座长度", ret.m_PlatePinLeftExceLen, "m_PlatePinLeftExceLenLower", "m_PlatePinLeftExceLenUpper");
-    checkRange("右引脚超底座长度", ret.m_PlatePinRightExceLen, "m_PlatePinRightExceLenLower", "m_PlatePinRightExceLenUpper");
-
-    checkRange("引线总长度", ret.m_PlatePinTotalLen, "m_PlatePinTotalLenLower", "m_PlatePinTotalLenUpper");
-
-    if (currentPaintDataIndex != m_PaintData.size()) {
-        qWarning() << "judge_plate - PaintData 索引对不上！已处理:" << currentPaintDataIndex << " 实际大小为:" << m_PaintData.size();
+        qDebug() << "--- END: 判定完成 (Plate) --- Final Result (0=OK, 1=NG):" << (allPassed ? 0 : 1);
+        // 返回整数结果：0 为全部通过，1 为存在 NG
+        return allPassed ? 0 : 1;
     }
 
-    qDebug() << (hasAnyFail ? "--- 有项未通过 ---" : "--- 所有 Plate 检测项通过 ---");
-    return hasAnyFail ? -1 : 0;
-}
+
+
 
 void RezultInfo::printPaintDataVector(const QVector<PaintDataItem>& dataVector, const QString& description)
 {

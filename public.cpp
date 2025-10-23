@@ -17,6 +17,13 @@ std::atomic<bool> GlobalPara::changed = false;
 std::atomic<bool> GlobalPara::Stagnant = false;
 std::atomic<bool> GlobalPara::cheatFlag = false;
 std::atomic<bool> GlobalPara::pulse = false;
+int GlobalPara::MergePoint = 0;
+int GlobalPara::MergePointNum = 2;
+
+std::vector<int> MergePointVec;
+std::mutex g_mutex;
+std::condition_variable g_cv;
+
 
 QString GlobalPara::DeviceId = "Q01";
 

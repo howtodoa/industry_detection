@@ -1028,7 +1028,7 @@ void ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
 
             if (isBooleanMode) {
                 qDebug() << "     -> Adding Boolean specific key: '布尔值'";
-                paramJson["布尔值"] = (item.value != 0.0);
+                paramJson["布尔值"] = (item.need_value);
             }
             else {
                 qDebug() << "     -> Adding Range specific keys: '上限', '下限', '上限补偿值', '下限补偿值'";
@@ -1231,9 +1231,9 @@ void ParaWidget::saveScaleParamsToFile(const AllUnifyParams& paramsToSave)
             paramJson["标定值"] = item.scaleFactor; // 所有项都有标定值
 
             // --- 根据 need_value 决定是布尔模式还是范围模式 ---
-            if (item.need_value) {
+            if (item.lowerLimit!=-9999&&item.upperLimit!=-9999) {
                 // A. 布尔模式 (如 isHaveNpin)
-                paramJson["布尔值"] = (item.value == 1.0); // true / false
+                paramJson["布尔值"] = item.need_value; // true / false
             }
             else {
                 // B. 范围模式 (如 n_pin_H)

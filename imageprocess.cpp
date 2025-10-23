@@ -129,8 +129,10 @@ void ImageProcess::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_plate(para);
+					if (ret == 1) ret = -1;
 				}
 				else if (ret == 2) {
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
@@ -282,23 +284,54 @@ void ImageProcess::run()
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
 
+          if(GlobalPara::MergePointNum==0)
+          {
 			bool outputSignalInvert = true;
 			int durationMs = 100; // 脉冲持续时间
-			// 第二次调用,如果OK给true信号
 			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-			QString logMsg = QString("相机：%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+			QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+	      }
+		  else
+		  {
+			  std::unique_lock<std::mutex> lk(g_mutex);
+			  int num;
+			  if (cam_instance->indentify == "Plate") num = 0;
+			  else num = 1;
+			  g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
 
+			  // 满足条件，写入自己的值
+			  MergePointVec[num] = 1; 
+			  lk.unlock();
+			  g_cv.notify_all();
+		  }
+		  
 
 		}
 		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
 		{
-			bool outputSignalInvert = false;
-			int durationMs = 100; // 脉冲持续时间
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			if (GlobalPara::MergePointNum == 0)
+			{
+				bool outputSignalInvert = false;
+				int durationMs = 100; // 脉冲持续时间
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 
-			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			}
+			else
+			{
+				std::unique_lock<std::mutex> lk(g_mutex);
+				int num;
+				if(cam_instance->indentify=="Plate") num=0;
+				else num = 1;
+				g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
+
+				// 满足条件，写入自己的值
+				MergePointVec[num] = 0;
+				lk.unlock();
+				g_cv.notify_all();
+			}
 		}
 
 //存图

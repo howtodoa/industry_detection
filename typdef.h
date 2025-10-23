@@ -146,7 +146,13 @@ struct GlobalPara {
     static QString DeviceId;
     static std::atomic<bool> cheatFlag;
     static std::atomic<bool> pulse;
+	static int MergePointNum;
+    static int MergePoint;
 };
+
+extern std::vector<int> MergePointVec;
+extern std::mutex g_mutex;
+extern std::condition_variable g_cv;
 
 struct CamParamControll
 {
@@ -164,6 +170,8 @@ struct SimpleParam {
     QString name;
     double value;
 };
+
+
 
 constexpr double UNIFY_UNSET_VALUE = -9999.0;
 

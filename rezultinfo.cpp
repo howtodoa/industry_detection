@@ -708,9 +708,10 @@ void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
 	this->unifyParams = unifyParams;
 }
 
-void RezultInfo::applyScaleFactors(double scale)
+void RezultInfo::applyScaleFactors(double scale) // 函数名保持不变
 {
-    qDebug() << "--- START: 应用缩放因子 ---";
+    qDebug() << "--- START: 应用缩放因子 (New Logic Debug) ---"; // 修改日志标识
+    qDebug() << "  -> Global Scale Passed In:" << scale;
 
     // 遍历成员变量 unifyParams 中的所有配置项
     for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
@@ -720,21 +721,56 @@ void RezultInfo::applyScaleFactors(double scale)
         // 记录原始值
         double originalValue = config.value;
 
-        // 判断 scaleFactor
-        double factor = (config.scaleFactor == 1.0) ? scale : config.scaleFactor;
+        // --- 打印基础信息 ---
+        qDebug().nospace() << "Checking Param: " << config.label;
+        qDebug().nospace() << "  -> Before Scaling: config.value = " << originalValue;
+        qDebug().nospace() << "  -> config.scaleFactor = " << config.scaleFactor;
+        qDebug().nospace() << "  -> config.lowerLimit = " << config.lowerLimit;
+        qDebug().nospace() << "  -> config.upperLimit = " << config.upperLimit;
+        // ---
 
-        // 执行乘法操作
-        config.value *= factor;
+        // --- 【核心逻辑】判断是否应该跳过 ---
+        // 使用 qFuzzyCompare 安全比较 double
+        bool lowerIsUnset = qFuzzyCompare(config.lowerLimit, UNIFY_UNSET_VALUE);
+        bool upperIsUnset = qFuzzyCompare(config.upperLimit, UNIFY_UNSET_VALUE);
+        bool shouldSkip = lowerIsUnset && upperIsUnset; // 只有两者都 unset 才跳过
+        qDebug() << "  -> Condition (lower == UNSET && upper == UNSET) Result:" << shouldSkip;
+        // ---
 
-        // 打印操作信息
-        qDebug().nospace() << "  -> SUCCESS: " << config.label
-            << " | Original: " << originalValue
-            << " * Factor: " << factor
-            << " = Scaled: " << config.value;
+        if (shouldSkip)
+        {
+            qDebug() << "    -> Condition BOTH UNSET met. Skipping scaling.";
+            qDebug().nospace() << "    -> LOG: Skipped: " << config.label
+                << " | Value remains: " << originalValue; // 保持原始值
+        }
+        else // 不跳过，需要应用缩放
+        {
+            qDebug() << "    -> Condition NOT both UNSET. Applying scaling...";
+
+            // --- 【核心逻辑】确定因子 ---
+            // 使用 qFuzzyCompare 安全比较 double
+            bool useGlobalScale = qFuzzyCompare(config.scaleFactor, 1.0);
+            double factor = useGlobalScale ? scale : config.scaleFactor;
+            qDebug() << "      -> Use Global Scale (" << scale << ") ?" << useGlobalScale;
+            qDebug().nospace() << "      -> Calculated Factor = " << factor;
+            // ---
+
+            // --- 执行乘法操作 ---
+            config.value *= factor;
+            qDebug().nospace() << "      -> After Scaling: config.value = " << config.value;
+            // ---
+
+            // 打印日志
+            qDebug().nospace() << "      -> LOG: " << config.label
+                << " | Original: " << originalValue
+                << " * Factor: " << factor
+                << " = Final Scaled: " << config.value;
+        }
     }
 
-    qDebug() << "--- END: 缩放因子应用完成 ---";
+    qDebug() << "--- END: 缩放因子应用完成 (New Logic Debug) ---"; // 修改日志标识
 }
+
 
 void RezultInfo::updateActualValues(const OutAbutResParam& ret)
 {
@@ -832,6 +868,132 @@ void RezultInfo::updateActualValues(const OutAbutResParam& ret)
     }
     
     qDebug() << "--- END: 实测值更新完成 ---";
+}
+
+void RezultInfo::updateActualValues(const OutPlateResParam& ret)
+{
+    qDebug() << "--- START: 更新实测值 (Plate) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
+
+        QVariant actualValue; // 用于日志记录
+
+        // --- 根据 paramKey 匹配 OutPlateResParam 的成员 ---
+        // (成员名基于之前 JSON 的 "映射变量")
+
+        // --- 布尔类型 ---
+        if (paramKey == "m_PlatExist") {
+            actualValue = ret.m_PlatExist;
+            config.value = ret.m_PlatExist ? 1.0 : 0.0; // 将 bool 转为 1.0/0.0
+        }
+        else if (paramKey == "m_PlatePinLeftExist") {
+            actualValue = ret.m_PlatePinLeftExist;
+            config.value = ret.m_PlatePinLeftExist ? 1.0 : 0.0;
+        }
+        else if (paramKey == "m_PlatePinRightExist") {
+            actualValue = ret.m_PlatePinRightExist;
+            config.value = ret.m_PlatePinRightExist ? 1.0 : 0.0;
+        }
+
+        // --- 数值类型 ---
+        else if (paramKey == "m_PlateArea") {
+            actualValue = ret.m_PlateArea;
+            config.value = ret.m_PlateArea;
+        }
+        else if (paramKey == "m_PlateCrushNum") {
+            actualValue = ret.m_PlateCrushNum;
+            config.value = ret.m_PlateCrushNum;
+        }
+        else if (paramKey == "m_PlateErrNum") {
+            actualValue = ret.m_PlateErrNum;
+            config.value = ret.m_PlateErrNum;
+        }
+        else if (paramKey == "m_PlateHeight") {
+            actualValue = ret.m_PlateHeight;
+            config.value = ret.m_PlateHeight;
+        }
+        else if (paramKey == "m_PlateHypDownLen") {
+            actualValue = ret.m_PlateHypDownLen;
+            config.value = ret.m_PlateHypDownLen;
+        }
+        else if (paramKey == "m_PlateHypUpLen") {
+            actualValue = ret.m_PlateHypUpLen;
+            config.value = ret.m_PlateHypUpLen;
+        }
+        else if (paramKey == "m_PlatePinLeftAngle") {
+            actualValue = ret.m_PlatePinLeftAngle;
+            config.value = ret.m_PlatePinLeftAngle;
+        }
+        else if (paramKey == "m_PlatePinLeftBendAngle") {
+            actualValue = ret.m_PlatePinLeftBendAngle;
+            config.value = ret.m_PlatePinLeftBendAngle;
+        }
+        else if (paramKey == "m_PlatePinLeftExceLen") {
+            actualValue = ret.m_PlatePinLeftExceLen;
+            config.value = ret.m_PlatePinLeftExceLen;
+        }
+        else if (paramKey == "m_PlatePinLeftHeight") {
+            actualValue = ret.m_PlatePinLeftHeight;
+            config.value = ret.m_PlatePinLeftHeight;
+        }
+        else if (paramKey == "m_PlatePinLeftParalAngle") {
+            actualValue = ret.m_PlatePinLeftParalAngle;
+            config.value = ret.m_PlatePinLeftParalAngle;
+        }
+        else if (paramKey == "m_PlatePinLeftWid") {
+            actualValue = ret.m_PlatePinLeftWid;
+            config.value = ret.m_PlatePinLeftWid;
+        }
+        else if (paramKey == "m_PlatePinRightAngle") {
+            actualValue = ret.m_PlatePinRightAngle;
+            config.value = ret.m_PlatePinRightAngle;
+        }
+        else if (paramKey == "m_PlatePinRightBendAngle") {
+            actualValue = ret.m_PlatePinRightBendAngle;
+            config.value = ret.m_PlatePinRightBendAngle;
+        }
+        else if (paramKey == "m_PlatePinRightExceLen") {
+            actualValue = ret.m_PlatePinRightExceLen;
+            config.value = ret.m_PlatePinRightExceLen;
+        }
+        else if (paramKey == "m_PlatePinRightHeight") {
+            actualValue = ret.m_PlatePinRightHeight;
+            config.value = ret.m_PlatePinRightHeight;
+        }
+        else if (paramKey == "m_PlatePinRightParalAngle") {
+            actualValue = ret.m_PlatePinRightParalAngle;
+            config.value = ret.m_PlatePinRightParalAngle;
+        }
+        else if (paramKey == "m_PlatePinRightWid") {
+            actualValue = ret.m_PlatePinRightWid;
+            config.value = ret.m_PlatePinRightWid;
+        }
+        else if (paramKey == "m_PlatePinTotalLen") {
+            actualValue = ret.m_PlatePinTotalLen;
+            config.value = ret.m_PlatePinTotalLen;
+        }
+        else if (paramKey == "m_PlateWid") {
+            actualValue = ret.m_PlateWid;
+            config.value = ret.m_PlateWid;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            // 如果 unifyParams 中包含 OutPlateResParam 里没有的键，或者名字不匹配
+            qWarning() << "警告 (Plate): 配置项" << paramKey << "未在 OutPlateResParam 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (Plate): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (Plate) ---";
 }
 
 

@@ -670,6 +670,44 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
     setupUpdateTimer();
+    if (GlobalPara::MergePointNum > 0)
+    {
+        MergePointVec = std::vector<int>(GlobalPara::MergePointNum, 0);
+        GlobalPara::MergePoint = cams[0]->pointNumber;
+        std::thread([]() {
+            while (true)
+            {
+                std::unique_lock<std::mutex> lk(g_mutex);
+                // 等待条件：任意元素不为 2
+                g_cv.wait(lk, []() {
+                    for (int v : MergePointVec) {
+                        if (v != 2) return true;
+                    }
+                    return false;
+                    });
+                // 业务判断
+                bool allOne = true;
+                for (int v : MergePointVec) {
+                    if (v != 1) {
+                        allOne = false;
+                        break;
+                    }
+                }
+
+			    PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne,100);
+
+                for (auto& v : MergePointVec) {
+                    v = 2;
+                }
+
+                lk.unlock();
+                g_cv.notify_all();
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+   
+            }
+            }).detach();
+    }
     Sleep(50);
     this->onPhotoAllCamerasClicked();
 }
@@ -1164,9 +1202,11 @@ void MainWindow::initcams(int camnumber)
            cam->RI=new RezultInfo_Plate(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify=caminfo[i-1].mapping.toStdString();
-           cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
-           cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
-           cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Plate(cam->unifyParams, nullptr);
+        //   cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
+     //      cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
+       //    cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
        }
        else if(caminfo[i-1].mapping=="Lift")
        {

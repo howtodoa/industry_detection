@@ -13,7 +13,7 @@ class RezultInfo_Plate : public RezultInfo
     Q_OBJECT
 public:
     explicit RezultInfo_Plate(Parameters* params, QObject *parent = nullptr);
-
+    explicit RezultInfo_Plate(AllUnifyParams &unifyParam, QObject* parent = nullptr);
     void updatePaintData(Parameters *params) override;
 
     void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange) override;
