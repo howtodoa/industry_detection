@@ -239,7 +239,7 @@ void Imageprocess_Brader::run()
 			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1 ||ret==3)//非本地运行的情况
 		{
 
 			if (0)
