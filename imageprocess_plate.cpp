@@ -1,43 +1,21 @@
-#include "ImageProcess.h" 
+#include "Imageprocess_plate.h"
+#include "imageprocess.h"
 #include "MZ_VC3000H.h"
 #include <string>
 #include "CapacitanceProgram.h"
 
-ImageProcess::ImageProcess(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
-	: QThread(parent), cam_instance(cam)
+Imageprocess_Plate::Imageprocess_Plate(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
+	: ImageProcess(cam, m_saveQueue, parent)
 {
-	if (cam_instance) {
-		m_inputQueue = &cam_instance->imageQueue;
-		saveToQueue = m_saveQueue;
-		dataToSave.savePath_Pre = cam_instance->localpath.toStdString();
-		dataToSave.work_path = cam_instance->localpath.toStdString();
-	}
-	else {
-		qCritical() << "ImageProcess: Cameral instance is null. Image queue cannot be accessed.";
-	}
+
 }
 
-ImageProcess::~ImageProcess()
+Imageprocess_Plate::~Imageprocess_Plate()
 {
-	qDebug() << "析构：ImageProcess::~ImageProcess() called in QThread ID:" << QThread::currentThreadId();
-	thread_stopFlag.store(true);
 
-	if (m_inputQueue) {
-		std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
-		m_inputQueue->stop_flag = true;
-	}
-	if (m_inputQueue) {
-		m_inputQueue->cond.notify_all();
-	}
-
-	qDebug() << "ImageProcess 析构：请求线程退出并等待...";
-	quit();
-	wait();
-	qDebug() << "析构：图像处理线程已完全退出 ImageProcess::~ImageProcess() finished.";
-	LOG_DEBUG(GlobalLog::logger, L"thread current exit");
 }
 
-void ImageProcess::run()
+void Imageprocess_Plate::run()
 {
 	qDebug() << "ImageProcess::run() (thread started) in QThread ID:" << QThread::currentThreadId();
 
@@ -95,10 +73,10 @@ void ImageProcess::run()
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
-			for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
-				cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
-				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
-			}
+			//for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
+			//	cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
+			//	cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
+			//}
 
 			if (cam_instance->indentify == "NaYin") {
 				/*		LearnPara::inParam2.scoresNegLimit = cam_instance->RI->score_neg;
@@ -129,8 +107,10 @@ void ImageProcess::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_plate(para);
+					if (ret == 1) ret = -1;
 				}
 				else if (ret == 2) {
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
@@ -282,23 +262,54 @@ void ImageProcess::run()
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
 
-			bool outputSignalInvert = true;
-			int durationMs = 100; // 脉冲持续时间
-			// 第二次调用,如果OK给true信号
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-			QString logMsg = QString("相机：%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			if (GlobalPara::MergePointNum == 0)
+			{
+				bool outputSignalInvert = true;
+				int durationMs = 100; // 脉冲持续时间
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+				QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			}
+			else
+			{
+				std::unique_lock<std::mutex> lk(g_mutex);
+				int num;
+				if (cam_instance->indentify == "Plate") num = 0;
+				else num = 1;
+				g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
+
+				// 满足条件，写入自己的值
+				MergePointVec[num] = 1;
+				lk.unlock();
+				g_cv.notify_all();
+			}
 
 
 		}
 		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
 		{
-			bool outputSignalInvert = false;
-			int durationMs = 100; // 脉冲持续时间
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			if (GlobalPara::MergePointNum == 0)
+			{
+				bool outputSignalInvert = false;
+				int durationMs = 100; // 脉冲持续时间
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 
-			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			}
+			else
+			{
+				std::unique_lock<std::mutex> lk(g_mutex);
+				int num;
+				if (cam_instance->indentify == "Plate") num = 0;
+				else num = 1;
+				g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
+
+				// 满足条件，写入自己的值
+				MergePointVec[num] = 0;
+				lk.unlock();
+				g_cv.notify_all();
+			}
 		}
 
 		//存图
@@ -345,8 +356,3 @@ void ImageProcess::run()
 	qDebug() << "ImageProcess::run() (thread finished).";
 } // run() 函数结束
 
-void ImageProcess::ChangeDir(Cameral& cam)
-{
-	dataToSave.savePath_Pre = cam.localpath.toStdString();
-	dataToSave.work_path = cam.localpath.toStdString();
-}

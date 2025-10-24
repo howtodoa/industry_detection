@@ -670,6 +670,8 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
     setupUpdateTimer();
+#ifdef ADAPTATEION
+
     if (GlobalPara::MergePointNum > 0)
     {
         MergePointVec = std::vector<int>(GlobalPara::MergePointNum, 0);
@@ -694,7 +696,7 @@ MainWindow::MainWindow(QWidget *parent) :
                     }
                 }
 
-			    PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne,100);
+                PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
 
                 for (auto& v : MergePointVec) {
                     v = 2;
@@ -704,10 +706,12 @@ MainWindow::MainWindow(QWidget *parent) :
                 g_cv.notify_all();
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
-   
+
             }
             }).detach();
     }
+#endif // ADAPTATEION
+
     Sleep(50);
     this->onPhotoAllCamerasClicked();
 }
@@ -1202,11 +1206,14 @@ void MainWindow::initcams(int camnumber)
            cam->RI=new RezultInfo_Plate(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify=caminfo[i-1].mapping.toStdString();
+#ifdef ADAPTATEION
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Plate(cam->unifyParams, nullptr);
-        //   cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
-     //      cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
-       //    cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
+#else
+           cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
+           cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
+           cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
+#endif
        }
        else if(caminfo[i-1].mapping=="Lift")
        {
@@ -1238,9 +1245,17 @@ void MainWindow::initcams(int camnumber)
        }
        else if(caminfo[i-1].mapping=="Carrier_Plate")
        {
-           cam->RI=new RezultInfo_Plate(&cam->RC->m_parameters,nullptr);
-           cam->AC = new AlgoClass_Plate(cam->algopath, 1, &cam->DI.Angle, nullptr);
-           cam->indentify=caminfo[i-1].mapping.toStdString();
+           cam->RI = new RezultInfo_Plate(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+#ifdef ADAPTATEION
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Plate(cam->unifyParams, nullptr);
+#else
+           cam->ScalePath = caminfo[i - 1].path + "/scale-plater.json";
+           cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
+           cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
+#endif
        }
        else if(caminfo[i-1].mapping=="Rift")
        {
@@ -1937,56 +1952,103 @@ void MainWindow::toggleAutoStart(QAction* action) {
  */
 void MainWindow::CreateImageGrid(int camnumber)
 {
-    // 1. 创建一个全新的、干净的 QWidget 作为所有内容的容器，避免UI文件干扰
+    // 1. 创建一个全新的、干净的 QWidget 作为所有内容的容器
     QWidget* containerWidget = new QWidget();
     containerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     cameraLabels.clear(); // 清空存储相机视图的列表
 
-    // 2. 判断相机数量是奇数还是偶数
-    bool isEvenCameraCount = (camnumber % 2 == 0);
+    // -----------------------------------------------------------------
+    // [特殊情况处理] 当相机数量正好为 2 时，采用自定义的“上/下”布局
+    // -----------------------------------------------------------------
+    if (camnumber == 2)
+    {
+        qDebug() << "相机数量为 2，采用特殊的“上/下”布局（相机水平并排，统计在下）。";
 
-    if (isEvenCameraCount) {
-        // [偶数] 采用左右分区布局 (左侧相机网格 + 右侧独立统计框)
-        qDebug() << "相机数量为偶数，采用左右分区布局。";
-
-        // 将主布局应用到新的 containerWidget 上
-        QHBoxLayout* mainLayout = new QHBoxLayout(containerWidget);
+        // 主布局使用垂直布局 (QVBoxLayout)
+        QVBoxLayout* mainLayout = new QVBoxLayout(containerWidget);
         mainLayout->setContentsMargins(1, 1, 1, 1);
         mainLayout->setSpacing(1);
 
-        QGridLayout* cameraGrid = new QGridLayout();
-        cameraGrid->setContentsMargins(0, 0, 0, 0);
-        cameraGrid->setSpacing(1);
+        // 创建一个水平布局 (QHBoxLayout) 用于放置两个相机
+        QHBoxLayout* cameraLayout = new QHBoxLayout();
+        cameraLayout->setContentsMargins(0, 0, 0, 0);
+        cameraLayout->setSpacing(1);
 
-        QVBoxLayout* statsLayout = new QVBoxLayout();
-        statsLayout->setContentsMargins(0, 0, 0, 0);
+        // 检查相机数据是否足够
+        if (cams.size() < 2) {
+            qWarning() << "Cameral::Cams 中数据不足，无法初始化 2 个相机框！";
+            setCentralWidget(containerWidget); // 设置空窗口
+            return;
+        }
 
-        // 调用偶数布局的辅助函数来填充内容
-        SetupDualLayout(camnumber, cameraGrid, statsLayout, cameraLabels, this);
+        // 创建并添加 Camera 1
+        CameraLabelWidget* cameraLabel1 = new CameraLabelWidget(cams[0], 1, caminfo[0].name, &m_saveQueue, this);
+        cameraLabel1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        cameraLabels.append(cameraLabel1);
+        cameraLayout->addWidget(cameraLabel1, 1); // 拉伸因子为 1
 
-        // 设置左右区域的拉伸因子为 5:1
-        mainLayout->addLayout(cameraGrid, 5);
-        mainLayout->addLayout(statsLayout, 1);
+        // 创建并添加 Camera 2
+        CameraLabelWidget* cameraLabel2 = new CameraLabelWidget(cams[1], 2, caminfo[1].name, &m_saveQueue, this);
+        cameraLabel2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        cameraLabels.append(cameraLabel2);
+        cameraLayout->addWidget(cameraLabel2, 1); // 拉伸因子为 1
+
+        // 创建统计框
+        QWidget* statsWidget = CreateEighthFrame(camnumber);
+        // 设置统计框的策略：水平扩展，垂直方向固定或按需 (Preferred)
+        statsWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+        // 将相机布局（上）和统计框（下）添加到主布局
+        mainLayout->addLayout(cameraLayout, 5); // 上方相机区域，拉伸因子为 1 (占满剩余空间)
+        mainLayout->addWidget(statsWidget, 2);  // 下方统计区域，拉伸因子为 0 (保持原有高度)
     }
-    else {
-        // [奇数] 采用统一网格布局 (相机和统计框共同参与排列)
-        qDebug() << "相机数量为奇数，采用统一网格布局。";
+    // -----------------------------------------------------------------
+    // [常规情况处理] 相机数量不为 2 时，执行原有的奇偶判断逻辑
+    // -----------------------------------------------------------------
+    else
+    {
+        // 2. 判断相机数量是奇数还是偶数
+        bool isEvenCameraCount = (camnumber % 2 == 0);
 
-        // 将主布局应用到新的 containerWidget 上
-        QGridLayout* gridLayout = new QGridLayout(containerWidget);
-        gridLayout->setContentsMargins(1, 1, 1, 1);
-        gridLayout->setSpacing(1);
+        if (isEvenCameraCount) {
+            // [偶数 > 2] 采用左右分区布局 (左侧相机网格 + 右侧独立统计框)
+            qDebug() << "相机数量为偶数 (" << camnumber << ")，采用左右分区布局。";
 
-        // 调用奇数布局的辅助函数来填充内容
-        SetupCameraGridLayout(camnumber, gridLayout, cameraLabels, this);
-    }
+            QHBoxLayout* mainLayout = new QHBoxLayout(containerWidget);
+            mainLayout->setContentsMargins(1, 1, 1, 1);
+            mainLayout->setSpacing(1);
+
+            QGridLayout* cameraGrid = new QGridLayout();
+            cameraGrid->setContentsMargins(0, 0, 0, 0);
+            cameraGrid->setSpacing(1);
+
+            QVBoxLayout* statsLayout = new QVBoxLayout();
+            statsLayout->setContentsMargins(0, 0, 0, 0);
+
+            // 调用偶数布局的辅助函数来填充内容
+            // (SetupDualLayout 无需修改)
+            SetupDualLayout(camnumber, cameraGrid, statsLayout, cameraLabels, this);
+
+            mainLayout->addLayout(cameraGrid, 5);
+            mainLayout->addLayout(statsLayout, 1);
+        }
+        else {
+            // [奇数] 采用统一网格布局 (相机和统计框共同参与排列)
+            qDebug() << "相机数量为奇数 (" << camnumber << ")，采用统一网格布局。";
+
+            QGridLayout* gridLayout = new QGridLayout(containerWidget);
+            gridLayout->setContentsMargins(1, 1, 1, 1);
+            gridLayout->setSpacing(1);
+
+            // (SetupCameraGridLayout 无需修改)
+            SetupCameraGridLayout(camnumber, gridLayout, cameraLabels, this);
+        }
+    } // --- 结束 else (处理非 2 的情况) ---
 
     // 3. 用我们新建的、布局完美的 containerWidget 替换掉旧的中央控件
-    // 旧的 centralWidget 会被 Qt 自动安全地删除
     setCentralWidget(containerWidget);
 }
-
 /**
  * @brief 【偶数相机专用】设置左右双区域布局。
  * 左侧是一个N/2 x 2的相机网格，右侧是独立的统计框。
@@ -2012,6 +2074,7 @@ void MainWindow::SetupDualLayout(int camnumber, QGridLayout* cameraGrid, QVBoxLa
     QWidget* statsWidget = CreateEighthFrame(camnumber);
     statsLayout->addWidget(statsWidget);
 }
+
 /**
  * @brief 【奇数相机专用】设置统一网格布局。
  * 所有相机和统计框共同参与一个4列的网格排列。

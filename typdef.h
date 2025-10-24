@@ -1,6 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
+//#define ADAPTATEION
+
 #include <thread>
 #include <opencv2/opencv.hpp>
 #include "Mz_LogConn.h"
@@ -8,6 +10,7 @@
 #include <CapacitanceProgram.h>
 #include <QVariant>
 #include "BraidedTape.h"
+
 
 
 struct  OutStampResParam;

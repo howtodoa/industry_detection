@@ -61,6 +61,7 @@ set(SOURCES
     aboutwidget.cpp
     debugtool.cpp
     algoclass_abut.cpp
+    imageprocess_plate.cpp
 )
 
 set(HEADERS
@@ -116,6 +117,7 @@ set(HEADERS
     aboutwidget.h
     debugtool.h
     algoclass_abut.h
+    imageprocess_plate.h
 )
 
 set(UI_FILES

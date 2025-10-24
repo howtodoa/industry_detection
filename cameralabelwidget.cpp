@@ -20,7 +20,7 @@
 #include "imageviewerwindow.h"
 #include "MsvDeviceLib.h"
 #include "role.h"
-
+#include "Imageprocess_plate.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -399,17 +399,26 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 
 	//初始化运行线程
 #ifdef USE_MAIN_WINDOW_CAPACITY
-	this->m_imageProcessor = new ImageProcess(cam, m_saveQueue, this);
 
+
+#ifdef ADAPTATEION
+	this->m_imageProcessor = new Imageprocess_Plate(cam, m_saveQueue, this);
+	connect(m_imageProcessor, &ImageProcess::imageProcessed,
+		this, &CameraLabelWidget::onImageProcessed_plate);
+#else
+	this->m_imageProcessor = new ImageProcess(cam, m_saveQueue, this);
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed);
+#endif
+
 #else
 	this->m_imageProcessor = new Imageprocess_Brader(cam, m_saveQueue, this);
 
 	connect(m_imageProcessor, &ImageProcess::imageProcessed_Brader,
 		this, &CameraLabelWidget::onImageProcessed_Brader);
 
-	connect(m_imageProcessor, &ImageProcess::StartGetIn, this, &CameraLabelWidget::onStartGetIn);
+	connect(m_imageProcessor, &ImageProcess::StartGetIn,
+		this, &CameraLabelWidget::onStartGetIn);
 #endif // USE_MAIN_WINDOW_CAPACITY
 
 
@@ -1203,7 +1212,123 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 	qDebug() << "CameraLabelWidget: updateDebugValuesAsync initiated, main thread continues.";
 }
 
+void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
+{
 
+	qDebug() << "this isonImageProcessed info.ret=:" << info.ret;
+	if (!processedImagePtr || processedImagePtr->empty()) {
+		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
+		return;
+	}
+	if (info.ret == -1)
+	{
+		dataToSave.work_path = dataToSave.savePath_NG;
+		this->ngcount->fetch_add(1);
+	}
+	else dataToSave.work_path = dataToSave.savePath_OK;
+	this->sumcount->fetch_add(1);
+	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
+
+
+
+	//dataToSave.imagePtr = processedImagePtr; // shared_ptr 的浅拷贝，引用计数增加
+
+
+
+	//cv::Mat& mat_to_check = *processedImagePtr;// 用一个引用方便查看
+	//qDebug() << "准备转换的 Mat 不是空的。";
+	//qDebug() << "它的类型ID是: " << mat_to_check.type(); // 打印类型ID
+	//qDebug() << "它的通道数是: " << mat_to_check.channels(); // 打印通道数
+	//qDebug() << "它的位深度是: " << mat_to_check.depth(); // 打印位深度 (例如 CV_8U 是 0)
+
+
+
+
+	QElapsedTimer timer;
+	timer.start();  // 开始计时
+
+
+	//转换显示
+	QImage displayImage = convertMatToQImage(*processedImagePtr);
+	//      processedImagePtr.reset();
+			// 2. 检查转换是否成功并显示
+	if (!displayImage.isNull()) {
+		// 3. 将 QImage 深拷贝到成员变量 currentPixmap8
+		//this->currentPixmap = QPixmap::fromImage(displayImage).copy();
+		this->currentPixmap = QPixmap::fromImage(displayImage);
+		if (CheckPixmap(this->currentPixmap) == -1) return;
+
+		if (m_cam->video == false)
+		{
+			if (m_cam->noneDisplay.load() == false && info.ret == -1)
+			{
+				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+
+			}
+			else if (info.ret == 0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+			m_cam->noneDisplay.store(false);
+			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
+
+		}
+		std::shared_ptr<cv::Mat> afterImagePtr;
+		try
+		{
+			cv::Mat mat = QPixmapToMat(currentPixmap).clone();
+			afterImagePtr = std::make_shared<cv::Mat>(mat);
+		}
+		catch (...)
+		{
+			GlobalLog::logger.Mz_AddLog(L"!!! 捕获到致命错误 ...");
+			return; // 失败了，直接从函数返回
+		}
+
+		if (!afterImagePtr || afterImagePtr->empty()) {
+			LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
+			return;
+		}
+
+		dataToSave.imagePtr = afterImagePtr; // shared_ptr 的浅拷贝，引用计数增加
+
+
+		// 存图
+		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && info.ret == -1)))
+		{
+			std::unique_lock<std::mutex> lock(saveToQueue->mutex); // 获取互斥锁，保护保存队列
+
+			if (saveToQueue->queue.size() > 100)
+			{
+				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
+			}
+			else
+			{
+				saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列
+				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+
+			}
+			//      saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列
+			//          qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+		}
+		saveToQueue->cond.notify_one(); // 通知保存线程
+		// 4. 将深拷贝后的 QPixmap 显示在 ZoomableLabel 中
+ //   this->currentPixmap = QPixmap();
+		if (check_flag.load() == true)
+		{
+			parawidget->imageViewer->setPixmap(this->currentPixmap);
+			check_flag.store(false);
+		}
+		else if (FullScreen.load() == false)imageLabel->setPixmap(this->currentPixmap);
+		else emit FullShow(this->currentPixmap);
+		qDebug() << "图像已成功深拷贝并显示在 ZoomableLabel 中。";
+
+	}
+	else {
+		qWarning() << "CameraLabelWidget: 转换图像用于显示失败，无法显示。";
+		LOG_DEBUG(GlobalLog::logger, _T("displayImage ptr null"));
+	}
+	qint64 elapsed = timer.elapsed();  // 获取经过的毫秒数
+	qDebug() << "显示耗时：" << elapsed << "毫秒";
+
+}
 
 
 void CameraLabelWidget::onSaveDebugInfo(DebugInfo* DI)
@@ -1214,7 +1339,7 @@ void CameraLabelWidget::onSaveDebugInfo(DebugInfo* DI)
 }
 
 
-void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
+void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
 {
 	
 	qDebug() << "this isonImageProcessed info.ret=:"<<info.ret;

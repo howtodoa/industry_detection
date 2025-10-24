@@ -64,17 +64,15 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC, Cameral*
 
     connect(m_algoSettings, &AlgoClass::TransMat, this, &ParaWidget::onTransMat);
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
-    // (情况 1: 普通版)
-    qDebug() << "Constructor: Using Normal setup functions.";
-    setupRangeTab(tabWidget); // 索引 0
-    setupScaleTab(tabWidget); // 索引 1
-#else
-    // (情况 2: EX 版)
-    qDebug() << "Constructor: Using EX setup functions.";
+#if defined(USE_MAIN_WINDOW_CAPACITY) && defined(ADAPTATEION)
+
     setupRangeTab_EX(tabWidget); // 索引 0
     setupScaleTabEX(tabWidget);  // 索引 1
-#endif // USE_MAIN_WINDOW_CAPACITY
+#else
+
+    setupRangeTab(tabWidget);    // 索引 0
+    setupScaleTab(tabWidget);    // 索引 1
+#endif
 
     setupAlgorithmTab(tabWidget); // 索引 2
     setupDebugTab(tabWidget);     // 索引 3

@@ -53,7 +53,8 @@ public slots:
     void onCameraStop();
     void onCameraPhoto();
     void onParam();
-    void onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr,DetectInfo info);
+    void onImageProcessed_plate(std::shared_ptr<cv::Mat> processedImagePtr,DetectInfo info);
+    void onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
     void onSaveDebugInfo(DebugInfo *DI);
     void onImageLoaded(std::shared_ptr<cv::Mat> image);
     void onLearn();
