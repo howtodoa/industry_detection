@@ -153,7 +153,7 @@ struct GlobalPara {
     static int MergePoint;
 };
 
-extern std::vector<int> MergePointVec;
+extern QHash<QString, int> MergePointVec;
 extern std::mutex g_mutex;
 extern std::condition_variable g_cv;
 

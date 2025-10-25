@@ -1220,16 +1220,22 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		return;
 	}
-	if (info.ret == -1)
+	if (info.ret != 0)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
 	}
 	else dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
-	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
+	LOG_DEBUG(GlobalLog::logger, QString("camra:%1 sumcount: %2")
+		.arg(m_cam->indentify.c_str()) 
+		.arg(this->sumcount->load())
+		.toStdWString().c_str());
 
-
+	LOG_DEBUG(GlobalLog::logger, QString("camra:%1 ngcount: %2")
+		.arg(m_cam->indentify.c_str()) 
+		.arg(this->ngcount->load())
+		.toStdWString().c_str());
 
 	//dataToSave.imagePtr = processedImagePtr; // shared_ptr 的浅拷贝，引用计数增加
 
@@ -1302,7 +1308,7 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 			else
 			{
 				saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				LOG_DEBUG(GlobalLog::logger, QString("图像推入保存队列。当前队列大小：%1").arg(saveToQueue->queue.size()).toStdWString().c_str());
 
 			}
 			//      saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列

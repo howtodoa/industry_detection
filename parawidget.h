@@ -43,6 +43,7 @@ private slots:
 
     void closeWindow();
     void onScaleSaveClicked();
+    void saveRangePara();
 signals:
     void parametersChanged(const QVariantMap& paramMap); //临时保存修改
     void SaveDebugInfo(DebugInfo* DI);

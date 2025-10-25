@@ -40,7 +40,7 @@ void Imageprocess_Plate::run()
 			}
 
 			currentImagePtr = m_inputQueue->queue.front();
-
+ 
 			if (!currentImagePtr || currentImagePtr->empty()) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null");
 				qWarning() << "ImageProcess::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
@@ -259,10 +259,10 @@ void Imageprocess_Plate::run()
 		if (cam_instance->DI.Shield == true) ret = 0;
 
 
-		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
+		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 &&cam_instance->photo.load()==false)//非本地运行的情况
 		{
-
-			if (GlobalPara::MergePointNum == 0)
+			QString camId =QString::fromStdString(cam_instance->indentify);
+			if (MergePointVec.contains(camId)==false)
 			{
 				bool outputSignalInvert = true;
 				int durationMs = 100; // 脉冲持续时间
@@ -273,21 +273,20 @@ void Imageprocess_Plate::run()
 			else
 			{
 				std::unique_lock<std::mutex> lk(g_mutex);
-				int num;
-				if (cam_instance->indentify == "Plate") num = 0;
-				else num = 1;
-				g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
+
+				g_cv.wait(lk, [camId]() { return MergePointVec[camId] == 2; });
 
 				// 满足条件，写入自己的值
-				MergePointVec[num] = 1;
+				MergePointVec[camId] = 1;
 				lk.unlock();
 				g_cv.notify_all();
 			}
 
 
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && cam_instance->photo.load() == false)//非本地运行的情况
 		{
+			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)
 			{
 				bool outputSignalInvert = false;
@@ -300,13 +299,11 @@ void Imageprocess_Plate::run()
 			else
 			{
 				std::unique_lock<std::mutex> lk(g_mutex);
-				int num;
-				if (cam_instance->indentify == "Plate") num = 0;
-				else num = 1;
-				g_cv.wait(lk, [num]() { return MergePointVec[num] == 2; });
+
+				g_cv.wait(lk, [camId]() { return MergePointVec[camId] == 2; });
 
 				// 满足条件，写入自己的值
-				MergePointVec[num] = 0;
+				MergePointVec[camId] = 0;
 				lk.unlock();
 				g_cv.notify_all();
 			}

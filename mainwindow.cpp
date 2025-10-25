@@ -283,6 +283,17 @@ void MainWindow::loadjson_layer(const QString& filePath)
         qWarning() << "JSON file missing 'DATA_DIR' entry.";
     }
 
+    
+    if (configMap.contains("MERGENUM")) {
+        ParamDetail detail(configMap.value("MERGENUM").toMap());
+        GlobalPara::MergePointNum = detail.value.toInt();
+        qDebug() << "Parsed MergePointNum" << GlobalPara::MergePointNum;
+    }
+    else {
+        qWarning() << "JSON file missing 'DATA_DIR' entry.";
+    }
+
+
     if (configMap.contains("ROOT_DIR")) {
         ParamDetail detail(configMap.value("ROOT_DIR").toMap());
         SystemPara::ROOT_DIR = detail.value.toString();
@@ -674,7 +685,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (GlobalPara::MergePointNum > 0)
     {
-        MergePointVec = std::vector<int>(GlobalPara::MergePointNum, 0);
+        for(int i=0;i< GlobalPara::MergePointNum;i++)
+        {
+            MergePointVec.insert(QString::fromStdString(cams[i]->indentify), cams[i]->pointNumber);
+		}
         GlobalPara::MergePoint = cams[0]->pointNumber;
         std::thread([]() {
             while (true)
@@ -682,14 +696,14 @@ MainWindow::MainWindow(QWidget *parent) :
                 std::unique_lock<std::mutex> lk(g_mutex);
                 // 等待条件：任意元素不为 2
                 g_cv.wait(lk, []() {
-                    for (int v : MergePointVec) {
-                        if (v != 2) return true;
+                    for (int v : MergePointVec.values()) {
+                        if (v!= 2) return true;
                     }
                     return false;
                     });
                 // 业务判断
                 bool allOne = true;
-                for (int v : MergePointVec) {
+                for (int v : MergePointVec.values()) {
                     if (v != 1) {
                         allOne = false;
                         break;
@@ -698,7 +712,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
                 PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
 
-                for (auto& v : MergePointVec) {
+                for (auto& v : MergePointVec.values()) {
                     v = 2;
                 }
 
@@ -1330,7 +1344,14 @@ void MainWindow::initcams(int camnumber)
 
 MainWindow::~MainWindow()
 {
+
+#ifdef USE_MAIN_WINDOW_CAPACITY
+    updateDB_Plater();
+#else
+    updateDB_Brader();
     updateDeviceId();
+#endif // USE_MAIN_WINDOW_CAPACITY
+
     int result = 0;
      qDebug() << "MainWindow()析构函数被调用";
     delete ui;
@@ -2377,19 +2398,20 @@ bool MainWindow::updateDeviceId()
     const QString filePath = SystemPara::GLOBAL_DIR;
 
     // --- 1. 使用 FileOperator 读取 JSON ---
-    // 你的 readJsonObject 函数在失败时会打印错误并返回空对象
     QJsonObject rootObj = FileOperator::readJsonObject(filePath);
 
     if (rootObj.isEmpty()) {
-        // readJsonObject 内部已经打印了 qCritical 错误
-        qWarning() << "Error: 无法读取或解析 JSON 文件:" << filePath;
+        // readJsonObject 内部（根据您的描述）已经打印了 qCritical 错误
+        QString logMsg = QString("Error: 无法读取或解析 JSON 文件: %1").arg(filePath);
+        LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
         return false;
     }
 
     // --- 2. 修改值 ---
     // 检查 "DeviceId" 是否存在且是否为一个对象
     if (!rootObj.contains("DeviceId") || !rootObj["DeviceId"].isObject()) {
-        qWarning() << "Error: 在" << filePath << "中未找到 'DeviceId' 键，或者它不是一个对象。";
+        QString logMsg = QString("Error: 在 %1 中未找到 'DeviceId' 键，或者它不是一个对象。").arg(filePath);
+        LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
         return false;
     }
 
@@ -2398,25 +2420,26 @@ bool MainWindow::updateDeviceId()
 
     // 检查 "值" 键是否存在
     if (!deviceIdObj.contains("值")) {
-        qWarning() << "Error: 在 'DeviceId' 中未找到 '值' 键。";
+        LOG_DEBUG(GlobalLog::logger, L"Error: 在 'DeviceId' 中未找到 '值' 键。");
         return false;
     }
 
     // 更新 "值"
-    deviceIdObj["值"] = GlobalPara::DeviceId;
+    deviceIdObj["值"] = GlobalPara::DeviceId; // 假设 GlobalPara::DeviceId 可以被 QJsonValue 接受
 
     // 将修改后的 deviceIdObj 对象放回根对象
     rootObj["DeviceId"] = deviceIdObj;
 
     // --- 3. 使用 FileOperator 写回文件 ---
     if (!FileOperator::writeJsonObject(filePath, rootObj)) {
-        // 你的 writeJsonObject 比较简单，我们在这里添加错误日志
-        qWarning() << "Error: FileOperator::writeJsonObject 失败，无法写入文件:" << filePath;
+        QString logMsg = QString("Error: FileOperator::writeJsonObject 失败，无法写入文件: %1").arg(filePath);
+        LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
         return false;
     }
 
     return true;
 }
+
 
 //void MainWindow::closeEvent(QCloseEvent* event)
 //{

@@ -20,7 +20,7 @@ std::atomic<bool> GlobalPara::pulse = false;
 int GlobalPara::MergePoint = 0;
 int GlobalPara::MergePointNum = 2;
 
-std::vector<int> MergePointVec;
+QHash<QString,int> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;
 

@@ -179,9 +179,19 @@ void ParaWidget::closeEvent(QCloseEvent* event)
         return;
     }
 
+    saveRangePara();
+
+    QMessageBox::information(this, "保存成功", "参数已成功保存。");
+    event->accept(); // 接受关闭事件
+
+#endif
+}
+
+void ParaWidget::saveRangePara()
+{
     // 用户选择“保存”，执行保存逻辑和校验
-    // --- 步骤 1: 将所有 QLineEdit 和 QCheckBox 的当前值同步到 m_rangeSettings ---
-    // 根据角色判断补偿值是否可见和可编辑
+ // --- 步骤 1: 将所有 QLineEdit 和 QCheckBox 的当前值同步到 m_rangeSettings ---
+ // 根据角色判断补偿值是否可见和可编辑
     bool isManufacturer = (Role::CurrentRole == "厂商");
     for (auto projectIt = m_paramValueEdits.begin(); projectIt != m_paramValueEdits.end(); ++projectIt)
     {
@@ -221,7 +231,7 @@ void ParaWidget::closeEvent(QCloseEvent* event)
                 if (!conversionOk) {
                     QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的值 '%3' 不是有效格式。请修正。")
                         .arg(paramName).arg(projectName).arg(textValue));
-                    event->ignore(); // 忽略关闭事件
+                  //  event->ignore(); // 忽略关闭事件
                     return;
                 }
             }
@@ -244,7 +254,7 @@ void ParaWidget::closeEvent(QCloseEvent* event)
                 else {
                     QMessageBox::warning(this, "输入格式错误", QString("参数 '%1' (项目: %2) 的补偿值 '%3' 不是有效的浮点数。请修正。")
                         .arg(paramName).arg(projectName).arg(compensationEdit->text()));
-                    event->ignore(); // 忽略关闭事件
+                 //   event->ignore(); // 忽略关闭事件
                     return;
                 }
             }
@@ -265,13 +275,7 @@ void ParaWidget::closeEvent(QCloseEvent* event)
     m_rangeSettings->saveParamsAsync();
     m_cam->RI->updateProcessedData(&m_rangeSettings->m_parameters);
     m_cam->RI->updatePaintData(&m_rangeSettings->m_parameters);
-
-    QMessageBox::information(this, "保存成功", "参数已成功保存。");
-    event->accept(); // 接受关闭事件
-
-#endif
 }
-
 
 void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
 {
@@ -623,8 +627,28 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         // 将带有滚动条的 scrollArea 添加到 subTabWidget
         subTabWidget->addTab(scrollArea, projectName);
     }
-}
 
+    //保存按钮
+
+    // 创建一个水平布局用于放置按钮
+    QHBoxLayout* buttonLayout = new QHBoxLayout;
+    buttonLayout->addStretch(1); // 添加弹簧，将按钮推到右侧
+
+    // 创建保存按钮
+    QPushButton* saveButton = new QPushButton("保存", rangeTab); // 父控件设为 rangeTab
+    saveButton->setMinimumWidth(120); // 设置一个合适的最小宽度
+    saveButton->setFont(defaultFont); // 恢复为默认字体大小，避免太小
+
+    // 将按钮添加到按钮布局
+    buttonLayout->addWidget(saveButton);
+
+    // 将按钮布局添加到主垂直布局中 (位于 subTabWidget 下方)
+    mainLayout->addLayout(buttonLayout);
+
+
+    connect(saveButton, &QPushButton::clicked, this, &ParaWidget::saveRangePara);
+
+}
 void ParaWidget::setupRangeTab_EX(QTabWidget* tabWidget) // 修改函数定义
 {
     qDebug() << "============ setupRangeTab_EX: START ============"; // 保留入口日志

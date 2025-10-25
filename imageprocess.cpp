@@ -313,7 +313,7 @@ void ImageProcess::run()
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
-				//GlobalLog::logger.Mz_AddLog(L"pre Save");
+				GlobalLog::logger.Mz_AddLog(L"pre Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == 0)
