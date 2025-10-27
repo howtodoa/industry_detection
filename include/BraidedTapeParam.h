@@ -53,6 +53,7 @@ struct InPinParam
 	int PinThresh = 0;                               //胶带上针参数
 	bool al_core=false;
 	int pinLength = 0;
+	int holeThresh = 0;
 };
 
 struct OutPinParam

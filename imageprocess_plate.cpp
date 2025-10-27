@@ -60,23 +60,11 @@ void Imageprocess_Plate::run()
 
 		if (cam_instance->video == false) // 非推流的情况
 		{
-			if (GlobalPara::envirment == GlobalPara::IPCEn) // 非本地运行的情况
-			{
-				// 先给复位信号false
-				//bool outputSignalInvert = false;
-				//int durationMs = 100; // 脉冲持续时间
-				//int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-
-				//QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				//LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
+	
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
-			//for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
-			//	cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
-			//	cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
-			//}
+	
 
 			if (cam_instance->indentify == "NaYin") {
 				/*		LearnPara::inParam2.scoresNegLimit = cam_instance->RI->score_neg;
@@ -237,6 +225,7 @@ void Imageprocess_Plate::run()
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
 			emit imageProcessed(afterImagePtr, info);
+			qDebug() << "this is in push";
 			currentImagePtr.reset();
 			backupImagePtr.reset();
 			afterImagePtr.reset();
@@ -246,15 +235,7 @@ void Imageprocess_Plate::run()
 		if (GlobalPara::cheatFlag.load() == false)info.ret = ret;
 
 
-		// 拍照的情况
-		if (cam_instance->photo.load() == true)
-		{
-			emit ImageLoaded(currentImagePtr);
-			qDebug() << "start photo learn";
-			if (cam_instance->learn.load() == true) emit Learn();
-			cam_instance->photo.store(false);
-			cam_instance->learn.store(false);
-		}
+
 
 		if (cam_instance->DI.Shield == true) ret = 0;
 
@@ -284,7 +265,7 @@ void Imageprocess_Plate::run()
 
 
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && cam_instance->photo.load() == false)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 )//非本地运行的情况
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)
@@ -301,12 +282,22 @@ void Imageprocess_Plate::run()
 				std::unique_lock<std::mutex> lk(g_mutex);
 
 				g_cv.wait(lk, [camId]() { return MergePointVec[camId] == 2; });
-
+				qDebug() << "out producer wait";
 				// 满足条件，写入自己的值
 				MergePointVec[camId] = 0;
 				lk.unlock();
 				g_cv.notify_all();
 			}
+		}
+
+		// 拍照的情况
+		if (cam_instance->photo.load() == true)
+		{
+			emit ImageLoaded(currentImagePtr);
+			qDebug() << "start photo learn";
+			if (cam_instance->learn.load() == true) emit Learn();
+			cam_instance->photo.store(false);
+			cam_instance->learn.store(false);
 		}
 
 		//存图

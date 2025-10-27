@@ -19,6 +19,10 @@ std::atomic<bool> GlobalPara::cheatFlag = false;
 std::atomic<bool> GlobalPara::pulse = false;
 int GlobalPara::MergePoint = 0;
 int GlobalPara::MergePointNum = 2;
+int GlobalPara::Light1 = 100;
+int GlobalPara::Light2 = 100;
+int GlobalPara::Light3 = 100;
+int GlobalPara::Light4 = 100;
 
 QHash<QString,int> MergePointVec;
 std::mutex g_mutex;
@@ -44,7 +48,7 @@ InSideParam LearnPara::inParam4 = {
 };
 
 InPinParam LearnPara::inParam5 = {
- 0,999,0,40,200,false,0
+ 0,999,0,40,200,false,0,0
 };
 
 InAbutParam LearnPara::inParam6 = {

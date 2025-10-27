@@ -1253,9 +1253,9 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 	QElapsedTimer timer;
 	timer.start();  // 开始计时
 
+	QImage displayImage = convertMatToQImage(processedImagePtr->clone());//备份
 
-	//转换显示
-	QImage displayImage = convertMatToQImage(*processedImagePtr);
+	//QImage displayImage = convertMatToQImage(*processedImagePtr);
 	//      processedImagePtr.reset();
 			// 2. 检查转换是否成功并显示
 	if (!displayImage.isNull()) {

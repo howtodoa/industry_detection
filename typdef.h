@@ -1,7 +1,7 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
+#define ADAPTATEION
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -151,6 +151,10 @@ struct GlobalPara {
     static std::atomic<bool> pulse;
 	static int MergePointNum;
     static int MergePoint;
+    static int Light1;
+    static int Light2;
+    static int Light3;
+    static int Light4;
 };
 
 extern QHash<QString, int> MergePointVec;

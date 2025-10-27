@@ -293,6 +293,42 @@ void MainWindow::loadjson_layer(const QString& filePath)
         qWarning() << "JSON file missing 'DATA_DIR' entry.";
     }
 
+    if (configMap.contains("LIGHT1")) {
+        ParamDetail detail(configMap.value("LIGHT1").toMap());
+        GlobalPara::Light1 = detail.value.toInt();
+        qDebug() << "Parsed Light1" << GlobalPara::Light1;
+    }
+    else {
+        qWarning() << "JSON file missing 'LIGHT1' entry.";
+    }
+
+    if (configMap.contains("LIGHT2")) {
+        ParamDetail detail(configMap.value("LIGHT2").toMap());
+        GlobalPara::Light2 = detail.value.toInt();
+        qDebug() << "Parsed Light2" << GlobalPara::Light2;
+    }
+    else {
+        qWarning() << "JSON file missing 'Light2' entry.";
+    }
+
+    if (configMap.contains("LIGHT3")) {
+        ParamDetail detail(configMap.value("LIGHT3").toMap());
+        GlobalPara::Light3 = detail.value.toInt();
+        qDebug() << "Parsed Light3" << GlobalPara::Light3;
+    }
+    else {
+        qWarning() << "JSON file missing 'LIGHT3' entry.";
+    }
+
+    if (configMap.contains("LIGHT4")) {
+        ParamDetail detail(configMap.value("Light4").toMap());
+        GlobalPara::Light4 = detail.value.toInt();
+        qDebug() << "Parsed Light3" << GlobalPara::Light4;
+    }
+    else {
+        qWarning() << "JSON file missing 'Light4' entry.";
+    }
+
 
     if (configMap.contains("ROOT_DIR")) {
         ParamDetail detail(configMap.value("ROOT_DIR").toMap());
@@ -687,7 +723,7 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         for(int i=0;i< GlobalPara::MergePointNum;i++)
         {
-            MergePointVec.insert(QString::fromStdString(cams[i]->indentify), cams[i]->pointNumber);
+            MergePointVec.insert(QString::fromStdString(cams[i]->indentify), 2);
 		}
         GlobalPara::MergePoint = cams[0]->pointNumber;
         std::thread([]() {
@@ -701,6 +737,7 @@ MainWindow::MainWindow(QWidget *parent) :
                     }
                     return false;
                     });
+                qDebug() << "out consumer wait";
                 // 业务判断
                 bool allOne = true;
                 for (int v : MergePointVec.values()) {
@@ -2560,16 +2597,41 @@ int MainWindow::initPCI_VC3000H()
  
 
 
-    for (int channel = 1; channel <= 4; ++channel) {
-        // 所有通道亮度固定为 100
-        if (PCI::pci().setlight(channel, 100, 100, 1, false, channel) != 0) {
-            std::cerr << "[ERROR] " << channel << "通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-        }
-        else {
-            std::cout << "[INFO] " << channel << "通道光源设置成功。" << std::endl;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // 保持 50ms 延时
+    if (PCI::pci().setlight(1, GlobalPara::Light1, 100, 1, false, 1) != 0) {
+        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
     }
+    else {
+        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // 通道 2
+    if (PCI::pci().setlight(2, GlobalPara::Light2, 100, 1, false, 2) != 0) {
+        std::cerr << "[ERROR] 2通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] 2通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // 通道 3
+    if (PCI::pci().setlight(3, GlobalPara::Light3, 100, 1, false, 3) != 0) {
+        std::cerr << "[ERROR] 3通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] 3通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // 通道 4
+    if (PCI::pci().setlight(4, GlobalPara::Light4, 100, 1, false, 4) != 0) {
+        std::cerr << "[ERROR] 4通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] 4通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
 
 
     // 关闭输出
