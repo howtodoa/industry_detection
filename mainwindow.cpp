@@ -156,7 +156,14 @@ void MainWindow::test_show()
 
 }
 
+void MainWindow::setupOutPutThread()
+{
+    m_outputThread = new OutPutThread(this);
+    m_outputThread->setObjectName("OutPutThread");
+    m_outputThread->start();
 
+    qDebug() << "OutPutThread started successfully.";
+}
 
 void MainWindow::loadjson_layer(const QString& filePath)
 {
@@ -726,40 +733,7 @@ MainWindow::MainWindow(QWidget *parent) :
             MergePointVec.insert(QString::fromStdString(cams[i]->indentify), 2);
 		}
         GlobalPara::MergePoint = cams[0]->pointNumber;
-        std::thread([]() {
-            while (true)
-            {
-                std::unique_lock<std::mutex> lk(g_mutex);
-                // 等待条件：任意元素不为 2
-                g_cv.wait(lk, []() {
-                    for (int v : MergePointVec.values()) {
-                        if (v!= 2) return true;
-                    }
-                    return false;
-                    });
-                qDebug() << "out consumer wait";
-                // 业务判断
-                bool allOne = true;
-                for (int v : MergePointVec.values()) {
-                    if (v != 1) {
-                        allOne = false;
-                        break;
-                    }
-                }
-
-                PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
-
-                for (auto& v : MergePointVec.values()) {
-                    v = 2;
-                }
-
-                lk.unlock();
-                g_cv.notify_all();
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-            }
-            }).detach();
+        setupOutPutThread();
     }
 #endif // ADAPTATEION
 

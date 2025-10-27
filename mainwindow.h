@@ -15,6 +15,7 @@
 #include "RightControlPanel.h" 
 #include "displayinfowidget.h"
 #include "DBOperation.h" 
+#include "outputhread.h"
 namespace Ui {
 class MainWindow;
 }
@@ -99,6 +100,9 @@ private:
     DirectoryMonitorWorker* m_monitorWorker;
     QStringList m_pathsToWatch;
     void setupMonitorThread();
+
+    OutPutThread* m_outputThread = nullptr;
+    void setupOutPutThread();
 
     void terminateProcessByName(const std::string& processName);
 private slots:

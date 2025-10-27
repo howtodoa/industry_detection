@@ -62,6 +62,7 @@ set(SOURCES
     debugtool.cpp
     algoclass_abut.cpp
     imageprocess_plate.cpp
+    outputhread.cpp
 )
 
 set(HEADERS
@@ -118,6 +119,7 @@ set(HEADERS
     debugtool.h
     algoclass_abut.h
     imageprocess_plate.h
+    outputhread.h
 )
 
 set(UI_FILES

@@ -281,7 +281,7 @@ void Imageprocess_Plate::run()
 			{
 				std::unique_lock<std::mutex> lk(g_mutex);
 
-				g_cv.wait(lk, [camId]() { return MergePointVec[camId] == 2; });
+				g_cv.wait(lk, [camId]() { return MergePointVec.value(camId) == 2; });
 				qDebug() << "out producer wait";
 				// 满足条件，写入自己的值
 				MergePointVec[camId] = 0;
