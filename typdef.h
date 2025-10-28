@@ -157,7 +157,7 @@ struct GlobalPara {
     static int Light4;
 };
 
-extern QHash<QString, int> MergePointVec;
+extern QHash<QString, std::deque<int>> MergePointVec;
 extern std::mutex g_mutex;
 extern std::condition_variable g_cv;
 

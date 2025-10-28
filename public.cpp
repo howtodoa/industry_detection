@@ -24,7 +24,7 @@ int GlobalPara::Light2 = 100;
 int GlobalPara::Light3 = 100;
 int GlobalPara::Light4 = 100;
 
-QHash<QString,int> MergePointVec;
+QHash<QString, std::deque<int>> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;
 

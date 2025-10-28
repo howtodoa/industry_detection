@@ -32,13 +32,14 @@ void Imageprocess_Plate::run()
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
+				qDebug() << "wait0: " << cam_instance->indentify;
 				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
 				});
-
+			qDebug() << "wait1: "<<cam_instance->indentify;
 			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
 				continue;
 			}
-
+			qDebug() << "wait2: " << cam_instance->indentify;
 			currentImagePtr = m_inputQueue->queue.front();
  
 			if (!currentImagePtr || currentImagePtr->empty()) {
@@ -108,6 +109,7 @@ void Imageprocess_Plate::run()
 				else ret = -1;
 				QString logMsg = QString("Plate ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				Sleep(50);
 			}
 			else if (cam_instance->indentify == "Lift") {
 				ret = ExportSpace::RunLift(*currentImagePtr, 0, cam_instance->DI.Angle, true);
@@ -239,7 +241,8 @@ void Imageprocess_Plate::run()
 
 		if (cam_instance->DI.Shield == true) ret = 0;
 
-
+		qDebug() << "cam_instance->photo.load() :" << cam_instance->photo.load();
+		qDebug() << "ret :" << ret;
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 &&cam_instance->photo.load()==false)//非本地运行的情况
 		{
 			QString camId =QString::fromStdString(cam_instance->indentify);
@@ -255,17 +258,17 @@ void Imageprocess_Plate::run()
 			{
 				std::unique_lock<std::mutex> lk(g_mutex);
 
-				g_cv.wait(lk, [camId]() { return MergePointVec[camId] == 2; });
+				if (MergePointVec.contains(camId)) {
+					MergePointVec[camId].push_back(1);
+				}
 
-				// 满足条件，写入自己的值
-				MergePointVec[camId] = 1;
 				lk.unlock();
 				g_cv.notify_all();
 			}
 
 
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 )//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && cam_instance->photo.load() == false)//非本地运行的情况
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)
@@ -281,10 +284,10 @@ void Imageprocess_Plate::run()
 			{
 				std::unique_lock<std::mutex> lk(g_mutex);
 
-				g_cv.wait(lk, [camId]() { return MergePointVec.value(camId) == 2; });
-				qDebug() << "out producer wait";
-				// 满足条件，写入自己的值
-				MergePointVec[camId] = 0;
+				if (MergePointVec.contains(camId)) {
+					MergePointVec[camId].push_back(0);
+				}
+
 				lk.unlock();
 				g_cv.notify_all();
 			}

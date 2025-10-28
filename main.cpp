@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
 #else // USE_MAIN_WINDOW_CAPACITY
 int main(int argc, char* argv[])
 {
-    //redirectToFile();
+  //  redirectToFile();
 
 
     HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");

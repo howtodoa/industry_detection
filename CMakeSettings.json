@@ -24,9 +24,9 @@
       ]
     },
     {
-      "name": "x64-RelWithDebInfo",
+      "name": "x64-Release-Flower",
       "generator": "Ninja",
-      "configurationType": "RelWithDebInfo",
+      "configurationType": "Release",
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -38,6 +38,11 @@
           "name": "CMAKE_PREFIX_PATH",
           "value": "F:/QT/6.7.3/msvc2022_64/lib/cmake",
           "type": "PATH"
+        },
+        {
+          "name": "USE_MAIN_WINDOW_FLOWER",
+          "value": "ON",
+          "type": "BOOL"
         }
       ]
     },
@@ -56,6 +61,11 @@
           "name": "CMAKE_PREFIX_PATH",
           "value": "F:/Qt/6.7.3/msvc2022_64/lib/cmake",
           "type": "PATH"
+        },
+        {
+          "name": "USE_MAIN_WINDOW_BRADER",
+          "value": "ON",
+          "type": "BOOL"
         }
       ]
     }

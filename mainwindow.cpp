@@ -725,12 +725,12 @@ MainWindow::MainWindow(QWidget *parent) :
     initCameralPara();
     setupUpdateTimer();
 #ifdef ADAPTATEION
-
     if (GlobalPara::MergePointNum > 0)
     {
         for(int i=0;i< GlobalPara::MergePointNum;i++)
         {
-            MergePointVec.insert(QString::fromStdString(cams[i]->indentify), 2);
+            QString camId = QString::fromStdString(cams[i]->indentify);
+            MergePointVec.insert(camId, std::deque<int>());
 		}
         GlobalPara::MergePoint = cams[0]->pointNumber;
         setupOutPutThread();

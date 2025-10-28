@@ -28,17 +28,29 @@ void OutPutThread::run()
         std::unique_lock<std::mutex> lk(g_mutex);
 
         g_cv.wait(lk, []() {
-            for (int v : MergePointVec.values()) {
-                if (v == 2) return false;
+            if (MergePointVec.isEmpty()) {
+                return false;
             }
-            return true;
+
+            // 检查所有 Deque 是否都非空 (即队头都有数据)
+            for (const auto& key : MergePointVec.keys()) {
+                const std::deque<int>& deque = MergePointVec.value(key);
+
+                if (deque.empty()) {
+                    return false; // 只要有一个为空，就继续等待
+                }
+            }
+
+            return true; // 所有 Deque 都非空
             });
 
         qDebug() << "out consumer wait";
 
+        // 业务判断：读取当前队头进行判断
         bool allOne = true;
-        for (int v : MergePointVec.values()) {
-            if (v != 1) {
+        for (const auto& key : MergePointVec.keys()) {
+            const std::deque<int>& deque = MergePointVec.value(key);
+            if (deque.front() != 1) {
                 allOne = false;
                 break;
             }
@@ -46,14 +58,21 @@ void OutPutThread::run()
 
         PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
 
+        LOG_DEBUG(GlobalLog::logger,
+            QString("setOutputMode: MergePoint=%1, allOne=%2")
+            .arg(GlobalPara::MergePoint)
+            .arg(allOne)
+            .toStdWString().c_str());
+
+        // 移除所有 Deque 的队头元素
         for (auto it = MergePointVec.begin(); it != MergePointVec.end(); ++it) {
-            it.value() = 2;
+            it.value().pop_front();
         }
 
         lk.unlock();
         g_cv.notify_all();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+         std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
     }
 
     qDebug() << "OutPutThread exiting normally.";
