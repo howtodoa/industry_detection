@@ -59,6 +59,12 @@ void Imageprocess_Plate::run()
 		cv::Mat image;
 		int ret = -1;
 
+		//for(auto& val:cam_instance->RI->unifyParams)
+		//{
+		//	val.result==0;
+		//	val.value = -99;
+		//}
+
 		if (cam_instance->video == false) // 非推流的情况
 		{
 	

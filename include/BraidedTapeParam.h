@@ -3,54 +3,54 @@
 
 struct InSideParam
 {
-	bool al_core = 0;                //Ñ§Ï°Ê¹ÄÜ
-	float imgAngleNum = 0;               //Í¼ÏñĞı×ª½Ç¶È
-	float charAngleNum = 90;               //×Ö·ûĞı×ª½Ç¶È
-	int buttonThresh = 120;                //±à´øÏÂ²ã¶şÖµ»¯
-	int topThresh = 190;                   //±à´øÉÏ²ã¶şÖµ»¯
-	bool isColor = false;                  //Ì×¹ÜÑÕÉ«ÊÇ·ñÅĞ¶¨£¬trueÎªÅĞ¶¨
+	bool al_core = 0;                //å­¦ä¹ ä½¿èƒ½
+	float imgAngleNum = 0;               //å›¾åƒæ—‹è½¬è§’åº¦
+	float charAngleNum = 90;               //å­—ç¬¦æ—‹è½¬è§’åº¦
+	int buttonThresh = 120;                //ç¼–å¸¦ä¸‹å±‚äºŒå€¼åŒ–
+	int topThresh = 190;                   //ç¼–å¸¦ä¸Šå±‚äºŒå€¼åŒ–
+	bool isColor = false;                  //å¥—ç®¡é¢œè‰²æ˜¯å¦åˆ¤å®šï¼Œtrueä¸ºåˆ¤å®š
 };
 
 struct OutSideParam
 {
-	std::stringstream m_VolumeStr, m_VoltageStr;//Èİ»ıºÍµçÑ¹µÄ×Ö·ûĞÅÏ¢
-	bool m_VolumeOK = false, m_VoltageOK = false;               //Èİ»ıºÍµçÑ¹ĞÍºÅÆ¥Åä
-	bool m_PinOK = false;                                       //Õë½Å×´Ì¬
-	bool m_BreakOK = false;                                     //ÊÇ·ñÆÆËğ
-	bool m_CaseColor = false;                                   //Ì×¹ÜÑÕÉ«ÀàĞÍ
-	bool m_CaseOK;                                              //Ì×¹Ü×´Ì¬
-	float m_PinDis = false;                                     //Á½¸ùÕëµÄ¾àÀë
-	float m_PinWidth;                                           //ÕëµÄ¿í¶È
-	float m_CaseHeigh;                                          //Ì×¹Ü¿í¶È
-	float m_Case2PinDis;                                        //Ì×Í²ÓëÕëµÄ¼ä¾à
-	float m_CaseYSite;                                          //Ì×¹ÜYÖá×ø±ê²î
-	float m_TapeDis;                                            //½º´øÅÜÉÏÅÜÏÂ
-	float m_Case2TapeDis;                                       //Ì×¹Üµ½½º´ø¼ä¾à
+	std::stringstream m_VolumeStr, m_VoltageStr;//å®¹ç§¯å’Œç”µå‹çš„å­—ç¬¦ä¿¡æ¯
+	bool m_VolumeOK = false, m_VoltageOK = false;               //å®¹ç§¯å’Œç”µå‹å‹å·åŒ¹é…
+	bool m_PinOK = false;                                       //é’ˆè„šçŠ¶æ€
+	bool m_BreakOK = false;                                     //æ˜¯å¦ç ´æŸ
+	bool m_CaseColor = false;                                   //å¥—ç®¡é¢œè‰²ç±»å‹
+	bool m_CaseOK;                                              //å¥—ç®¡çŠ¶æ€
+	float m_PinDis = false;                                     //ä¸¤æ ¹é’ˆçš„è·ç¦»
+	float m_PinWidth;                                           //é’ˆçš„å®½åº¦
+	float m_CaseHeigh;                                          //å¥—ç®¡å®½åº¦
+	float m_Case2PinDis;                                        //å¥—ç­’ä¸é’ˆçš„é—´è·
+	float m_CaseYSite;                                          //å¥—ç®¡Yè½´åæ ‡å·®
+	float m_TapeDis;                                            //èƒ¶å¸¦è·‘ä¸Šè·‘ä¸‹
+	float m_Case2TapeDis;                                       //å¥—ç®¡åˆ°èƒ¶å¸¦é—´è·
 };
 
 
 struct InTopParam
 {
-	float angleNum;               //Ğı×ª½Ç¶È
-	bool al_core;                //Ñ§Ï°Ê¹ÄÜ
-	bool isExproofExist;          //·À±¬·§ÊÇ·ñ´æÔÚ£¬trueÊÇ´æÔÚ£¬¾ÍÒª¼ì²â
+	float angleNum;               //æ—‹è½¬è§’åº¦
+	bool al_core;                //å­¦ä¹ ä½¿èƒ½
+	bool isExproofExist;          //é˜²çˆ†é˜€æ˜¯å¦å­˜åœ¨ï¼Œtrueæ˜¯å­˜åœ¨ï¼Œå°±è¦æ£€æµ‹
 };
 
 struct OutTopParam
 {
-	bool m_FBFClassOKTop = false;                 //·À±¬·§ÀàĞÍ
-	float m_NegAngleTop = -999.0;                 //¸º¼«Ïà½ÏË®Æ½½Ç¶È
-	float m_CirNumTop = -999.0;                   //¶¥Ãæ·À±¬·§Ô²¶È
-	float m_RadiusTop = -999.0;                   //¶¥Ãæ·À±¬·§°ë¾¶
+	bool m_FBFClassOKTop = false;                 //é˜²çˆ†é˜€ç±»å‹
+	float m_NegAngleTop = -999.0;                 //è´Ÿæç›¸è¾ƒæ°´å¹³è§’åº¦
+	float m_CirNumTop = -999.0;                   //é¡¶é¢é˜²çˆ†é˜€åœ†åº¦
+	float m_RadiusTop = -999.0;                   //é¡¶é¢é˜²çˆ†é˜€åŠå¾„
 };
 
 struct InPinParam
 {
-	float angleNum = 0;                               //Ğı×ª½Ç¶È
-	float pinWidth = 0;                               //Õë½Å¿í¶È
-	float Diameter = 0;                               //¶¨Î»¿×Ö±¾¶
-	int thresh = 0;                                   //½º´ø¶şÖµ»¯²ÎÊı
-	int PinThresh = 0;                               //½º´øÉÏÕë²ÎÊı
+	float angleNum = 0;                               //æ—‹è½¬è§’åº¦
+	float pinWidth = 0;                               //é’ˆè„šå®½åº¦
+	float Diameter = 0;                               //å®šä½å­”ç›´å¾„
+	int thresh = 0;                                   //èƒ¶å¸¦äºŒå€¼åŒ–å‚æ•°
+	int PinThresh = 0;                               //èƒ¶å¸¦ä¸Šé’ˆå‚æ•°
 	bool al_core=false;
 	int pinLength = 0;
 	int holeThresh = 0;
@@ -58,13 +58,13 @@ struct InPinParam
 
 struct OutPinParam
 {
-	float m_MaoCiArea;             //Ã«´Ì´æÔÚ
-	float m_DisCircle;          //¶¨Î»Ô²¼ä¾à
-	float m_DisTopPin;          //ÉÏÕë¼ä¾à
-	float m_DisButtomPin;       //ÉÏÏÂÕë¼ä¾à
-	float m_DisPinWid;          //Õë×î´ó¿í¶È
-	float m_totalArea;             //½º´ø½º´øÆÆ¶´
-	float m_DisTapeWid;            //Õ³½º²»ÀÎ
+	float m_MaoCiArea;             //æ¯›åˆºå­˜åœ¨
+	float m_DisCircle;          //å®šä½åœ†é—´è·
+	float m_DisTopPin;          //ä¸Šé’ˆé—´è·
+	float m_DisButtomPin;       //ä¸Šä¸‹é’ˆé—´è·
+	float m_DisPinWid;          //é’ˆæœ€å¤§å®½åº¦
+	float m_totalArea;             //èƒ¶å¸¦èƒ¶å¸¦ç ´æ´
+	float m_DisTapeWid;            //ç²˜èƒ¶ä¸ç‰¢
 };
 
 

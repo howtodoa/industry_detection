@@ -17,6 +17,7 @@ OutPutThread::~OutPutThread()
 void OutPutThread::stop()
 {
     m_running = false;
+    g_cv.notify_all();
 }
 
 void OutPutThread::run()
@@ -27,7 +28,10 @@ void OutPutThread::run()
     {
         std::unique_lock<std::mutex> lk(g_mutex);
 
-        g_cv.wait(lk, []() {
+        g_cv.wait(lk, [this]() {
+            if (!m_running) {
+                return true;
+            }
             if (MergePointVec.isEmpty()) {
                 return false;
             }
@@ -43,6 +47,12 @@ void OutPutThread::run()
 
             return true; // 所有 Deque 都非空
             });
+
+        if (!m_running) {
+            // 如果是因为停止信号而退出 wait，则跳出 while 循环
+            lk.unlock();
+            break;
+        }
 
         qDebug() << "out consumer wait";
 

@@ -35,19 +35,19 @@ class class_net_engine;
 typedef void (*DeviceImageCallback)(cv::Mat& outputmat, void* pUser);
 typedef struct DeviceId
 {
-	DeviceType m_type; //Éè±¸ÀàĞÍ
-	std::string m_id;    //64bitÊı¾İ±êÊ¾Éè±¸Î¨Ò»±êÊ¶Âë
+	DeviceType m_type; //è®¾å¤‡ç±»å‹
+	std::string m_id;    //64bitæ•°æ®æ ‡ç¤ºè®¾å¤‡å”¯ä¸€æ ‡è¯†ç 
 	std::string m_ip;    //Ip
-	std::string configFile; //ÅäÖÃÎÄ¼ş
+	std::string configFile; //é…ç½®æ–‡ä»¶
 }MsvDeviceId;
 
 namespace Mz_CameraConn
 {
-	//³õÊ¼»¯¿â
+	//åˆå§‹åŒ–åº“
 	MZ_API MsvInitLib();
-	//¹Ø±Õ¿âµÄÊ¹ÓÃ
+	//å…³é—­åº“çš„ä½¿ç”¨
 	MZ_API MsvCloseLib();
-	//Éè±¸Ã¶¾Ù
+	//è®¾å¤‡æšä¸¾
 	MZ_API MsvEnumerateDevics(std::vector<MsvDeviceId>& deviceList);
 
 	class __declspec(dllexport) COperation
@@ -55,19 +55,19 @@ namespace Mz_CameraConn
 	public:
 		COperation(MsvDeviceId inputID);
 		~COperation();
-		//´ò¿ªÉè±¸
+		//æ‰“å¼€è®¾å¤‡
 		int MsvOpenDevice();
-		//¹Ø±ÕÉè±¸
+		//å…³é—­è®¾å¤‡
 		int MsvCloseDevice();
-		//±£´æËùÓĞ²ÎÊı
+		//ä¿å­˜æ‰€æœ‰å‚æ•°
 		int MsvSaveParams(char* filename);
 		int MsvLoadParams(char* filename);
 		//
 		int MsvStartImageCapture();
 		//
 		int MsvStopImageCapture();
-		//ÉèÖÃ´¥·¢Ä£Ê½
-		//0 Á¬Ğø£¬1¡¢µ¥Ö¡¡¢2¡¢¶àÖ¡
+		//è®¾ç½®è§¦å‘æ¨¡å¼
+		//0 è¿ç»­ï¼Œ1ã€å•å¸§ã€2ã€å¤šå¸§
 		int MsvSetAcquisitionMode(int inputmode);
 		int IsDevConnect();
 

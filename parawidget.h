@@ -69,8 +69,6 @@ private:
      CameralClass * m_cameralSettings;
      AlgoClass *m_algoSettings;
       
-
-
      QMap<QString, QMap<QString, QLineEdit*>> m_paramValueEdits;
      QMap<QString, QMap<QString, QCheckBox*>> m_paramCheckboxes;
      QMap<QString, QMap<QString, QLineEdit*>> m_paramCompensationEdits; // 
@@ -80,6 +78,7 @@ private:
      QMap<QString, QMap<QString, QCheckBox*>> m_rangeCheckboxes;
      QMap<QString, QCheckBox*> m_scaleCheckboxes;   
      QMap<QString, QLineEdit*> m_scaleLineEditMap;
+
      DebugInfo *DI;
      Cameral *m_cam=nullptr;
      QTabWidget* tabWidget = nullptr;

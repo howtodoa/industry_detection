@@ -63,6 +63,8 @@ set(SOURCES
     algoclass_abut.cpp
     imageprocess_plate.cpp
     outputhread.cpp
+    imageprocess_flower.cpp
+    rezultinfo_flowerpin.h
 )
 
 set(HEADERS
@@ -83,6 +85,8 @@ set(HEADERS
     "include/MsvDeviceLib.h"
     "include/CapacitanceProgram.h"
     "include/DBOperation.h"
+    "include/Api_FlowerPinDetection.h"
+    "include/FlowerPinParam.h"
     syspara.h
     cameralabelwidget.h
     zoomablelabel.h
@@ -120,6 +124,8 @@ set(HEADERS
     algoclass_abut.h
     imageprocess_plate.h
     outputhread.h
+    imageprocess_flower.h
+    rezultinfo_flowerpin.h
 )
 
 set(UI_FILES

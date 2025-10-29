@@ -34,6 +34,7 @@
 #include "algoclass_side.h"
 #include "aboutwidget.h"
 #include "algoclass_abut.h"
+#include "rezultinfo_flowerpin.h"
 
 namespace AppConfig
 {
@@ -741,6 +742,83 @@ MainWindow::MainWindow(QWidget *parent) :
     this->onPhotoAllCamerasClicked();
 }
 
+MainWindow::MainWindow(QString str, QWidget* parent):
+     QMainWindow(parent),
+     ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    //ui->mainToolBar->setVisible(false);
+    setWindowTitle("钉卷机视觉检测系统V2.0.0_Beta");
+
+    setWindowIcon(QIcon(":/images/resources/images/oo.ico"));
+
+
+    HWND hwnd = (HWND)this->winId();
+    BOOL useDarkMode = TRUE;
+
+
+    HRESULT result = DwmSetWindowAttribute(
+        hwnd,
+        20, // DWMWA_USE_IMMERSIVE_DARK_MODE for Windows 10 1809+
+        &useDarkMode,
+        sizeof(useDarkMode)
+    );
+
+
+    this->setStyleSheet(
+        "QMainWindow {"
+        "    background-color: rgb(24, 26, 32);"
+        "}"
+        "QMenuBar {"
+        "    background-color: rgb(24, 26, 32);"
+        "    color: white;"
+        "}"
+        "QMenuBar::item:selected {"
+        "    background-color: #343844; /* 一个稍亮的颜色用于悬停 */"
+        "}"
+        "QToolBar#mainToolBar {"
+        "    background-color: rgb(24, 26, 32);"
+        "    border: none;"
+        "    min-height: 40px; /* 增加工具栏高度 */"
+        "    max-height: 40px;"
+        "}"
+        "QStatusBar {"
+        "    background-color: rgb(24, 26, 32);"
+        "    color: white;"
+        "}"
+    );
+    // 获取主屏幕的分辨率
+    QScreen* screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->geometry(); // 获取屏幕的几何信息
+    int screenWidth = screenGeometry.width();  // 屏幕宽度
+    int screenHeight = screenGeometry.height(); // 屏幕高度
+
+    int windowWidth = screenWidth * 1;
+    int windowHeight = screenHeight * 1;
+
+    resize(windowWidth, windowHeight);
+
+    // 将窗口居中
+    int x = (screenWidth - windowWidth) / 2;
+    int y = (screenHeight - windowHeight) / 2;
+    move(x, y);
+    SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Flower.json";
+    loadjson_layer(SystemPara::GLOBAL_DIR);
+    loadjson_layer2(SystemPara::CAMERAL_DIR);
+    if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
+    init_log();
+    init_cap();
+    initcams(caminfo.size());
+    init_algo_Flower();
+    setupImageSaverThread();
+    CreateMenu();
+    CreateImageGrid_Braider(caminfo.size());
+    setupMonitorThread();
+    setupUpdateTimer();
+    initSqlite3Db_Brader();
+    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
+    initCameralPara();
+}
 
 MainWindow::MainWindow(int mode,QWidget* parent) :
     QMainWindow(parent),
@@ -818,6 +896,12 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     initSqlite3Db_Brader();
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
+
+}
+
+
+void MainWindow::init_algo_Flower()
+{
 
 }
 
@@ -1328,6 +1412,13 @@ void MainWindow::initcams(int camnumber)
            cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
            cam->RI->updatePaintDataFromScaleArray(cam->ScaleArray);
        }
+       else if (caminfo[i - 1].mapping == "FlowerPin")
+       {
+           //cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           //cam->indentify = caminfo[i - 1].mapping.toStdString();
+           //cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           //cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+           }
        cam->cameral_name=caminfo[i-1].name;
        cam->rounte=caminfo[i-1].rounte;
        cam->pointNumber.store(caminfo[i-1].pointNumber);

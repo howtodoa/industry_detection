@@ -14,22 +14,22 @@
 namespace SqliteDB {
     class SQLITEDB_API DBOperation {
     public:
-        // ³õÊ¼»¯½Ó¿Ú
+        // åˆå§‹åŒ–æ¥å£
         static int Initialize(const char * dbFilePath);
 
         static int Release();
 
-        // ´´½¨ºÍÉ¾³ı±í
+        // åˆ›å»ºå’Œåˆ é™¤è¡¨
         static int CreateTable(const char* tableName, const char* columnsDef);
         static int DropTable(const char* tableName);
         static int GetTableColumns(const char* tableName, std::vector<std::string>& outColumns);
 
-        // Ğ´Èë½Ó¿Ú
+        // å†™å…¥æ¥å£
         static int InsertRecord(const char* tableName, const std::vector<std::variant<int, double, std::string>>& values);
         static int UpdateRecordValue(const char* tableName, const char* strKey, const std::variant<int, double, std::string>& value, const char* condition);
         static int UpdateFullRecord(const char* tableName, const std::map<std::string, std::variant<int, double, std::string>>& values, const char* condition);
 
-        // ¶ÁÈ¡½Ó¿Ú
+        // è¯»å–æ¥å£
         static int GetRecordValue(const char* tableName, const char* strKey, const char* condition, std::variant<int, double, std::string>& outValue);
         static int GetFullRecord(const char* tableName, const char* condition, std::map<std::string, std::variant<int, double, std::string>>& outValues);
         static int GetMultipleRecords(const char* tableName, const char* condition, std::vector<std::map<std::string, std::variant<int, double, std::string>>>& outRecords);

@@ -27,6 +27,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     explicit MainWindow(int mode,QWidget* parent = 0);
+    explicit MainWindow(QString str, QWidget* parent = 0);
 	//void closeEvent(QCloseEvent* event) override;
     ~MainWindow();
     void init_log(); 
@@ -50,6 +51,7 @@ public:
     void test_show();
     void init_algo();
     void init_algo_Braider();
+    void init_algo_Flower();
     void init_cap();
     void initSqlite3Db_Brader();
     void initSqlite3Db_Plater();

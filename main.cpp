@@ -116,8 +116,10 @@ int runBusiness(int argc, char* argv[])
 
 #ifdef USE_MAIN_WINDOW_CAPACITY
     MainWindow w;
-#else
+#elif  USE_MAIN_WINDOW_BRADER
     MainWindow w(1);
+#else 
+    MainWindow w("flower");
 #endif
     w.showMaximized();
     splash.finish(&w);
@@ -223,9 +225,10 @@ int main(int argc, char* argv[])
     InitSystem("../../../ini/globe/Global.json");
 #ifdef USE_MAIN_WINDOW_CAPACITY
     MainWindow w;
-#else  
+#elif  USE_MAIN_WINDOW_BRADER
     MainWindow w(1);
-
+#else 
+    MainWindow w("flower");
 #endif
     w.showMaximized();  // 启动时最大化显示
 

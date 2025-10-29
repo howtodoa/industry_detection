@@ -21,6 +21,7 @@
 #include "MsvDeviceLib.h"
 #include "role.h"
 #include "Imageprocess_plate.h"
+#include "Imageprocess_flower.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -419,6 +420,12 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 
 	connect(m_imageProcessor, &ImageProcess::StartGetIn,
 		this, &CameraLabelWidget::onStartGetIn);
+
+//#else USE_MAIN_WINDOW_FLOWER
+//	this->m_imageProcessor = new Imageprocess_Flower(cam, m_saveQueue, this);
+//	connect(m_imageProcessor, &ImageProcess::imageProcessed,
+//		this, &CameraLabelWidget::onImageProcessed_plate);
+
 #endif // USE_MAIN_WINDOW_CAPACITY
 
 
@@ -1361,20 +1368,6 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 	else dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger,QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
-
-
-
-	//dataToSave.imagePtr = processedImagePtr; // shared_ptr 的浅拷贝，引用计数增加
-
-
-
-	//cv::Mat& mat_to_check = *processedImagePtr;// 用一个引用方便查看
-	//qDebug() << "准备转换的 Mat 不是空的。";
-	//qDebug() << "它的类型ID是: " << mat_to_check.type(); // 打印类型ID
-	//qDebug() << "它的通道数是: " << mat_to_check.channels(); // 打印通道数
-	//qDebug() << "它的位深度是: " << mat_to_check.depth(); // 打印位深度 (例如 CV_8U 是 0)
-
-
 
 
 	QElapsedTimer timer;
