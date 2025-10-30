@@ -64,7 +64,7 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC, Cameral*
 
     connect(m_algoSettings, &AlgoClass::TransMat, this, &ParaWidget::onTransMat);
 
-#if defined(USE_MAIN_WINDOW_CAPACITY) && defined(ADAPTATEION)
+#if (defined(USE_MAIN_WINDOW_CAPACITY) && defined(ADAPTATEION)) || defined(USE_MAIN_WINDOW_FLOWER)
 
     setupRangeTab_EX(tabWidget); // 索引 0
     setupScaleTabEX(tabWidget);  // 索引 1
@@ -94,7 +94,7 @@ ParaWidget::ParaWidget(RangeClass* RC, CameralClass* CC, AlgoClass* AC, Cameral*
         // 其他所有角色 (如 “操作员” 等)
         qDebug() << "Constructor: Other role detected. Applying restrictions...";
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+#ifdef USE_MAIN_WINDOW_BRADER
         // --- 情况 1 (普通版) 逻辑 ---
         // 显示: 范围(禁用), 标定(索引1), 算法, 调试, 相机
         // 隐藏: 无 (根据您的新要求，不隐藏标定)

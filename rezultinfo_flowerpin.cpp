@@ -1,6 +1,6 @@
 #include "rezultinfo_flowerpin.h"
 
-RezultInfo_Abut::RezultInfo_Abut(AllUnifyParams& unifyParams, QObject* parent)
+RezultInfo_FlowerPin::RezultInfo_FlowerPin(AllUnifyParams& unifyParams, QObject* parent)
     : RezultInfo()
 {
     this->unifyParams = unifyParams;
@@ -8,7 +8,7 @@ RezultInfo_Abut::RezultInfo_Abut(AllUnifyParams& unifyParams, QObject* parent)
 
 
 
-void RezultInfo_Abut::printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange)
+void RezultInfo_FlowerPin::printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange)
 {
     QString status = outOfRange ? "FAIL" : "PASS";
     QString limitType = isUpperLimit ? "Max" : "Min";
@@ -18,7 +18,7 @@ void RezultInfo_Abut::printCheckInfo(const QString& paramName, float actualValue
         << "|" << limitType << ":" << thresholdValue;
 }
 
-int RezultInfo_Abut::judge_abut(const OutAbutResParam& ret)
+int RezultInfo_FlowerPin::judge_abut(const OutAbutResParam& ret)
 {
 
 

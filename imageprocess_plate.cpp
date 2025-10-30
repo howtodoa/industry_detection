@@ -157,6 +157,7 @@ void Imageprocess_Plate::run()
 				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 				ret = cam_instance->RI->judge_abut(OutResParam);
 				if (ret == 1) ret = -1;
+				std::this_thread::sleep_for(std::chrono::milliseconds(40));
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 			}
@@ -262,6 +263,9 @@ void Imageprocess_Plate::run()
 			}
 			else
 			{
+				QElapsedTimer timer;
+				timer.start();  // 开始计时
+
 				std::unique_lock<std::mutex> lk(g_mutex);
 
 				if (MergePointVec.contains(camId)) {
@@ -270,6 +274,9 @@ void Imageprocess_Plate::run()
 
 				lk.unlock();
 				g_cv.notify_all();
+
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "等待耗时：" << elapsed << "毫秒";
 			}
 
 

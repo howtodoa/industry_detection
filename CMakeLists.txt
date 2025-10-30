@@ -64,7 +64,7 @@ set(SOURCES
     imageprocess_plate.cpp
     outputhread.cpp
     imageprocess_flower.cpp
-    rezultinfo_flowerpin.h
+    rezultinfo_flowerpin.cpp
 )
 
 set(HEADERS
@@ -140,7 +140,7 @@ set(RC_FILE
     application.rc
 )
 
-add_executable(${PROJECT_NAME}  ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     #target_compile_definitions(${PROJECT_NAME} PRIVATE QT_NO_DEBUG_OUTPUT)
@@ -151,9 +151,14 @@ endif()
 if(USE_MAIN_WINDOW_CAPACITY)
     target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MAIN_WINDOW_CAPACITY=1)
     message(STATUS "CMake: Building with USE_DEFAULT_MAIN_WINDOW_MACRO defined (for MainWindow::MainWindow()).")
-else()
-    #target_compile_definitions(${PROJECT_NAME} PRIVATE USE_PARAM_MAIN_WINDOW_MACRO=1)
+elseif(USE_MAIN_WINDOW_BRADER)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MAIN_WINDOW_BRADER=1)
     message(STATUS "CMake: Building with USE_PARAM_MAIN_WINDOW_MACRO defined (for MainWindow::MainWindow(int)).")
+elseif(USE_MAIN_WINDOW_FLOWER)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_MAIN_WINDOW_FLOWER)
+    message(STATUS "Build with USE_MAIN_WINDOW_FLOWER")
+else()
+    message(STATUS "Undefined USE_MAIN_WINDOW_*，默认进入 else 分支。")
 endif()
 
 if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")

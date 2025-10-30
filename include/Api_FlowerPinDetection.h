@@ -9,19 +9,19 @@
 #endif
 
 
-namespace ExportSpace {
-    
-        // 预处理
+namespace ExportFlowerSpace {
+
+    // 预处理
     MYLIBRARY_API cv::Mat RotateImg(cv::Mat image, double angle);
     MYLIBRARY_API cv::Mat RotateImageKeepAll(cv::Mat image, double angle);
     //正极
     // 初始化
     MYLIBRARY_API int InitializePosFlowerPin();
     // 执行函数
-    MYLIBRARY_API int RunPosFlowerPin( cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
+    MYLIBRARY_API int RunPosFlowerPin(cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
 
     MYLIBRARY_API void GetPosFoilImg(cv::Mat& expectmask);
-    
+
     MYLIBRARY_API void ResultOutPosFlowerPin(cv::Mat& dstImg, OutFlowerPinResParam& OutResParam);
     // 释放资源
     MYLIBRARY_API void ReleasePosFlowerPin();

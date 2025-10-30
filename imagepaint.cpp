@@ -647,7 +647,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     const QSize canvasSize = pixmap.size();
 
     // 5. 定义视觉设计参数
-    constexpr int TARGET_VISUAL_FONT_SIZE = 12;
+    constexpr int TARGET_VISUAL_FONT_SIZE = 16;
     constexpr double ROW_SPACING_VISUAL_PX = 4.0;
     constexpr double X_MARGIN_RATIO = 0.01;
     constexpr double Y_MARGIN_RATIO = 0.05;

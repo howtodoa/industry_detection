@@ -6,6 +6,9 @@
 #include <QMap>
 #include "typdef.h" // 假设 Parameters, ProcessedParam, PaintDataItem 在此定义
 #include "fileoperator.h"
+
+
+
 // 前向声明
 class QLabel;
 class QGridLayout;
@@ -31,10 +34,24 @@ public slots:
 
     void onPaintSend(QVector<PaintDataItem>);
 
+    void onUpdateRealtimeData(const AllUnifyParams& params);
+
+    void updateDataFromUnifyParams(const AllUnifyParams& params);
+
+    //新结构兼容函数
+    void onUpdateUnifyParameters(const AllUnifyParams& params);
+
+    void onBuildUIFromUnifyParameters(const AllUnifyParams& params);
+
 private:
 
     void buildUIFromParameters(Parameters* params);
     void updateLimitLabels(Parameters* params);
+    //新结构兼容函数
+
+    void buildUIFromUnifyParams(const AllUnifyParams& params);
+
+    void updateLimitLabelsFromUnifyParams(const AllUnifyParams& params);
 
     struct TableRow {
         QLabel* nameLabel = nullptr;

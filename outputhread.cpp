@@ -82,7 +82,7 @@ void OutPutThread::run()
         lk.unlock();
         g_cv.notify_all();
 
-         std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+         //std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
     }
 
     qDebug() << "OutPutThread exiting normally.";

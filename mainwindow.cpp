@@ -1118,6 +1118,7 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         cameraLabels.append(cameraLabel);
         cameraGridLayout->addWidget(cameraLabel, 0, idx);
 
+#ifdef USE_MAIN_WINDOW_BRADER
         // 创建并绑定对应的 DisplayInfoWidget
         DisplayInfoWidget* infoWidget = new DisplayInfoWidget(&cams[idx]->RC->m_parameters, displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
@@ -1126,7 +1127,15 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         connect(cams[idx]->RI, &RezultInfo::UpdateParameters, infoWidget, &DisplayInfoWidget::onUpdateParameters);
         //设置拉伸因子保持均匀分布
         displayInfoHLayout->setStretchFactor(infoWidget, 1);
-
+#else
+        DisplayInfoWidget* infoWidget = new DisplayInfoWidget(&cams[idx]->RC->m_parameters, displayInfoContainer);
+        displayInfoHLayout->addWidget(infoWidget);
+        m_displayInfoWidgets.append(infoWidget);
+        connect(cameraLabel->m_imageProcessor, &ImageProcess::PaintSend, infoWidget, &DisplayInfoWidget::onPaintSend);
+        connect(cams[idx]->RI, &RezultInfo::UpdateParameters, infoWidget, &DisplayInfoWidget::onUpdateParameters);
+        //设置拉伸因子保持均匀分布
+        displayInfoHLayout->setStretchFactor(infoWidget, 1);
+#endif
         connect(cameraLabel->m_imageProcessor, &ImageProcess::StopDevice, this, &MainWindow::onStopAllCamerasClicked);
 
     }
@@ -1414,10 +1423,10 @@ void MainWindow::initcams(int camnumber)
        }
        else if (caminfo[i - 1].mapping == "FlowerPin")
        {
-           //cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
-           //cam->indentify = caminfo[i - 1].mapping.toStdString();
-           //cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
-           //cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
            }
        cam->cameral_name=caminfo[i-1].name;
        cam->rounte=caminfo[i-1].rounte;

@@ -18,8 +18,9 @@ struct OutFlowerPinResParam
 	std::vector<float> allFlowerLength;  //单朵花的对角线长度
 	float areaFoil;                              //箔裂面积
 	float disFlw2L;                              //花到L2距离
-	float disL2Pin;                              //L2到针距离
-	float disFlw2Pin;                            //花到针距离
+	float disFlw2Pin2;                           //最后一朵花到针距离
+	float disFlw2Pin;                            //第一朵花到针距离
+	float disFlowerAngle;                     //花的角度
 	float disPinAngle;                              //针的角度
 	float disL2Heigh;                            //L2的高度
 };
@@ -32,5 +33,8 @@ struct InLookPinParam
 
 struct OutLookPinResParam
 {
-
+	float packageHeight = 0;          //芯包高度
+	float packageWidth = 0;           //芯包宽度
+	float pinDistance = 0.0;          //脚距
+	float pindiff = 0.0;              //高低脚
 };

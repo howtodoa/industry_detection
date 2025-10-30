@@ -230,6 +230,165 @@ void DisplayInfoWidget::onPaintSend(QVector<PaintDataItem> paintData)
 	updateData(paintData);
 }
 
+
+void DisplayInfoWidget::onUpdateRealtimeData(const AllUnifyParams& params)
+{
+	updateDataFromUnifyParams(params);
+}
+
+// ====================================================================
+// 【隔离实现 3】根据 AllUnifyParams 更新实测值、NG 状态和计数
+// 负责：1. 更新实测值 (value) 2. 更新 NG 计数 (ng_count) 3. 设置高亮 (result)
+// ====================================================================
+void DisplayInfoWidget::updateDataFromUnifyParams(const AllUnifyParams& params)
+{
+	// 定义用于高亮 NG 结果的样式
+	const QString NgStyle = "background-color: #F8D7DA; color: #721C24;"; // 浅红背景，深红文字
+	const QString DefaultStyle = ""; // 默认样式
+
+	// 直接迭代传入的 QMap<QString, UnifyParam>
+	for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
+		const QString& baseName = it.key();
+		const UnifyParam& p = it.value();
+
+		if (m_uiRows.contains(baseName) && p.visible) {
+			const auto& rowWidgets = m_uiRows.value(baseName);
+
+			// --- 1. 更新实测值 (value) ---
+			// 将 double 类型的 value 格式化为 4 位小数
+			QString valueStr = QString::number(p.value, 'f', 4);
+			rowWidgets.measuredValueLabel->setText(valueStr);
+
+			// --- 2. 更新 NG 计数 (ng_count) ---
+			// 直接使用 UnifyParam::ng_count 字段来更新标签和内部计数
+			m_ngCounters[baseName] = p.ng_count;
+			rowWidgets.ngCountLabel->setText(QString::number(p.ng_count));
+
+			// --- 3. 高亮显示 NG 结果 (result) ---
+			// 假设 UnifyParam::result: 1 = 通过 (Pass)，0 = 不通过 (NG)
+			bool isNg = (p.result == 0);
+
+			// 清除之前的可能残留样式，然后应用新样式
+			rowWidgets.nameLabel->setStyleSheet(DefaultStyle);
+			rowWidgets.lowerLimitLabel->setStyleSheet(DefaultStyle);
+			rowWidgets.upperLimitLabel->setStyleSheet(DefaultStyle);
+			rowWidgets.measuredValueLabel->setStyleSheet(DefaultStyle);
+			rowWidgets.ngCountLabel->setStyleSheet("color: #DC3545;"); // 保持 NG 计数标签的红色
+
+			if (isNg) {
+				// 将 NG 样式应用于该行的所有标签，并确保数值标签加粗
+				rowWidgets.nameLabel->setStyleSheet(NgStyle);
+				rowWidgets.lowerLimitLabel->setStyleSheet(NgStyle);
+				rowWidgets.upperLimitLabel->setStyleSheet(NgStyle);
+				rowWidgets.measuredValueLabel->setStyleSheet(NgStyle + "font-weight: bold;");
+			}
+
+			// 调试输出 (可选)
+			// qDebug() << baseName << " updated. Value:" << p.value << " NG Count:" << p.ng_count << " Result:" << (isNg ? "NG" : "PASS");
+		}
+	}
+}
+
+void DisplayInfoWidget::buildUIFromUnifyParams(const AllUnifyParams& params)
+{
+	// 1. 清理旧 UI 和数据
+	QLayoutItem* item;
+	while ((item = m_gridLayout->takeAt(0)) != nullptr) {
+		if (item->widget()) delete item->widget();
+		delete item;
+	}
+	m_uiRows.clear();
+	m_ngCounters.clear();
+
+	// 2. 创建表头 (与旧函数保持一致)
+	QStringList headers = { "参数名称", "下限值", "上限值", "实测值", "不符数" };
+	for (int i = 0; i < headers.size(); ++i) {
+		auto headerLabel = new QLabel(headers[i]);
+		// ... 设置样式和布局 ...
+		m_gridLayout->addWidget(headerLabel, 0, i);
+	}
+
+	// 3. 解析 QMap 中的所有 UnifyParam 并创建 UI
+	QList<UnifyParam> orderedParams = params.values(); // 假设 QMap::values() 顺序可用
+	int currentRow = 1;
+
+	for (const auto& p : orderedParams) {
+		// 仅处理可见的参数
+		if (!p.visible) continue;
+		const QString& baseName = p.label;
+
+		// 格式化上下限 (使用 double 值)
+		QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 4);
+		QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 4);
+
+		// 4. 创建 UI 控件 (name/limits/value/ngCount)
+		auto nameLabel = new QLabel(baseName);
+		auto lowerLimitLabel = new QLabel(lowerStr);
+		auto upperLimitLabel = new QLabel(upperStr);
+		auto measuredValueLabel = new QLabel("-"); // 默认实测值
+		auto ngCountLabel = new QLabel(QString::number(p.ng_count)); // 使用结构体中的初始 ng_count
+
+		// ... 设置对齐方式和样式 ...
+
+		// 5. 加入布局和存储引用
+		m_gridLayout->addWidget(nameLabel, currentRow, 0);
+		m_gridLayout->addWidget(lowerLimitLabel, currentRow, 1);
+		m_gridLayout->addWidget(upperLimitLabel, currentRow, 2);
+		m_gridLayout->addWidget(measuredValueLabel, currentRow, 3);
+		m_gridLayout->addWidget(ngCountLabel, currentRow, 4);
+
+		m_uiRows[baseName] = { nameLabel, lowerLimitLabel, upperLimitLabel, measuredValueLabel, ngCountLabel };
+		m_ngCounters[baseName] = p.ng_count;
+		currentRow++;
+	}
+
+	// 6. 设置列伸展
+	m_gridLayout->setColumnStretch(0, 3);
+	m_gridLayout->setColumnStretch(1, 2);
+	m_gridLayout->setColumnStretch(2, 2);
+	m_gridLayout->setColumnStretch(3, 2);
+	m_gridLayout->setColumnStretch(4, 2);
+}
+
+
+void DisplayInfoWidget::updateLimitLabelsFromUnifyParams(const AllUnifyParams& params)
+{
+	// 直接迭代传入的 QMap<QString, UnifyParam>
+	for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
+		const QString& baseName = it.key();
+		const UnifyParam& p = it.value();
+
+		if (m_uiRows.contains(baseName) && p.visible) {
+			const auto& rowWidgets = m_uiRows.value(baseName);
+
+			// 格式化上下限 (使用 double 值)
+			QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 4);
+			QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 4);
+
+			// 更新下限值和上限值
+			rowWidgets.lowerLimitLabel->setText(lowerStr);
+			rowWidgets.upperLimitLabel->setText(upperStr);
+
+			// 更新 NG 计数
+			m_ngCounters[baseName] = p.ng_count;
+			rowWidgets.ngCountLabel->setText(QString::number(p.ng_count));
+
+		}
+	}
+}
+
+void DisplayInfoWidget::onUpdateUnifyParameters(const AllUnifyParams& params)
+{
+	updateLimitLabelsFromUnifyParams(params);
+}
+
+
+
+void DisplayInfoWidget::onBuildUIFromUnifyParameters(const AllUnifyParams& params)
+{
+	buildUIFromUnifyParams(params);
+}
+
 void DisplayInfoWidget::updateData(const QVector<PaintDataItem>& paintData)
 {
 	

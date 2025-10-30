@@ -412,7 +412,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		this, &CameraLabelWidget::onImageProcessed);
 #endif
 
-#else
+#elif USE_MAIN_WINDOW_BRADER
 	this->m_imageProcessor = new Imageprocess_Brader(cam, m_saveQueue, this);
 
 	connect(m_imageProcessor, &ImageProcess::imageProcessed_Brader,
@@ -421,10 +421,10 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	connect(m_imageProcessor, &ImageProcess::StartGetIn,
 		this, &CameraLabelWidget::onStartGetIn);
 
-//#else USE_MAIN_WINDOW_FLOWER
-//	this->m_imageProcessor = new Imageprocess_Flower(cam, m_saveQueue, this);
-//	connect(m_imageProcessor, &ImageProcess::imageProcessed,
-//		this, &CameraLabelWidget::onImageProcessed_plate);
+#else USE_MAIN_WINDOW_FLOWER
+	this->m_imageProcessor = new Imageprocess_Flower(cam, m_saveQueue, this);
+	connect(m_imageProcessor, &ImageProcess::imageProcessed,
+		this, &CameraLabelWidget::onImageProcessed_plate);
 
 #endif // USE_MAIN_WINDOW_CAPACITY
 

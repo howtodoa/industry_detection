@@ -3,6 +3,7 @@
 #include "MZ_VC3000H.h"
 #include <string>
 #include "CapacitanceProgram.h"
+#include "Api_FlowerPinDetection.h"
 
 Imageprocess_Flower::Imageprocess_Flower(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
 	: ImageProcess(cam, m_saveQueue, parent)
@@ -90,75 +91,9 @@ void Imageprocess_Flower::run()
 				QString logMsg = QString("NaYin ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
-			else if (cam_instance->indentify == "Top") {
-				InTopParam inpara;
-				ret = BraidedTapeSpace::RunTop(*currentImagePtr, LearnPara::inParam3);
-				OutTopParam para;
-				BraidedTapeSpace::ResultOutTop(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_top(para);
-				}
-				else if (ret == 1)
-				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
-					//ret = -1;
-				}
-				else if (ret == 2) {
-					cam_instance->noneDisplay.store(true);
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else
-					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
-						ret = -1;
-					}
-					QString logMsg = QString("Top ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else ret = -1;
-			}
-			else if (cam_instance->indentify == "Side") {
-				InSideParam inpara = LearnPara::inParam4;
-				if (cam_instance->ten != 0)
-				{
-					inpara.al_core = true;
-					cam_instance->ten -= 1;
-				}
-				ret = BraidedTapeSpace::RunSide(*currentImagePtr, inpara);
-				if (inpara.al_core == true && ret != 0) cam_instance->ten += 1;
-				OutSideParam para;
-				BraidedTapeSpace::ResultOutSide(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_side(para);
-				}
-				else if (ret == 2) {
-					cam_instance->noneDisplay.store(true);
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else
-					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
-						ret = -1;
-					}
-					QString logMsg = QString("Side ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else if (ret == 1)
-				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
-					//ret = -1;
-				}
-				else ret = -1;
+			else if (cam_instance->indentify == "FlowerPin")
+			{
+				//ret = ExportFlowerSpace::(*currentImagePtr, LearnPara::inParam6);
 			}
 			else if (cam_instance->indentify == "Pin") {
 				ret = BraidedTapeSpace::RunPin(*currentImagePtr, LearnPara::inParam5);

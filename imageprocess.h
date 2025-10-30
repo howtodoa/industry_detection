@@ -21,6 +21,8 @@ public:
 signals:
     void StopDevice();
     void PaintSend(QVector<PaintDataItem> paintData);
+    void BuildUIFromUnifyParameters(const AllUnifyParams& params);
+	void UpdateRealtimeData(const AllUnifyParams& params);
     void imageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
 	void imageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
     void ImageLoaded(std::shared_ptr<cv::Mat> image);

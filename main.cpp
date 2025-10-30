@@ -98,7 +98,7 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+#ifdef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {
@@ -118,7 +118,7 @@ int runBusiness(int argc, char* argv[])
     MainWindow w;
 #elif  USE_MAIN_WINDOW_BRADER
     MainWindow w(1);
-#else 
+#else USE_MAIN_WINDOW_FLOWER
     MainWindow w("flower");
 #endif
     w.showMaximized();
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
 #else // USE_MAIN_WINDOW_CAPACITY
 int main(int argc, char* argv[])
 {
-  //  redirectToFile();
+    redirectToFile();
 
 
     HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");
