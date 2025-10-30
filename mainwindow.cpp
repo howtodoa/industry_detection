@@ -1128,11 +1128,14 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         //设置拉伸因子保持均匀分布
         displayInfoHLayout->setStretchFactor(infoWidget, 1);
 #else
-        DisplayInfoWidget* infoWidget = new DisplayInfoWidget(&cams[idx]->RC->m_parameters, displayInfoContainer);
+        DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
         m_displayInfoWidgets.append(infoWidget);
-        connect(cameraLabel->m_imageProcessor, &ImageProcess::PaintSend, infoWidget, &DisplayInfoWidget::onPaintSend);
-        connect(cams[idx]->RI, &RezultInfo::UpdateParameters, infoWidget, &DisplayInfoWidget::onUpdateParameters);
+        connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateRealtimeData, infoWidget, &DisplayInfoWidget::onUpdateRealtimeData);
+        connect(cams[idx]->RI, &RezultInfo::BuildUIFromUnifyParameters, infoWidget, &DisplayInfoWidget::onBuildUIFromUnifyParameters);
+       
+
+
         //设置拉伸因子保持均匀分布
         displayInfoHLayout->setStretchFactor(infoWidget, 1);
 #endif

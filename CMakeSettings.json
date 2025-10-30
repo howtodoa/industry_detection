@@ -36,7 +36,7 @@
       "variables": [
         {
           "name": "CMAKE_PREFIX_PATH",
-          "value": "C:/Qt/6.7.3/msvc2022_64/lib/cmake/Qt6",
+          "value": "F:/QT/6.7.3/msvc2022_64/lib/cmake",
           "type": "PATH"
         },
         {

@@ -28,7 +28,16 @@ DisplayInfoWidget::DisplayInfoWidget(Parameters* params, QWidget* parent)
 
 }
 
+DisplayInfoWidget::DisplayInfoWidget(const AllUnifyParams& params, QWidget* parent)
+	: QWidget(parent)
+{
+	m_gridLayout = new QGridLayout(this);
+	m_gridLayout->setContentsMargins(10, 10, 10, 10);
+	m_gridLayout->setSpacing(5);
+	this->setStyleSheet("background-color: #2E2E2E; color: white;");
 
+	buildUIFromUnifyParams(params);
+}
 
 DisplayInfoWidget::~DisplayInfoWidget() {}
 
@@ -386,6 +395,7 @@ void DisplayInfoWidget::onUpdateUnifyParameters(const AllUnifyParams& params)
 
 void DisplayInfoWidget::onBuildUIFromUnifyParameters(const AllUnifyParams& params)
 {
+	LOG_DEBUG(GlobalLog::logger,L"dsddddddddddddddddddddddddddddddddddddddd");
 	buildUIFromUnifyParams(params);
 }
 

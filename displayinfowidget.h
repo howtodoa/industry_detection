@@ -20,6 +20,7 @@ class DisplayInfoWidget : public QWidget
 public:
     // 构造函数直接接收原始参数，完成所有初始化工作
     explicit DisplayInfoWidget(Parameters* params, QWidget* parent = nullptr);
+    explicit DisplayInfoWidget(const AllUnifyParams& params, QWidget* parent = nullptr);
     ~DisplayInfoWidget();
 
 public slots:

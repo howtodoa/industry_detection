@@ -973,19 +973,12 @@ void ParaWidget::onSaveClicked()
         return;
     }
 
-    // --- 【新增调试日志】 ---
-    qDebug() << "\n============ onSaveClicked: Before Commit ============";
-    qDebug() << "Final state of 'updatedParams' before assigning to m_cam->unifyParams:";
-    // 打印几个关键参数的 visible 状态
-    if (updatedParams.contains("Pin_C")) qDebug() << "  -> Pin_C Visible:" << updatedParams["Pin_C"].visible;
-    if (updatedParams.contains("isHaveBpln")) qDebug() << "  -> isHaveBpln Visible:" << updatedParams["isHaveBpln"].visible;
-    // 您可以根据需要添加更多参数
-    // ---
 
     // 5. 应用更改到内存
     m_cam->unifyParams = updatedParams;
     m_cam->RI->updateUnifyParams(m_cam->unifyParams);
-    qDebug() << "onSaveClicked: Committed updatedParams to m_cam->unifyParams."; // 添加日志标识
+	
+
 
     // 6. 调用异步保存
     saveParamsToJsonFile(updatedParams);

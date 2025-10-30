@@ -706,6 +706,11 @@ void RezultInfo::processRangeParameters(Parameters* rangePara)
 void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
 {
 	this->unifyParams = unifyParams;
+
+#ifdef USE_MAIN_WINDOW_FLOWER
+	emit BuildUIFromUnifyParameters(unifyParams);
+#endif
+
 }
 
 void RezultInfo::applyScaleFactors(double scale) // 函数名保持不变

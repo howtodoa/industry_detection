@@ -201,6 +201,7 @@ public:
 
 signals:
     void UpdateParameters(Parameters m_parameters);
+    void BuildUIFromUnifyParameters(const AllUnifyParams& params);
   
 public:
     QList<ProcessedParam> m_processedData;
