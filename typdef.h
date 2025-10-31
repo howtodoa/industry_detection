@@ -10,7 +10,7 @@
 #include <CapacitanceProgram.h>
 #include <QVariant>
 #include "BraidedTape.h"
-
+#include "Api_FlowerPinDetection.h"
 
 
 struct  OutStampResParam;
@@ -82,6 +82,7 @@ namespace LearnPara{
     extern InSideParam inParam4;
     extern InPinParam inParam5;
 	extern InAbutParam inParam6;
+    extern InFlowerPinParam inParam7;
     extern int inNum;//学习的字符数量
    // extern ScoreVector;
 }

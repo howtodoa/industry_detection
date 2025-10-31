@@ -137,8 +137,14 @@ void Imageprocess_Brader::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
+					QElapsedTimer timer;
+					timer.start();  // 开始计时
+
 					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_side(para);
+
+					qint64 elapsed = timer.elapsed();  // 返回毫秒数
+					qDebug() << "执行 scaleDimensions + judge_pin 耗时:" << elapsed << "ms";
 				}
 				else if (ret == 2) {
 					cam_instance->noneDisplay.store(true);
@@ -168,8 +174,14 @@ void Imageprocess_Brader::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
+					QElapsedTimer timer;
+					timer.start();  // 开始计时
+
 					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_pin(para);
+
+					qint64 elapsed = timer.elapsed();  // 返回毫秒数
+					qDebug() << "执行 scaleDimensions + judge_pin 耗时:" << elapsed << "ms";
 				}
 				else if (ret == 1)
 				{

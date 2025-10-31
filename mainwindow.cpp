@@ -35,6 +35,7 @@
 #include "aboutwidget.h"
 #include "algoclass_abut.h"
 #include "rezultinfo_flowerpin.h"
+#include "Api_FlowerPinDetection.h"
 
 namespace AppConfig
 {
@@ -902,7 +903,9 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
 
 void MainWindow::init_algo_Flower()
 {
-
+    ExportFlowerSpace::InitializePosFlowerPin();
+    ExportFlowerSpace::InitializeNegFlowerPin();
+    ExportFlowerSpace::InitializeLookFlowerPin();
 }
 
 void MainWindow::initCameralPara()

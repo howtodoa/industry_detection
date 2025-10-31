@@ -18,7 +18,7 @@ void RezultInfo_FlowerPin::printCheckInfo(const QString& paramName, float actual
         << "|" << limitType << ":" << thresholdValue;
 }
 
-int RezultInfo_FlowerPin::judge_abut(const OutAbutResParam& ret)
+int RezultInfo_FlowerPin::judge_flower_pin(const OutFlowerPinResParam& ret)
 {
 
 

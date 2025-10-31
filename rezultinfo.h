@@ -34,6 +34,7 @@ public:
     virtual int judge_pin(const OutPinParam& ret);
     virtual int judge_top(const OutTopParam& ret);
     virtual int judge_side(const OutSideParam& ret);
+    virtual int judge_flower_pin(const OutFlowerPinResParam& ret);
     virtual int judge_stamp_min(const OutStampResParam& ret);
     float getAdjustedLowerThreshold(const QString& key) const;
     float getAdjustedUpperThreshold(const QString& key) const;
@@ -41,6 +42,7 @@ public:
    void printPaintDataVector(const QVector<PaintDataItem>& dataVector, const QString& description = "");
     void updateActualValues(const OutAbutResParam& ret);
     void updateActualValues(const OutPlateResParam& ret);
+	void updateActualValues(const OutFlowerPinResParam& ret);
     template<typename T>
     bool scaleDimensions(T& data, double scaleFactor)
     {

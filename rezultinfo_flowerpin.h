@@ -9,6 +9,6 @@ public:
 
     void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange) override;
 
-    virtual int judge_abut(const OutAbutResParam& ret) override;
+    virtual int judge_flower_pin(const OutFlowerPinResParam& ret) override;
 
 };

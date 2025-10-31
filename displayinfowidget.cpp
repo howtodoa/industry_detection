@@ -242,26 +242,28 @@ void DisplayInfoWidget::onPaintSend(QVector<PaintDataItem> paintData)
 
 void DisplayInfoWidget::onUpdateRealtimeData(const AllUnifyParams& params)
 {
+	LOG_DEBUG(GlobalLog::logger, L"dsddddddddddddddddddddddddddddddddddddddd");
 	updateDataFromUnifyParams(params);
 }
 
-// ====================================================================
-// 【隔离实现 3】根据 AllUnifyParams 更新实测值、NG 状态和计数
-// 负责：1. 更新实测值 (value) 2. 更新 NG 计数 (ng_count) 3. 设置高亮 (result)
-// ====================================================================
 void DisplayInfoWidget::updateDataFromUnifyParams(const AllUnifyParams& params)
 {
 	// 定义用于高亮 NG 结果的样式
-	const QString NgStyle = "background-color: #F8D7DA; color: #721C24;"; // 浅红背景，深红文字
+	const QString NgStyle = ""; // 浅红背景，深红文字
 	const QString DefaultStyle = ""; // 默认样式
 
 	// 直接迭代传入的 QMap<QString, UnifyParam>
 	for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
-		const QString& baseName = it.key();
+		// const QString& baseName = it.key(); // <--- 此行不再用于查找
 		const UnifyParam& p = it.value();
 
-		if (m_uiRows.contains(baseName) && p.visible) {
-			const auto& rowWidgets = m_uiRows.value(baseName);
+		// 核心修正：使用 UnifyParam::label 作为 m_uiRows 的查找键
+		const QString& lookupKey = p.label;
+
+		// 注意：此处不再检查 p.visible，因为我们假设 m_uiRows 中只存在可见的参数
+		if (m_uiRows.contains(lookupKey))
+		{
+			const auto& rowWidgets = m_uiRows.value(lookupKey);
 
 			// --- 1. 更新实测值 (value) ---
 			// 将 double 类型的 value 格式化为 4 位小数
@@ -270,7 +272,7 @@ void DisplayInfoWidget::updateDataFromUnifyParams(const AllUnifyParams& params)
 
 			// --- 2. 更新 NG 计数 (ng_count) ---
 			// 直接使用 UnifyParam::ng_count 字段来更新标签和内部计数
-			m_ngCounters[baseName] = p.ng_count;
+			m_ngCounters[lookupKey] = p.ng_count;
 			rowWidgets.ngCountLabel->setText(QString::number(p.ng_count));
 
 			// --- 3. 高亮显示 NG 结果 (result) ---
@@ -291,13 +293,9 @@ void DisplayInfoWidget::updateDataFromUnifyParams(const AllUnifyParams& params)
 				rowWidgets.upperLimitLabel->setStyleSheet(NgStyle);
 				rowWidgets.measuredValueLabel->setStyleSheet(NgStyle + "font-weight: bold;");
 			}
-
-			// 调试输出 (可选)
-			// qDebug() << baseName << " updated. Value:" << p.value << " NG Count:" << p.ng_count << " Result:" << (isNg ? "NG" : "PASS");
 		}
 	}
 }
-
 void DisplayInfoWidget::buildUIFromUnifyParams(const AllUnifyParams& params)
 {
 	// 1. 清理旧 UI 和数据
@@ -395,7 +393,6 @@ void DisplayInfoWidget::onUpdateUnifyParameters(const AllUnifyParams& params)
 
 void DisplayInfoWidget::onBuildUIFromUnifyParameters(const AllUnifyParams& params)
 {
-	LOG_DEBUG(GlobalLog::logger,L"dsddddddddddddddddddddddddddddddddddddddd");
 	buildUIFromUnifyParams(params);
 }
 

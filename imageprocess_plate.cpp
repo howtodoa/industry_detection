@@ -32,14 +32,14 @@ void Imageprocess_Plate::run()
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
-				qDebug() << "wait0: " << cam_instance->indentify;
+			
 				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
 				});
-			qDebug() << "wait1: "<<cam_instance->indentify;
+			
 			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
 				continue;
 			}
-			qDebug() << "wait2: " << cam_instance->indentify;
+			
 			currentImagePtr = m_inputQueue->queue.front();
  
 			if (!currentImagePtr || currentImagePtr->empty()) {
@@ -100,11 +100,19 @@ void Imageprocess_Plate::run()
 				ExportSpace::ResultOutPlate(*afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				info.timeStr = QString::number(elapsed).toStdString();
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
+					QElapsedTimer timer1;
+					timer1.start();  // 开始计时
+					//算法复杂度待优化
 					cam_instance->RI->updateActualValues(para);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_plate(para);
+					qint64 elapsed = timer1.elapsed();  // 返回毫秒数
+					qDebug() << "执行 updateActualValues + applyScaleFactors 耗时:" << elapsed << "ms";
+					QString elapsedLogMsg = QString("%1 Plate执行updateActualValues + applyScaleFactors耗时：%2 毫秒").arg(cam_instance->cameral_name).arg(elapsed);
+					LOG_DEBUG(GlobalLog::logger, elapsedLogMsg.toStdWString().c_str());
 					if (ret == 1) ret = -1;
 				}
 				else if (ret == 2) {
@@ -115,7 +123,6 @@ void Imageprocess_Plate::run()
 				else ret = -1;
 				QString logMsg = QString("Plate ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				Sleep(50);
 			}
 			else if (cam_instance->indentify == "Lift") {
 				ret = ExportSpace::RunLift(*currentImagePtr, 0, cam_instance->DI.Angle, true);
@@ -123,7 +130,7 @@ void Imageprocess_Plate::run()
 				ExportSpace::ResultOutLift(*afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 200");
+				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0)
 				{
 					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
@@ -153,11 +160,12 @@ void Imageprocess_Plate::run()
 				OutAbutResParam OutResParam;
 				ExportSpace::ResultOutAbut(*afterImagePtr, OutResParam);
 				qint64 elapsed = timer.elapsed();
+				info.timeStr = QString::number(elapsed).toStdString();
 				cam_instance->RI->updateActualValues(OutResParam);
 				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 				ret = cam_instance->RI->judge_abut(OutResParam);
 				if (ret == 1) ret = -1;
-				std::this_thread::sleep_for(std::chrono::milliseconds(40));
+				//std::this_thread::sleep_for(std::chrono::milliseconds(40));
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 			}
@@ -226,7 +234,7 @@ void Imageprocess_Plate::run()
 				Sleep(20);
 				ret = 0;
 			}
-			info.timeStr = QString::number(timer.elapsed()).toStdString();
+		//	info.timeStr = QString::number(timer.elapsed()).toStdString();
 		}
 		else // 推流的情况
 		{

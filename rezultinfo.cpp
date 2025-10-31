@@ -1001,7 +1001,10 @@ void RezultInfo::updateActualValues(const OutPlateResParam& ret)
     qDebug() << "--- END: 实测值更新完成 (Plate) ---";
 }
 
+void RezultInfo::updateActualValues(const OutFlowerPinResParam& ret)
+{
 
+}
 
 void RezultInfo::printOutPlateResParam(const OutPlateResParam& param)
 {
@@ -1146,6 +1149,11 @@ int RezultInfo::judge_top(const OutTopParam& ret)
 int RezultInfo::judge_side(const OutSideParam& ret)
 {
     return 0;
+}
+
+int RezultInfo::judge_flower_pin(const OutFlowerPinResParam& ret)
+{
+	return 0;
 }
 
 int RezultInfo::judge_stamp_min(const OutStampResParam& ret)

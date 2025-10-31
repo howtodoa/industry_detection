@@ -84,7 +84,7 @@ void LocalFileDetector::run() {
 
         currentFileIndex++; // 移动到下一个文件
 
-        QThread::msleep(500); // 暂停
+        QThread::msleep(300); // 暂停
     }
 
     qDebug() << "LocalFileDetector thread finished processing files (stop requested).";

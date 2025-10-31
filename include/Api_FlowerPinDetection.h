@@ -19,6 +19,7 @@ namespace ExportFlowerSpace {
     MYLIBRARY_API int InitializePosFlowerPin();
     // 执行函数
     MYLIBRARY_API int RunPosFlowerPin(cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
+    MYLIBRARY_API int RunPosFlowerPinDeal(cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
 
     MYLIBRARY_API void GetPosFoilImg(cv::Mat& expectmask);
 
@@ -30,6 +31,7 @@ namespace ExportFlowerSpace {
     MYLIBRARY_API int InitializeNegFlowerPin();
     // 执行函数
     MYLIBRARY_API int RunNegFlowerPin(cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
+    MYLIBRARY_API int RunNegFlowerPinDeal(cv::Mat& SrcImg, InFlowerPinParam& inSideParam);
 
     MYLIBRARY_API void GetNegFoilImg(cv::Mat& expectmask);
 

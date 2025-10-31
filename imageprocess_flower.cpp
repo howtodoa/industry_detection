@@ -93,7 +93,17 @@ void Imageprocess_Flower::run()
 			}
 			else if (cam_instance->indentify == "FlowerPin")
 			{
-				//ret = ExportFlowerSpace::(*currentImagePtr, LearnPara::inParam6);
+				ret = ExportFlowerSpace::RunPosFlowerPin(*currentImagePtr, LearnPara::inParam7);
+				OutFlowerPinResParam para;
+				ExportFlowerSpace::ResultOutPosFlowerPin(*afterImagePtr, para);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				if (ret == 0) {
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_flower_pin(para);
+				}
+				else ret = -1;
 			}
 			else if (cam_instance->indentify == "Pin") {
 				ret = BraidedTapeSpace::RunPin(*currentImagePtr, LearnPara::inParam5);
@@ -246,15 +256,15 @@ void Imageprocess_Flower::run()
 			saveToQueue->cond.notify_one();
 		}
 
-		PaintSend(cam_instance->RI->m_PaintData);
+		UpdateRealtimeData(cam_instance->RI->unifyParams);
 
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
-			emit imageProcessed_Brader(backupImagePtr, info);
+			emit imageProcessed(backupImagePtr, info);
 
 		}
 		else {
-			emit imageProcessed_Brader(afterImagePtr, info);
+			emit imageProcessed(afterImagePtr, info);
 
 		}
 

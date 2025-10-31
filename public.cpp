@@ -70,6 +70,8 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
+InFlowerPinParam LearnPara::inParam7 = { false,0,180,0,0 };
+
 int LearnPara::inNum = 15;
 namespace GlobalLog {
 	Mz_Log::COperation logger;

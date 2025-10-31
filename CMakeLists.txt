@@ -194,6 +194,7 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/MZ_CameraDevice.lib"
         "${CMAKE_SOURCE_DIR}/lib/CapacitanceProgram.lib"
         "${CMAKE_SOURCE_DIR}/lib/BraidedTape.lib"
+        "${CMAKE_SOURCE_DIR}/lib/FlowerPinDetection.lib"
         ${OPENVINO_LIBS}
         ${OPENCV_LIB_TO_LINK}
         Dbghelp
