@@ -102,8 +102,32 @@ void Imageprocess_Flower::run()
 					cam_instance->RI->updateActualValues(para);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_flower_pin(para);
+					if (ret == 1) ret = -1;
 				}
-				else ret = -1;
+				else 
+				{
+					// --- 赋单值数据 ---
+					para.flowerNum = 5;            // 花瓣数量
+					para.areaFoil = 2.345f;        // 箔裂面积
+					para.disFlw2L = 1.05f;         // 花到L2距离
+					para.disFlw2Pin2 = 8.123f;     // 最后一朵花到针距离 (NG/OK检测项)
+					para.disFlw2Pin = 3.98f;       // 第一朵花到针距离
+					para.disFlowerAngle = 90.5f;   // 花的角度
+					para.disPinAngle = -15.0f;     // 针的角度
+					para.disL2Heigh = 0.55f;       // L2的高度
+					
+					para.flowerArea = { 10.1f, 9.8f, 10.3f, 12.01f, 9.9f }; // 12.01f 可能是 NG 值
+
+					para.flowetLength = { 5.2f, 5.1f, 5.0f, 4.9f, 5.3f ,2.3f,2.3f,2.5f};
+
+					para.allFlowerLength = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f };
+
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_flower_pin(para);
+
+				}
+				//else ret = -1;
 			}
 			else if (cam_instance->indentify == "FlowerPinNeg")
 			{

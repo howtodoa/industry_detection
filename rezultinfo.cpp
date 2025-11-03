@@ -713,9 +713,9 @@ void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
 
 }
 
-void RezultInfo::applyScaleFactors(double scale) 
+void RezultInfo::applyScaleFactors(double scale)
 {
-    qDebug() << "--- START: 应用缩放因子 (New Logic Debug) ---"; // 修改日志标识
+    qDebug() << "--- START: 应用缩放因子 (New Logic Debug) ---";
     qDebug() << "  -> Global Scale Passed In:" << scale;
 
     // 遍历成员变量 unifyParams 中的所有配置项
@@ -728,54 +728,62 @@ void RezultInfo::applyScaleFactors(double scale)
 
         // --- 打印基础信息 ---
         qDebug().nospace() << "Checking Param: " << config.label;
-        qDebug().nospace() << "  -> Before Scaling: config.value = " << originalValue;
-        qDebug().nospace() << "  -> config.scaleFactor = " << config.scaleFactor;
-        qDebug().nospace() << "  -> config.lowerLimit = " << config.lowerLimit;
-        qDebug().nospace() << "  -> config.upperLimit = " << config.upperLimit;
-        // ---
+        // ... (省略日志打印，保持与原代码一致) ...
 
         // --- 【核心逻辑】判断是否应该跳过 ---
-        // 使用 qFuzzyCompare 安全比较 double
         bool lowerIsUnset = qFuzzyCompare(config.lowerLimit, UNIFY_UNSET_VALUE);
         bool upperIsUnset = qFuzzyCompare(config.upperLimit, UNIFY_UNSET_VALUE);
-        bool shouldSkip = lowerIsUnset && upperIsUnset; // 只有两者都 unset 才跳过
+        bool shouldSkip = lowerIsUnset && upperIsUnset;
+
         qDebug() << "  -> Condition (lower == UNSET && upper == UNSET) Result:" << shouldSkip;
-        // ---
 
         if (shouldSkip)
         {
             qDebug() << "    -> Condition BOTH UNSET met. Skipping scaling.";
             qDebug().nospace() << "    -> LOG: Skipped: " << config.label
-                << " | Value remains: " << originalValue; // 保持原始值
+                << " | Value remains: " << originalValue;
         }
         else // 不跳过，需要应用缩放
         {
             qDebug() << "    -> Condition NOT both UNSET. Applying scaling...";
 
             // --- 【核心逻辑】确定因子 ---
-            // 使用 qFuzzyCompare 安全比较 double
             bool useGlobalScale = qFuzzyCompare(config.scaleFactor, 1.0);
             double factor = useGlobalScale ? scale : config.scaleFactor;
             qDebug() << "      -> Use Global Scale (" << scale << ") ?" << useGlobalScale;
             qDebug().nospace() << "      -> Calculated Factor = " << factor;
             // ---
 
-            // --- 执行乘法操作 ---
+            // **1. 缩放 config.value (单值)**
             config.value *= factor;
-            qDebug().nospace() << "      -> After Scaling: config.value = " << config.value;
-            // ---
+            qDebug().nospace() << "      -> After Scaling (Value): config.value = " << config.value;
+
+            // **2. 【新增】缩放 config.extraData 中的 QVariantList**
+            if (config.extraData.isValid() && config.extraData.type() == QVariant::List) {
+                QVariantList list = config.extraData.toList();
+                QVariantList scaledList;
+
+                for (const QVariant& val : list) {
+                    // 假设列表中的元素都是浮点数，进行缩放
+                    double scaledVal = val.toDouble() * factor;
+                    scaledList.append(scaledVal);
+                }
+
+                // 将缩放后的列表重新赋给 extraData
+                config.extraData = scaledList;
+                qDebug() << "      -> After Scaling (List): config.extraData (Size: " << scaledList.size() << ") Scaled Successfully.";
+            }
 
             // 打印日志
             qDebug().nospace() << "      -> LOG: " << config.label
-                << " | Original: " << originalValue
+                << " | Original Value: " << originalValue
                 << " * Factor: " << factor
-                << " = Final Scaled: " << config.value;
+                << " = Final Scaled Value: " << config.value;
         }
     }
 
-    qDebug() << "--- END: 缩放因子应用完成 (New Logic Debug) ---"; // 修改日志标识
+    qDebug() << "--- END: 缩放因子应用完成 (New Logic Debug) ---";
 }
-
 
 void RezultInfo::updateActualValues(const OutAbutResParam& ret)
 {

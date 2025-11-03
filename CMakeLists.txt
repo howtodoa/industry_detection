@@ -66,6 +66,7 @@ set(SOURCES
     imageprocess_flower.cpp
     rezultinfo_flowerpin.cpp
     rezultinfo_look.cpp
+    displayinfowidget_flower.cpp
 )
 
 set(HEADERS
@@ -128,6 +129,7 @@ set(HEADERS
     imageprocess_flower.h
     rezultinfo_flowerpin.h
     rezultinfo_look.h
+    displayinfowidget_flower.h
 )
 
 set(UI_FILES

@@ -787,6 +787,8 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
     const AllUnifyParams unifyParams,
     QSize displaySize)
 {
+    // ... (1-7 步：初始化和设置字体，保持不变) ...
+
     // 1. 安全检查
     if (pixmap.isNull()) {
         qWarning() << "传入的 pixmap 为空，无法绘制。";
@@ -812,6 +814,9 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
     constexpr double X_MARGIN_RATIO = 0.01;
     constexpr double Y_MARGIN_RATIO = 0.05;
 
+    // **新增/修改参数：每行显示的最大元素个数 (固定为 4 个)**
+    constexpr int MAX_ELEMENTS_PER_LINE = 4;
+
     // 6. 根据“实际”显示尺寸，计算出字体/元素在高清画布上应有的像素大小
     if (actualOnScreenSize.height() == 0) return;
 
@@ -836,7 +841,7 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
 
     QColor defaultColor = Qt::green;
 
-    // --- 统计需要绘制的项 ---
+    // --- 统计需要绘制的项 (修改统计逻辑) ---
     int totalItemsToDraw = 0;
     for (auto it = unifyParams.constBegin(); it != unifyParams.constEnd(); ++it)
     {
@@ -844,8 +849,10 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
         if ((item.check && item.visible) || item.result != 1)
         {
             if (item.extraData.isValid() && item.extraData.type() == QVariant::List) {
-                // 数组项：标签占 1 行 + 每个元素占 1 行
-                totalItemsToDraw += (1 + item.extraData.toList().size());
+                int listSize = item.extraData.toList().size();
+                // 数组项：标签占 1 行 + 数据行 (按 MAX_ELEMENTS_PER_LINE 分组)
+                int dataLines = (listSize + MAX_ELEMENTS_PER_LINE - 1) / MAX_ELEMENTS_PER_LINE;
+                totalItemsToDraw += (1 + dataLines);
             }
             else {
                 totalItemsToDraw++; // 单值项只占 1 行
@@ -892,13 +899,14 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
             // -------------------------------------------------------------
             if (item.extraData.isValid() && item.extraData.type() == QVariant::List) {
 
-                // --- 数组类型：标签和每个元素占一行 ---
+                // --- 数组类型：标签和每个元素组占一行 ---
                 QVariantList list = item.extraData.toList();
+                int listSize = list.size();
 
                 // 1. 绘制标签行
                 QString labelText = QString("%1:").arg(item.label);
 
-                // 换列逻辑检查
+                // 换列逻辑检查 (标签行)
                 if (currentRow >= maxItemsPerColumn && numColumns == 2) {
                     currentRow = 0;
                     currentColumn = 2;
@@ -912,11 +920,12 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
                 painter.drawText(currentX, y_label + fontSizeOnCanvas, labelText);
                 currentRow++; // 标签占一行
 
-                // 2. 绘制每个元素行
+                // 2. 绘制分组元素行
+                int currentElementIndex = 0;
                 int partNumber = 1;
-                for (const QVariant& val : list) {
 
-                    // 换列逻辑检查
+                while (currentElementIndex < listSize) {
+                    // 换列逻辑检查 (数据行)
                     if (currentRow >= maxItemsPerColumn && numColumns == 2) {
                         currentRow = 0;
                         currentColumn = 2;
@@ -926,11 +935,17 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
                         goto END_OF_DRAWING_LOOP;
                     }
 
-                    // 格式化当前值
-                    QString formattedValue = QString::number(val.toDouble(), 'f', 3);
+                    // 获取当前行的元素
+                    QStringList strList;
+                    int elementsInThisLine = qMin(MAX_ELEMENTS_PER_LINE, listSize - currentElementIndex);
 
-                    // 文本格式：  花瓣N: 值
-                    QString lineText = QString("  花瓣%1: %2").arg(partNumber).arg(formattedValue);
+                    for (int i = 0; i < elementsInThisLine; ++i) {
+                        // 格式化当前值 (保留三位小数)
+                        strList.append(QString::number(list.at(currentElementIndex + i).toDouble(), 'f', 3));
+                    }
+
+                    // 文本格式：  花瓣N: 值1, 值2, 值3, 值4
+                    QString lineText = QString("  花瓣%1: %2").arg(partNumber).arg(strList.join(", "));
 
                     int y_data = yMarginOnCanvas + currentRow * totalRowHeight;
 
@@ -938,6 +953,7 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
                     painter.drawText(currentX, y_data + fontSizeOnCanvas, lineText);
 
                     // 更新计数器
+                    currentElementIndex += elementsInThisLine; // 移动到下一个分组的起始点
                     partNumber++;
                     currentRow++;
 
@@ -951,7 +967,7 @@ void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
             }
             else {
                 // --- 单值类型：只占一行 (保持不变) ---
-                QString formattedValue = QString::number(item.value, 'f', 3);
+                QString formattedValue = QString::number(item.value, 'f', 2);
                 QString resultText = (item.result != 1) ? "" : "";
 
                 // 完整文本格式：标签: 实测值 [结果]

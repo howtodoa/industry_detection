@@ -50,9 +50,9 @@ private:
     void updateLimitLabels(Parameters* params);
     //新结构兼容函数
 
-    void buildUIFromUnifyParams(const AllUnifyParams& params);
+    virtual void buildUIFromUnifyParams(const AllUnifyParams& params);
 
-    void updateLimitLabelsFromUnifyParams(const AllUnifyParams& params);
+    virtual void updateLimitLabelsFromUnifyParams(const AllUnifyParams& params);
 
     struct TableRow {
         QLabel* nameLabel = nullptr;

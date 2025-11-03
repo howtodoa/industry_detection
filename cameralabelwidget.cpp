@@ -1490,7 +1490,7 @@ void CameraLabelWidget::onImageProcessed_flower(std::shared_ptr<cv::Mat> process
 
 		if (m_cam->video == false)
 		{
-			if (m_cam->noneDisplay.load() == false && info.ret == -1 || info.ret == 0)
+			if (m_cam->noneDisplay.load() == false)
 			{				
 				ImagePaint::drawPaintDataEx_flower(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
 			}			
