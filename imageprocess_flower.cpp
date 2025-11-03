@@ -105,6 +105,34 @@ void Imageprocess_Flower::run()
 				}
 				else ret = -1;
 			}
+			else if (cam_instance->indentify == "FlowerPinNeg")
+			{
+				ret = ExportFlowerSpace::RunNegFlowerPin(*currentImagePtr, LearnPara::inParam8);
+				OutFlowerPinResParam para;
+				ExportFlowerSpace::ResultOutNegFlowerPin(*afterImagePtr, para);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				if (ret == 0) {
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_flower_pin(para);
+				}
+				else ret = -1;
+			}
+			else if (cam_instance->indentify == "FlowerLook")
+			{
+				ret = ExportFlowerSpace::RunLookFlowerPin(*currentImagePtr, LearnPara::inParam9);
+				OutLookPinResParam para; 
+				ExportFlowerSpace::ResultOutLookFlowerPin(*afterImagePtr, para);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				if (ret == 0) {
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_look(para);
+				}
+				else ret = -1;
+			}
 			else if (cam_instance->indentify == "Pin") {
 				ret = BraidedTapeSpace::RunPin(*currentImagePtr, LearnPara::inParam5);
 				OutPinParam para;

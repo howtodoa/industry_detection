@@ -9,6 +9,8 @@ struct InSideParam
 	int buttonThresh = 120;                //编带下层二值化
 	int topThresh = 190;                   //编带上层二值化
 	bool isColor = false;                  //套管颜色是否判定，true为判定
+	float conf = 0.0;                      //置信度
+	float nms = 0.0;                       //非极大值抑制
 };
 
 struct OutSideParam
@@ -34,6 +36,8 @@ struct InTopParam
 	float angleNum;               //旋转角度
 	bool al_core;                //学习使能
 	bool isExproofExist;          //防爆阀是否存在，true是存在，就要检测
+	float conf = 0.0;                      //置信度
+	float nms = 0.0;                       //非极大值抑制
 };
 
 struct OutTopParam
@@ -54,6 +58,8 @@ struct InPinParam
 	bool al_core=false;
 	int pinLength = 0;
 	int holeThresh = 0;
+	float conf = 0.0;                      //置信度
+	float nms = 0.0;                       //非极大值抑制
 };
 
 struct OutPinParam

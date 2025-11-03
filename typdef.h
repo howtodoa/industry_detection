@@ -83,6 +83,8 @@ namespace LearnPara{
     extern InPinParam inParam5;
 	extern InAbutParam inParam6;
     extern InFlowerPinParam inParam7;
+    extern InFlowerPinParam inParam8;
+    extern InLookPinParam inParam9;
     extern int inNum;//学习的字符数量
    // extern ScoreVector;
 }
@@ -179,6 +181,7 @@ struct SimpleParam {
     double value;
 };
 
+struct ExpandParam {};
 
 
 constexpr double UNIFY_UNSET_VALUE = -9999.0;
@@ -195,26 +198,31 @@ struct UnifyParam
     double value;       // 范围模式下的标定值/基准值；布尔模式下期望的布尔结果值 (1.0 = true)
     QString label;      // 中文名称 (映射变量)
     QString unit;       // 单位
-	int result;        // 检测结果：1 通过，0 不通过
+    int result;        // 检测结果：1 通过，0 不通过
     int64_t count;      // 总检测次数
     int64_t ng_count;   // NG 次数
     double scaleFactor; // 缩放因子
+    double leranValue;  // 学习值
+    QVariant extraData; // 额外数据字段，灵活存储其他信息  
+    ExpandParam expandParam; // 扩展参数结构体
 
     UnifyParam()
         : upperLimit(UNIFY_UNSET_VALUE),
         lowerLimit(UNIFY_UNSET_VALUE),
         upfix(0.0),
         lowfix(0.0),
-        need_value(true), 
+        need_value(true),
         check(true),
         visible(true),
         value(0),
         label(""),
         unit(""),
-		result(0),
+        result(0),
         count(0),
         ng_count(0),
-        scaleFactor(1.0)
+        scaleFactor(1.0),
+        leranValue(0),
+        extraData(0.0)
     {
     }
     QString toString() const
@@ -327,6 +335,59 @@ struct UnifyParam
             qDebug().nospace() << "  -> FAIL: Value " << this->value << " is OUTSIDE total range.";
             return false;
         }
+    }
+    bool checkQListRange()
+    {
+        // 1. 检查 extraData 是否是有效的 QVariantList
+        if (!this->extraData.isValid() || this->extraData.type() != QVariant::List) {
+            qDebug() << "  -> QList Check: extraData is not a valid QVariantList or is empty. Passing by default.";
+            return true;
+        }
+
+        // 2. 检查上下限是否设置
+        bool lowerIsUnset = qFuzzyCompare(this->lowerLimit, UNIFY_UNSET_VALUE);
+        bool upperIsUnset = qFuzzyCompare(this->upperLimit, UNIFY_UNSET_VALUE);
+
+        // 如果上下限均未设置，则跳过数组范围检测（但数组存在）
+        if (lowerIsUnset && upperIsUnset) {
+            qDebug() << "  -> QList Check: Range limits are unset. Passing by default.";
+            return true;
+        }
+
+        // 3. 计算包含补偿值的实际有效范围
+        // 补偿值 (lowfix, upfix) 对数组的每一个数都生效
+        const double infinity = std::numeric_limits<double>::infinity();
+
+        // effectiveLower = 下限 - 下限补偿值
+        const double effectiveLower = lowerIsUnset ? -infinity : (this->lowerLimit - this->lowfix);
+
+        // effectiveUpper = 上限 + 上限补偿值
+        const double effectiveUpper = upperIsUnset ? infinity : (this->upperLimit + this->upfix);
+
+        const QVariantList list = this->extraData.toList();
+
+        // 4. 遍历并比较数组中的每个元素
+        for (int i = 0; i < list.size(); ++i)
+        {
+            // 从 QVariant 中取出数值（假设存储的是 float/double）
+            double value = list.at(i).toDouble();
+
+            // 【核心判断】：检查元素是否在有效范围内
+            bool isPassed = (value >= effectiveLower) && (value <= effectiveUpper);
+
+            if (!isPassed)
+            {
+                qDebug().nospace() << "  -> QList Check FAIL at index " << i
+                    << ": Value " << value
+                    << " is outside [" << effectiveLower << ", " << effectiveUpper << "]";
+
+                // 只要有一个元素不通过，就返回 false
+                return false;
+            }
+        }
+
+        qDebug() << "  -> QList Check PASS: All elements are within range.";
+        return true; // 所有元素都通过
     }
 };
 

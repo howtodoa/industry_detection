@@ -11,22 +11,16 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDialog>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QComboBox>
 #include <QLineEdit>
 #include <QCheckBox>
-#include <QPushButton>
-#include <QMap>
-#include <QVariant>
-#include <QMessageBox>
-#include <QObject>
 #include <QtConcurrent/QtConcurrentRun>
 
 AlgoClass_Side::AlgoClass_Side(QObject* parent)
     : AlgoClass{ parent }
-{}
+{
+}
 
 AlgoClass_Side::AlgoClass_Side(QString algopath, int al_core, float* Angle, QObject* parent)
     : AlgoClass(algopath, parent),
@@ -36,25 +30,22 @@ AlgoClass_Side::AlgoClass_Side(QString algopath, int al_core, float* Angle, QObj
     QVariantMap map = FileOperator::readJsonMap(algopath);
 
     if (map.contains("charAngleNum"))
-    {
-        ParamDetail detail(map.value("charAngleNum").toMap());
-        LearnPara::inParam4.charAngleNum = detail.value.toFloat();
-    }
+        LearnPara::inParam4.charAngleNum = ParamDetail(map.value("charAngleNum").toMap()).value.toFloat();
+
     if (map.contains("buttonThresh"))
-    {
-        ParamDetail detail(map.value("buttonThresh").toMap());
-        LearnPara::inParam4.buttonThresh = detail.value.toInt();
-    }
+        LearnPara::inParam4.buttonThresh = ParamDetail(map.value("buttonThresh").toMap()).value.toInt();
+
     if (map.contains("topThresh"))
-    {
-        ParamDetail detail(map.value("topThresh").toMap());
-        LearnPara::inParam4.topThresh = detail.value.toInt();
-    }
+        LearnPara::inParam4.topThresh = ParamDetail(map.value("topThresh").toMap()).value.toInt();
+
     if (map.contains("isColor"))
-    {
-        ParamDetail detail(map.value("isColor").toMap());
-        LearnPara::inParam4.isColor = detail.value.toBool();
-    }
+        LearnPara::inParam4.isColor = ParamDetail(map.value("isColor").toMap()).value.toBool();
+
+    if (map.contains("conf"))
+        LearnPara::inParam4.conf = ParamDetail(map.value("conf").toMap()).value.toFloat();
+
+    if (map.contains("nms"))
+        LearnPara::inParam4.nms = ParamDetail(map.value("nms").toMap()).value.toFloat();
 }
 
 QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
@@ -86,6 +77,22 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
     topThreshLayout->addWidget(editTopThresh);
     layout->addLayout(topThreshLayout);
 
+    // 置信度
+    QHBoxLayout* confLayout = new QHBoxLayout;
+    QLabel* lblConf = new QLabel("置信度:", panel);
+    QLineEdit* editConf = new QLineEdit(QString::number(LearnPara::inParam4.conf), panel);
+    confLayout->addWidget(lblConf);
+    confLayout->addWidget(editConf);
+    layout->addLayout(confLayout);
+
+    // 非极大值抑制
+    QHBoxLayout* nmsLayout = new QHBoxLayout;
+    QLabel* lblNms = new QLabel("NMS:", panel);
+    QLineEdit* editNms = new QLineEdit(QString::number(LearnPara::inParam4.nms), panel);
+    nmsLayout->addWidget(lblNms);
+    nmsLayout->addWidget(editNms);
+    layout->addLayout(nmsLayout);
+
     // 套管颜色判定
     QHBoxLayout* colorLayout = new QHBoxLayout;
     QLabel* lblColor = new QLabel("颜色判定:", panel);
@@ -98,15 +105,16 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
     // 保存按钮
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
-
     layout->addStretch();
 
-    // 保存按钮点击时更新原参数
+    // 保存按钮更新数据
     connect(btnSave, &QPushButton::clicked, this, [=]() mutable {
         LearnPara::inParam4.charAngleNum = editCharAngle->text().toFloat();
         LearnPara::inParam4.buttonThresh = editButtonThresh->text().toInt();
         LearnPara::inParam4.topThresh = editTopThresh->text().toInt();
         LearnPara::inParam4.isColor = chkColor->isChecked();
+        LearnPara::inParam4.conf = editConf->text().toFloat();
+        LearnPara::inParam4.nms = editNms->text().toFloat();
         saveParamAsync();
         });
 
@@ -115,19 +123,18 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
 
 void AlgoClass_Side::saveParamAsync()
 {
-    // 创建并填充 QVariantMap
     QVariantMap mapToSave;
-
+    
     mapToSave["charAngleNum"] = QVariantMap{ {"值", LearnPara::inParam4.charAngleNum} };
     mapToSave["buttonThresh"] = QVariantMap{ {"值", LearnPara::inParam4.buttonThresh} };
     mapToSave["topThresh"] = QVariantMap{ {"值", LearnPara::inParam4.topThresh} };
     mapToSave["isColor"] = QVariantMap{ {"值", LearnPara::inParam4.isColor} };
+    mapToSave["conf"] = QVariantMap{ {"值", LearnPara::inParam4.conf} };
+    mapToSave["nms"] = QVariantMap{ {"值", LearnPara::inParam4.nms} };
 
-    // 捕获文件路径和数据
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;
 
-    // 运行异步任务
     QtConcurrent::run([filePath, dataToSave]() {
         FileOperator::writeJsonMap(filePath, dataToSave);
         });

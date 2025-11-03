@@ -15,10 +15,10 @@ public:
     explicit OutPutThread(QObject* parent = nullptr);
     ~OutPutThread() override;
 
-    void stop();  // Íâ²¿µ÷ÓÃÒÔ°²È«½áÊøÏß³Ì
+    void stop();  // å¤–éƒ¨è°ƒç”¨ä»¥å®‰å…¨ç»“æŸçº¿ç¨‹
 
 protected:
-    void run() override;  // Ïß³ÌÖ´ĞĞÌå,ÓÃrun¿ÉÒÔ´ó´ó¼õÉÙÀà½á¹¹µÄ¸´ÔÓ³Ì¶È
+    void run() override;  // çº¿ç¨‹æ‰§è¡Œä½“,ç”¨runå¯ä»¥å¤§å¤§å‡å°‘ç±»ç»“æ„çš„å¤æ‚ç¨‹åº¦
 
 private:
     std::atomic<bool> m_running{ true };

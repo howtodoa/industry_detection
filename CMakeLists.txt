@@ -65,6 +65,7 @@ set(SOURCES
     outputhread.cpp
     imageprocess_flower.cpp
     rezultinfo_flowerpin.cpp
+    rezultinfo_look.cpp
 )
 
 set(HEADERS
@@ -126,6 +127,7 @@ set(HEADERS
     outputhread.h
     imageprocess_flower.h
     rezultinfo_flowerpin.h
+    rezultinfo_look.h
 )
 
 set(UI_FILES
@@ -140,7 +142,7 @@ set(RC_FILE
     application.rc
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     #target_compile_definitions(${PROJECT_NAME} PRIVATE QT_NO_DEBUG_OUTPUT)

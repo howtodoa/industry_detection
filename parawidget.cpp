@@ -1548,6 +1548,9 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
             if (m_cam->indentify == "Side") LearnPara::inParam4.imgAngleNum = angleValue;
             if (m_cam->indentify == "Pin") LearnPara::inParam5.angleNum = angleValue;
             if (m_cam->indentify == "Abut") LearnPara::inParam6.angleNum = angleValue;
+            if(m_cam->indentify=="FlowerPin") LearnPara::inParam7.imgAngleNum = angleValue;
+            if (m_cam->indentify == "FlowerPinNeg") LearnPara::inParam8.imgAngleNum = angleValue;
+            if (m_cam->indentify == "FlowerLook") LearnPara::inParam9.imgAngleNum = angleValue;
             emit SaveDebugInfo(DI);
         }
         });

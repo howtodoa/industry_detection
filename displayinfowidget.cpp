@@ -322,6 +322,7 @@ void DisplayInfoWidget::buildUIFromUnifyParams(const AllUnifyParams& params)
 	for (const auto& p : orderedParams) {
 		// 仅处理可见的参数
 		if (!p.visible) continue;
+		if (p.extraData.type()== qMetaTypeId<QList<double>>()) continue;
 		const QString& baseName = p.label;
 
 		// 格式化上下限 (使用 double 值)

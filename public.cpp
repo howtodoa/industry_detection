@@ -40,15 +40,15 @@ InStampParam LearnPara::inParam2 = {
 };
 
 InTopParam LearnPara::inParam3 = {
-	-90,false ,false
+	-90,false ,false,0.5,0.3
 };
 
 InSideParam LearnPara::inParam4 = {
- false,-90,90,40,100,false
+ false,-90,90,40,100,false,0.5,0.3
 };
 
 InPinParam LearnPara::inParam5 = {
- 0,999,0,40,200,false,0,0
+ 0,999,0,40,200,false,0,0,0.5,0.3
 };
 
 InAbutParam LearnPara::inParam6 = {
@@ -70,8 +70,11 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
-InFlowerPinParam LearnPara::inParam7 = { false,0,180,0,0 };
+InFlowerPinParam LearnPara::inParam7 = { false,0,220,2,4 };
 
+InFlowerPinParam LearnPara::inParam8 = { false,0,180,2,4 };
+
+InLookPinParam LearnPara::inParam9 = { false,0};
 int LearnPara::inNum = 15;
 namespace GlobalLog {
 	Mz_Log::COperation logger;

@@ -18,7 +18,6 @@
 #include <QThread>
 #include <windows.h>
 #include <tlhelp32.h>
-#include <windows.h>
 #include <dwmapi.h>
 #include <CapacitanceProgram.h>
 #include "rezultinfo_plate.h"
@@ -32,10 +31,12 @@
 #include "algoclass_plate.h"
 #include "algoclass_pin.h"
 #include "algoclass_side.h"
+#include "algoclass_top.h"
 #include "aboutwidget.h"
 #include "algoclass_abut.h"
 #include "rezultinfo_flowerpin.h"
 #include "Api_FlowerPinDetection.h"
+#include "rezultinfo_look.h"
 
 namespace AppConfig
 {
@@ -1356,6 +1357,7 @@ void MainWindow::initcams(int camnumber)
        {
            cam->AC = new AlgoClass_Abut(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
+		   LearnPara::inParam6.angleNum = caminfo[i - 1].Angle; 
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Abut(cam->unifyParams , nullptr);
        }
@@ -1390,7 +1392,7 @@ void MainWindow::initcams(int camnumber)
        else  if (caminfo[i - 1].mapping == "Top")
        {
            cam->RI = new RezultInfo_Top(&cam->RC->m_parameters, nullptr);
-           cam->AC = new AlgoClass(cam->algopath,nullptr);
+           cam->AC = new AlgoClass_Top(cam->algopath, 1, &cam->DI.Angle, nullptr);
            LearnPara::inParam3.angleNum = caminfo[i - 1].Angle;
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->ScalePath = caminfo[i - 1].path + "/scale-top.json";
@@ -1421,7 +1423,7 @@ void MainWindow::initcams(int camnumber)
        {
            cam->RI = new RezultInfo_Side(&cam->RC->m_parameters, nullptr);
            cam->AC = new AlgoClass_Side(cam->algopath, 0, &cam->DI.Angle, nullptr);
-           LearnPara::inParam4.imgAngleNum = caminfo[i - 1].Angle;
+          // LearnPara::inParam4.imgAngleNum = caminfo[i - 1].Angle;
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->ScalePath = caminfo[i - 1].path + "/scale-side.json";
            cam->ScaleArray = cam->RI->initScale(cam->ScalePath);
@@ -1431,8 +1433,25 @@ void MainWindow::initcams(int camnumber)
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
+		   LearnPara::inParam7.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+         }
+       else if (caminfo[i - 1].mapping == "FlowerPinNeg")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam8.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+           }
+       else if (caminfo[i - 1].mapping == "FlowerLook")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
            }
        cam->cameral_name=caminfo[i-1].name;
        cam->rounte=caminfo[i-1].rounte;

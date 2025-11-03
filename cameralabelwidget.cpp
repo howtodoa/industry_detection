@@ -424,7 +424,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 #else USE_MAIN_WINDOW_FLOWER
 	this->m_imageProcessor = new Imageprocess_Flower(cam, m_saveQueue, this);
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
-		this, &CameraLabelWidget::onImageProcessed_plate);
+		this, &CameraLabelWidget::onImageProcessed_flower);
 
 #endif // USE_MAIN_WINDOW_CAPACITY
 
@@ -1457,6 +1457,106 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 
 }
 
+void CameraLabelWidget::onImageProcessed_flower(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
+{
+	qDebug() << "this isonImageProcessed info.ret=:" << info.ret;
+	if (!processedImagePtr || processedImagePtr->empty()) {
+		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
+		return;
+	}
+	if (info.ret == -1)
+	{
+		dataToSave.work_path = dataToSave.savePath_NG;
+		this->ngcount->fetch_add(1);
+	}
+	else dataToSave.work_path = dataToSave.savePath_OK;
+	this->sumcount->fetch_add(1);
+	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
+
+
+	QElapsedTimer timer;
+	timer.start();  // 开始计时
+
+
+	//转换显示
+	QImage displayImage = convertMatToQImage(*processedImagePtr);
+	//      processedImagePtr.reset();
+			// 2. 检查转换是否成功并显示
+	if (!displayImage.isNull()) {
+		// 3. 将 QImage 深拷贝到成员变量 currentPixmap8
+		//this->currentPixmap = QPixmap::fromImage(displayImage).copy();
+		this->currentPixmap = QPixmap::fromImage(displayImage);
+		if (CheckPixmap(this->currentPixmap) == -1) return;
+
+		if (m_cam->video == false)
+		{
+			if (m_cam->noneDisplay.load() == false && info.ret == -1 || info.ret == 0)
+			{				
+				ImagePaint::drawPaintDataEx_flower(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
+			}			
+			m_cam->noneDisplay.store(false);
+			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
+
+		}
+		std::shared_ptr<cv::Mat> afterImagePtr;
+		try
+		{
+			cv::Mat mat = QPixmapToMat(currentPixmap).clone();
+			afterImagePtr = std::make_shared<cv::Mat>(mat);
+		}
+		catch (...)
+		{
+			GlobalLog::logger.Mz_AddLog(L"!!! 捕获到致命错误 ...");
+			return; // 失败了，直接从函数返回
+		}
+
+		if (!afterImagePtr || afterImagePtr->empty()) {
+			LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
+			return;
+		}
+
+		dataToSave.imagePtr = afterImagePtr; // shared_ptr 的浅拷贝，引用计数增加
+
+
+		// 存图
+		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && info.ret == -1)))
+		{
+			std::unique_lock<std::mutex> lock(saveToQueue->mutex); // 获取互斥锁，保护保存队列
+
+			if (saveToQueue->queue.size() > 100)
+			{
+				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
+			}
+			else
+			{
+				saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列
+				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+
+			}
+			//      saveToQueue->queue.push_back(dataToSave); // 将 SaveData 对象推入队列
+			//          qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+		}
+		saveToQueue->cond.notify_one(); // 通知保存线程
+		// 4. 将深拷贝后的 QPixmap 显示在 ZoomableLabel 中
+ //   this->currentPixmap = QPixmap();
+		if (check_flag.load() == true)
+		{
+			parawidget->imageViewer->setPixmap(this->currentPixmap);
+			check_flag.store(false);
+		}
+		else if (FullScreen.load() == false)imageLabel->setPixmap(this->currentPixmap);
+		else emit FullShow(this->currentPixmap);
+		qDebug() << "图像已成功深拷贝并显示在 ZoomableLabel 中。";
+
+	}
+	else {
+		qWarning() << "CameraLabelWidget: 转换图像用于显示失败，无法显示。";
+		LOG_DEBUG(GlobalLog::logger, _T("displayImage ptr null"));
+	}
+	qint64 elapsed = timer.elapsed();  // 获取经过的毫秒数
+	qDebug() << "显示耗时：" << elapsed << "毫秒";
+}
+
 
 void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
 {
@@ -1547,7 +1647,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		saveToQueue->cond.notify_one(); // 通知保存线程
 
 
-		if(this->ngDisplay.load()==false || m_cam->video.load()==true) FullScreenWindow::ShowOriginalSize(currentPixmap,true);
+		if(this->ngDisplay.load()==false || m_cam->video.load()==true || m_cam->DI.Shield==true) FullScreenWindow::ShowOriginalSize(currentPixmap,true);
 		else
 		{
 			FullScreenWindow::ShowOriginalSize(currentPixmap, false);

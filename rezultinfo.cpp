@@ -713,7 +713,7 @@ void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
 
 }
 
-void RezultInfo::applyScaleFactors(double scale) // 函数名保持不变
+void RezultInfo::applyScaleFactors(double scale) 
 {
     qDebug() << "--- START: 应用缩放因子 (New Logic Debug) ---"; // 修改日志标识
     qDebug() << "  -> Global Scale Passed In:" << scale;
@@ -875,6 +875,8 @@ void RezultInfo::updateActualValues(const OutAbutResParam& ret)
     qDebug() << "--- END: 实测值更新完成 ---";
 }
 
+
+
 void RezultInfo::updateActualValues(const OutPlateResParam& ret)
 {
     qDebug() << "--- START: 更新实测值 (Plate) ---";
@@ -1003,9 +1005,109 @@ void RezultInfo::updateActualValues(const OutPlateResParam& ret)
 
 void RezultInfo::updateActualValues(const OutFlowerPinResParam& ret)
 {
+    qDebug() << "--- START: 更新实测值 (FlowerPin) ---";
 
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
+
+        QVariant actualValue; // 用于日志记录和 extraData 存储
+
+        // --- 根据 paramKey 匹配 OutFlowerPinResParam 的成员 ---
+
+        // --- 简单数值类型 (int/float) ---
+        if (paramKey == "flowerNum") {
+            actualValue = ret.flowerNum;
+            config.value = ret.flowerNum;
+        }
+        else if (paramKey == "areaFoil") {
+            actualValue = ret.areaFoil;
+            config.value = ret.areaFoil;
+        }
+        else if (paramKey == "disFlw2L") {
+            actualValue = ret.disFlw2L;
+            config.value = ret.disFlw2L;
+        }
+        else if (paramKey == "disFlw2Pin") {
+            actualValue = ret.disFlw2Pin;
+            config.value = ret.disFlw2Pin;
+        }
+        // 【新增项 1: disFlw2Pin2】
+        else if (paramKey == "disFlw2Pin2") {
+            actualValue = ret.disFlw2Pin2;
+            config.value = ret.disFlw2Pin2;
+        }
+        // 【新增项 2: disFlowerAngle】
+        else if (paramKey == "disFlowerAngle") {
+            actualValue = ret.disFlowerAngle;
+            config.value = ret.disFlowerAngle;
+        }
+        // 【新增项 3: disL2Pin】
+        else if (paramKey == "disL2Pin") {
+            // 注意: disL2Pin 在 C++ 结构体中不存在，但您在 JSON 中提到，
+            // 这里假设 C++ 结构体已更新，或者我们处理的是 JSON 中的 disL2Pin。
+            // 依据您最终确认的11项列表，它不属于 OutFlowerPinResParam，
+            // 但为了兼容 JSON，如果需要处理，这里假设一个 ret.disL2Pin。
+            // **重要：基于您最终确认的11项列表，我将其移除以保持严格一致性。**
+            // 让我们只处理那11项。
+        }
+        else if (paramKey == "disPinAngle") {
+            actualValue = ret.disPinAngle;
+            config.value = ret.disPinAngle;
+        }
+        else if (paramKey == "disL2Heigh") {
+            actualValue = ret.disL2Heigh;
+            config.value = ret.disL2Heigh;
+        }
+
+        // --- 数组/向量类型 (std::vector<float>) ---
+
+        else if (paramKey == "flowerArea") {
+            QVariantList list;
+            for (float val : ret.flowerArea) {
+                list.append(val);
+            }
+            actualValue = list; // 用于日志打印和 extraData 存储
+            config.extraData = list;
+            // config.value 存储第一个元素的值，如果列表为空则为 0.0
+            config.value = ret.flowerArea.empty() ? 0.0 : ret.flowerArea[0];
+        }
+        else if (paramKey == "flowetLength") {
+            QVariantList list;
+            for (float val : ret.flowetLength) {
+                list.append(val);
+            }
+            actualValue = list;
+            config.extraData = list;
+            // config.value 存储第一个元素的值，如果列表为空则为 0.0
+            config.value = ret.flowetLength.empty() ? 0.0 : ret.flowetLength[0];
+        }
+        else if (paramKey == "allFlowerLength") {
+            QVariantList list;
+            for (float val : ret.allFlowerLength) {
+                list.append(val);
+            }
+            actualValue = list;
+            config.extraData = list;
+            // config.value 存储第一个元素的值，如果列表为空则为 0.0
+            config.value = ret.allFlowerLength.empty() ? 0.0 : ret.allFlowerLength[0];
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            qWarning() << "警告 (FlowerPin): 配置项" << paramKey << "未在 OutFlowerPinResParam 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (FlowerPin): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (FlowerPin) ---";
 }
-
 void RezultInfo::printOutPlateResParam(const OutPlateResParam& param)
 {
     qDebug() << "--- OutPlateResParam 内容 ---";
@@ -1109,6 +1211,54 @@ float RezultInfo::getAdjustedUpperThreshold(const QString& key) const
     return std::numeric_limits<float>::quiet_NaN();
 }
 
+void RezultInfo::updateActualValues(const OutLookPinResParam& ret)
+{
+    qDebug() << "--- START: 更新实测值 (LookPin) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config
+
+        QVariant actualValue; // 用于日志记录和 extraData 存储
+
+        // --- 根据 paramKey 匹配 OutLookPinResParam 的成员 ---
+
+        if (paramKey == "packageHeight") {
+            actualValue = ret.packageHeight;
+            config.value = ret.packageHeight;
+        }
+        else if (paramKey == "packageWidth") {
+            actualValue = ret.packageWidth;
+            config.value = ret.packageWidth;
+        }
+        else if (paramKey == "pinDistance") {
+            actualValue = ret.pinDistance;
+            config.value = ret.pinDistance;
+        }
+        else if (paramKey == "pindiff") {
+            actualValue = ret.pindiff;
+            config.value = ret.pindiff;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            qWarning() << "警告 (LookPin): 配置项" << paramKey << "未在 OutLookPinResParam 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        // 假设浮点值默认保留三位小数用于日志输出
+        qDebug().nospace()
+            << "  -> SUCCESS (LookPin): " << config.label
+            << " (" << paramKey << ") 赋值实测值: "
+            << QString::number(actualValue.toFloat(), 'f', 3);
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (LookPin) ---";
+}
 
 void RezultInfo::printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange)
 {
@@ -1137,6 +1287,11 @@ int RezultInfo::judge_abut(const OutAbutResParam  &ret)
 
 
 int RezultInfo::judge_pin(const OutPinParam& ret)
+{
+    return 0;
+}
+
+int RezultInfo::judge_look(const OutLookPinResParam& ret)
 {
     return 0;
 }

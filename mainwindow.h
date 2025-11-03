@@ -58,7 +58,7 @@ public:
     void showAboutWidget();
     int initPCI_VC3000H();
     int initPCI_VC3000();
-    void  initCameralPara();
+    void initCameralPara();
     void updateDB_Brader();
     void updateDB_Plater();
     bool updateDeviceId();

@@ -10,7 +10,7 @@ OutPutThread::OutPutThread(QObject* parent)
 OutPutThread::~OutPutThread()
 {
     stop();
-    wait();  // µÈ´ıÏß³Ì°²È«ÍË³ö
+    wait();  // ç­‰å¾…çº¿ç¨‹å®‰å…¨é€€å‡º
     qDebug() << "OutPutThread destroyed.";
 }
 
@@ -36,27 +36,27 @@ void OutPutThread::run()
                 return false;
             }
 
-            // ¼ì²éËùÓĞ Deque ÊÇ·ñ¶¼·Ç¿Õ (¼´¶ÓÍ·¶¼ÓĞÊı¾İ)
+            // æ£€æŸ¥æ‰€æœ‰ Deque æ˜¯å¦éƒ½éç©º (å³é˜Ÿå¤´éƒ½æœ‰æ•°æ®)
             for (const auto& key : MergePointVec.keys()) {
                 const std::deque<int>& deque = MergePointVec.value(key);
 
                 if (deque.empty()) {
-                    return false; // Ö»ÒªÓĞÒ»¸öÎª¿Õ£¬¾Í¼ÌĞøµÈ´ı
+                    return false; // åªè¦æœ‰ä¸€ä¸ªä¸ºç©ºï¼Œå°±ç»§ç»­ç­‰å¾…
                 }
             }
 
-            return true; // ËùÓĞ Deque ¶¼·Ç¿Õ
+            return true; // æ‰€æœ‰ Deque éƒ½éç©º
             });
 
         if (!m_running) {
-            // Èç¹ûÊÇÒòÎªÍ£Ö¹ĞÅºÅ¶øÍË³ö wait£¬ÔòÌø³ö while Ñ­»·
+            // å¦‚æœæ˜¯å› ä¸ºåœæ­¢ä¿¡å·è€Œé€€å‡º waitï¼Œåˆ™è·³å‡º while å¾ªç¯
             lk.unlock();
             break;
         }
 
         qDebug() << "out consumer wait";
 
-        // ÒµÎñÅĞ¶Ï£º¶ÁÈ¡µ±Ç°¶ÓÍ·½øĞĞÅĞ¶Ï
+        // ä¸šåŠ¡åˆ¤æ–­ï¼šè¯»å–å½“å‰é˜Ÿå¤´è¿›è¡Œåˆ¤æ–­
         bool allOne = true;
         for (const auto& key : MergePointVec.keys()) {
             const std::deque<int>& deque = MergePointVec.value(key);
@@ -74,7 +74,7 @@ void OutPutThread::run()
             .arg(allOne)
             .toStdWString().c_str());
 
-        // ÒÆ³ıËùÓĞ Deque µÄ¶ÓÍ·ÔªËØ
+        // ç§»é™¤æ‰€æœ‰ Deque çš„é˜Ÿå¤´å…ƒç´ 
         for (auto it = MergePointVec.begin(); it != MergePointVec.end(); ++it) {
             it.value().pop_front();
         }

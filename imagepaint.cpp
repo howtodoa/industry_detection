@@ -783,6 +783,213 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     }
 }
 
+void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
+    const AllUnifyParams unifyParams,
+    QSize displaySize)
+{
+    // 1. 安全检查
+    if (pixmap.isNull()) {
+        qWarning() << "传入的 pixmap 为空，无法绘制。";
+        return;
+    }
+
+    // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 3. 如果传入的UI控件尺寸无效，则将其视为与原图等大（此时无缩放）。
+    if (displaySize.isEmpty() || !displaySize.isValid()) {
+        displaySize = pixmap.size();
+    }
+
+    // 4. 计算缩放比率和画布尺寸
+    QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
+    const QSize canvasSize = pixmap.size();
+
+    // 5. 定义视觉设计参数
+    constexpr int TARGET_VISUAL_FONT_SIZE = 16;
+    constexpr double ROW_SPACING_VISUAL_PX = 4.0;
+    constexpr double X_MARGIN_RATIO = 0.01;
+    constexpr double Y_MARGIN_RATIO = 0.05;
+
+    // 6. 根据“实际”显示尺寸，计算出字体/元素在高清画布上应有的像素大小
+    if (actualOnScreenSize.height() == 0) return;
+
+    double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
+    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
+    if (fontSizeOnCanvas < 1) return;
+
+    double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
+    int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
+
+    int totalRowHeight = fontSizeOnCanvas + rowSpacingOnCanvas;
+
+    // 7. 设置字体
+    QFont font;
+    font.setWeight(QFont::Medium);
+    font.setPixelSize(fontSizeOnCanvas);
+    painter.setFont(font);
+
+    // 8. 绘制颜色和边距
+    int xMarginOnCanvas = qRound(canvasSize.width() * X_MARGIN_RATIO);
+    int yMarginOnCanvas = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+
+    QColor defaultColor = Qt::green;
+
+    // --- 统计需要绘制的项 ---
+    int totalItemsToDraw = 0;
+    for (auto it = unifyParams.constBegin(); it != unifyParams.constEnd(); ++it)
+    {
+        const UnifyParam& item = it.value();
+        if ((item.check && item.visible) || item.result != 1)
+        {
+            if (item.extraData.isValid() && item.extraData.type() == QVariant::List) {
+                // 数组项：标签占 1 行 + 每个元素占 1 行
+                totalItemsToDraw += (1 + item.extraData.toList().size());
+            }
+            else {
+                totalItemsToDraw++; // 单值项只占 1 行
+            }
+        }
+    }
+
+    // --- 计算布局参数 (单/双列) ---
+    int availableHeight = canvasSize.height() - 2 * yMarginOnCanvas;
+    int maxRowsInOneColumn = availableHeight / totalRowHeight;
+    int maxItemsPerColumn = totalItemsToDraw;
+    int numColumns = 1;
+
+    if (totalItemsToDraw > maxRowsInOneColumn && maxRowsInOneColumn > 0) {
+        numColumns = 2;
+        maxItemsPerColumn = (totalItemsToDraw + 1) / 2;
+    }
+
+    int columnWidth = canvasSize.width() / numColumns;
+    int secondColumnStartX = columnWidth + xMarginOnCanvas;
+    if (numColumns == 2) {
+        secondColumnStartX = qMax(secondColumnStartX, canvasSize.width() / 2);
+    }
+
+    // 9. 初始化起始绘制位置和行计数器
+    int currentRow = 0;
+    int currentColumn = 1;
+    int currentX = xMarginOnCanvas;
+
+    // 10. **核心查找和绘制逻辑：遍历 Map 绘制所有满足条件的项**
+    for (auto it = unifyParams.constBegin(); it != unifyParams.constEnd(); ++it)
+    {
+        const UnifyParam& item = it.value();
+
+        // 核心条件：只有当 (item.check && item.visible) 或 item.result != 1 时才绘制
+        if ((item.check && item.visible) || item.result != 1)
+        {
+            // 检查 NG 项并设置颜色
+            QColor drawColor = (item.result != 1) ? Qt::red : defaultColor;
+            painter.setPen(drawColor);
+
+            // -------------------------------------------------------------
+            // 【关键修改：值格式化和多行绘制逻辑】
+            // -------------------------------------------------------------
+            if (item.extraData.isValid() && item.extraData.type() == QVariant::List) {
+
+                // --- 数组类型：标签和每个元素占一行 ---
+                QVariantList list = item.extraData.toList();
+
+                // 1. 绘制标签行
+                QString labelText = QString("%1:").arg(item.label);
+
+                // 换列逻辑检查
+                if (currentRow >= maxItemsPerColumn && numColumns == 2) {
+                    currentRow = 0;
+                    currentColumn = 2;
+                    currentX = secondColumnStartX;
+                }
+                if (currentColumn > 2) {
+                    goto END_OF_DRAWING_LOOP;
+                }
+
+                int y_label = yMarginOnCanvas + currentRow * totalRowHeight;
+                painter.drawText(currentX, y_label + fontSizeOnCanvas, labelText);
+                currentRow++; // 标签占一行
+
+                // 2. 绘制每个元素行
+                int partNumber = 1;
+                for (const QVariant& val : list) {
+
+                    // 换列逻辑检查
+                    if (currentRow >= maxItemsPerColumn && numColumns == 2) {
+                        currentRow = 0;
+                        currentColumn = 2;
+                        currentX = secondColumnStartX;
+                    }
+                    if (currentColumn > 2) {
+                        goto END_OF_DRAWING_LOOP;
+                    }
+
+                    // 格式化当前值
+                    QString formattedValue = QString::number(val.toDouble(), 'f', 3);
+
+                    // 文本格式：  花瓣N: 值
+                    QString lineText = QString("  花瓣%1: %2").arg(partNumber).arg(formattedValue);
+
+                    int y_data = yMarginOnCanvas + currentRow * totalRowHeight;
+
+                    // 绘制当前行
+                    painter.drawText(currentX, y_data + fontSizeOnCanvas, lineText);
+
+                    // 更新计数器
+                    partNumber++;
+                    currentRow++;
+
+                    // 检查是否超出图像边界
+                    if (y_data + totalRowHeight > canvasSize.height() - yMarginOnCanvas) {
+                        if (numColumns == 1 || currentColumn == 2) {
+                            goto END_OF_DRAWING_LOOP;
+                        }
+                    }
+                }
+            }
+            else {
+                // --- 单值类型：只占一行 (保持不变) ---
+                QString formattedValue = QString::number(item.value, 'f', 3);
+                QString resultText = (item.result != 1) ? "" : "";
+
+                // 完整文本格式：标签: 实测值 [结果]
+                QString text = QString("%1: %2 %3").arg(item.label, formattedValue, resultText);
+
+                // 换列逻辑检查
+                if (currentRow >= maxItemsPerColumn && numColumns == 2) {
+                    currentRow = 0;
+                    currentColumn = 2;
+                    currentX = secondColumnStartX;
+                }
+                if (currentColumn > 2) {
+                    break;
+                }
+
+                int y = yMarginOnCanvas + currentRow * totalRowHeight;
+
+                // 绘制文本
+                painter.drawText(currentX, y + fontSizeOnCanvas, text);
+
+                // 移动到下一行
+                currentRow++;
+
+                // 检查是否超出图像边界
+                if (y + totalRowHeight > canvasSize.height() - yMarginOnCanvas) {
+                    if (numColumns == 1 || currentColumn == 2) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+END_OF_DRAWING_LOOP:; // 用于跳出多层循环
+
+    // 绘制结束
+}
+
 
 void ImagePaint::drawPaintDataEx_VI(QPixmap& pixmap,
     QVector<PaintDataItem> paintDataList,

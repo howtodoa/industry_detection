@@ -9,6 +9,8 @@ public:
 
     void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange) override;
 
+    void applyScaleFactors(double scale);
+
     virtual int judge_flower_pin(const OutFlowerPinResParam& ret) override;
 
 };
