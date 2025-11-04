@@ -72,26 +72,7 @@ void Imageprocess_Flower::run()
 				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
 			}
 
-			if (cam_instance->indentify == "NaYin") {
-				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 0, LearnPara::inParam2);
-				OutStampResParam para;
-				ExportSpace::ResultOutStamp(*afterImagePtr, para, 0);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_stamp(para);
-				}
-				else if (ret == 2) {
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else ret = -1;
-				}
-				else ret = -1;
-				QString logMsg = QString("NaYin ret=%1").arg(ret);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-			else if (cam_instance->indentify == "FlowerPin")
+             if (cam_instance->indentify == "FlowerPin")
 			{
 				ret = ExportFlowerSpace::RunPosFlowerPin(*currentImagePtr, LearnPara::inParam7);
 				OutFlowerPinResParam para;
@@ -157,43 +138,6 @@ void Imageprocess_Flower::run()
 				}
 				else ret = -1;
 			}
-			else if (cam_instance->indentify == "Pin") {
-				ret = BraidedTapeSpace::RunPin(*currentImagePtr, LearnPara::inParam5);
-				OutPinParam para;
-				BraidedTapeSpace::ResultOutPin(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_pin(para);
-				}
-				else if (ret == 1)
-				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
-					//ret = -1;
-				}
-				else if (ret == 2) {
-					cam_instance->noneDisplay.store(true);
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else
-					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
-						ret = -1;
-					}
-					QString logMsg = QString("Pin ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else if (ret == 3)
-				{
-
-					QString logMsg = QString("Pin ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else ret = -1;
-			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
 		}
 		else // 推流的情况
@@ -226,56 +170,10 @@ void Imageprocess_Flower::run()
 
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
-			bool outputSignalInvert;
-			if (GlobalPara::changed.load() == false)	outputSignalInvert = false;
-			else outputSignalInvert = true;
 
-			int durationMs = 10; // 脉冲持续时间
-			// 第二次调用,如果OK给true信号
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
 		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 || ret == 1 || ret == 3)//非本地运行的情况
 		{
-
-			if (0)
-			{
-				bool outputSignalInvert = true;
-				int durationMs = 10; // 脉冲持续时间
-				int result;
-				GlobalPara::changed.store(true);
-				// 第二次调用,如果OK给false信号
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? false : true, durationMs);
-				Sleep(10);
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-				Sleep(300);
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? false : true, durationMs);
-
-				//	PCI::pci().setoutput(cam_instance->pointNumber.load(), false);
-
-				std::cout << "change:" << GlobalPara::changed.load();
-				emit SetButtonBackground("red");
-				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-			else
-			{
-				bool outputSignalInvert = true;
-
-				int durationMs = 10; // 脉冲持续时间
-				int result;
-				// 第二次调用,如果OK给false信号
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-				GlobalPara::changed.store(true);
-				Sleep(200);
-				GlobalPara::changed.store(false);
-				emit StartGetIn();
-				//	emit SetButtonBackground("red");
-				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-
 
 		}
 

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QVector>
 #include "typdef.h" 
+#include <QObject>
 
 class Cameral;
 class QLabel;

@@ -92,6 +92,7 @@ private:
 	std::atomic<bool> ngDisplay = false;
 public:
     ImageProcess* m_imageProcessor;
+    ImageProcess* m_imageProcessor_Red;
     ImageViewerWindow* imageView = nullptr;
     ParaWidget* parawidget = nullptr;
 signals:

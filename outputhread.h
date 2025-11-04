@@ -19,9 +19,8 @@ public:
 
 protected:
     void run() override;  // 线程执行体,用run可以大大减少类结构的复杂程度
-
-private:
     std::atomic<bool> m_running{ true };
+private:
 };
 
 #endif // OUTPUTTHREAD_H

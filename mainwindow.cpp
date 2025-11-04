@@ -37,6 +37,7 @@
 #include "rezultinfo_flowerpin.h"
 #include "Api_FlowerPinDetection.h"
 #include "rezultinfo_look.h"
+#include "outputhread_flower.h"
 
 namespace AppConfig
 {
@@ -161,10 +162,16 @@ void MainWindow::test_show()
 
 void MainWindow::setupOutPutThread()
 {
+#ifdef USE_MAIN_WINDOW_FLOWER
+    m_outputThread = new OutPutThread_Flower(this);
+    m_outputThread->setObjectName("OutPutThread_Flower");
+    m_outputThread->start();
+
+#else
     m_outputThread = new OutPutThread(this);
     m_outputThread->setObjectName("OutPutThread");
     m_outputThread->start();
-
+#endif
     qDebug() << "OutPutThread started successfully.";
 }
 

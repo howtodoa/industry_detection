@@ -38,7 +38,7 @@ void OutPutThread::run()
 
             // 检查所有 Deque 是否都非空 (即队头都有数据)
             for (const auto& key : MergePointVec.keys()) {
-                const std::deque<int>& deque = MergePointVec.value(key);
+                const auto& deque = MergePointVec.value(key);
 
                 if (deque.empty()) {
                     return false; // 只要有一个为空，就继续等待
@@ -59,7 +59,7 @@ void OutPutThread::run()
         // 业务判断：读取当前队头进行判断
         bool allOne = true;
         for (const auto& key : MergePointVec.keys()) {
-            const std::deque<int>& deque = MergePointVec.value(key);
+            const auto& deque = MergePointVec.value(key);
             if (deque.front() != 1) {
                 allOne = false;
                 break;

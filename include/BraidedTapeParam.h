@@ -38,6 +38,7 @@ struct InTopParam
 	bool isExproofExist;          //防爆阀是否存在，true是存在，就要检测
 	float conf = 0.0;                      //置信度
 	float nms = 0.0;                       //非极大值抑制
+	bool isPosun = false;
 };
 
 struct OutTopParam

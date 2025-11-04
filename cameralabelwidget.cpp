@@ -22,6 +22,7 @@
 #include "role.h"
 #include "Imageprocess_plate.h"
 #include "Imageprocess_flower.h"
+#include "Imageprocess_red.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -426,6 +427,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed_flower);
 
+	if(m_cam->indentify!="Look")this->m_imageProcessor_Red = new Imageprocess_Red(cam, m_saveQueue, this);
 #endif // USE_MAIN_WINDOW_CAPACITY
 
 
@@ -1567,7 +1569,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		//return;
 	}
-	if (info.ret == -1||info.ret==1 || info.ret==3)
+	if (info.ret == -1||info.ret==1 || info.ret==3 ||info.ret==4)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
@@ -1609,6 +1611,11 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 			else if (info.ret == 3)
 			{
 				ImagePaint::drawPaintDataEx_II(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				this->ngDisplay.store(true);
+			}
+			else if (info.ret == 4)
+			{
+				ImagePaint::drawPaintDataEx_III(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 				this->ngDisplay.store(true);
 			}
 			m_cam->noneDisplay.store(false);

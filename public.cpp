@@ -24,7 +24,7 @@ int GlobalPara::Light2 = 100;
 int GlobalPara::Light3 = 100;
 int GlobalPara::Light4 = 100;
 
-QHash<QString, std::deque<int>> MergePointVec;
+QHash<QString, MyDeque> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;
 
@@ -40,7 +40,7 @@ InStampParam LearnPara::inParam2 = {
 };
 
 InTopParam LearnPara::inParam3 = {
-	-90,false ,false,0.5,0.3
+	-90,false ,false,0.5,0.3,false
 };
 
 InSideParam LearnPara::inParam4 = {
@@ -75,7 +75,11 @@ InFlowerPinParam LearnPara::inParam7 = { false,0,220,2,4 };
 InFlowerPinParam LearnPara::inParam8 = { false,0,180,2,4 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
+
 int LearnPara::inNum = 15;
+
+std::atomic<int> GateStatus = 2;
+
 namespace GlobalLog {
 	Mz_Log::COperation logger;
 }

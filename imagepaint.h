@@ -31,6 +31,9 @@ public:
     static void drawPaintDataEx_II(QPixmap& pixmap,
         QVector<PaintDataItem> paintDataList,
         QSize displaySize);
+    static void drawPaintDataEx_III(QPixmap& pixmap,
+        QVector<PaintDataItem> paintDataList,
+        QSize displaySize);
     static void drawPaintDataEx(QPixmap& pixmap,
         const AllUnifyParams unifyParams, 
         QSize displaySize);

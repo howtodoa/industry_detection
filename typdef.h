@@ -1,7 +1,7 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-#define ADAPTATEION
+//#define ADAPTATEION
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -11,7 +11,7 @@
 #include <QVariant>
 #include "BraidedTape.h"
 #include "Api_FlowerPinDetection.h"
-
+#include "MyStl.h"
 
 struct  OutStampResParam;
 
@@ -19,6 +19,11 @@ struct ImageQueuePack {
     std::mutex mutex;
     std::condition_variable cond;
     std::deque<std::shared_ptr<cv::Mat>> queue;
+
+    std::mutex mutex_red;
+    std::condition_variable cond_red;
+    std::deque<std::shared_ptr<cv::Mat>> queue_red;
+
     std::atomic<bool> stop_flag=false;
 };
 
@@ -160,9 +165,11 @@ struct GlobalPara {
     static int Light4;
 };
 
-extern QHash<QString, std::deque<int>> MergePointVec;
+extern QHash<QString, MyDeque> MergePointVec;
 extern std::mutex g_mutex;
 extern std::condition_variable g_cv;
+
+extern std::atomic<int> GateStatus;
 
 struct CamParamControll
 {
