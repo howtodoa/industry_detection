@@ -80,10 +80,18 @@ void Imageprocess_Flower::run()
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (ret == 0) {
+					m_inputQueue->process_flag.store(true);
+					//调用算法第二个接口
+					//
+					m_inputQueue->process_flag.store(false);
 					cam_instance->RI->updateActualValues(para);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_flower_pin(para);
 					if (ret == 1) ret = -1;
+				}
+				else if (ret == 2)
+				{
+					continue;
 				}
 				else 
 				{
@@ -108,7 +116,6 @@ void Imageprocess_Flower::run()
 					ret = cam_instance->RI->judge_flower_pin(para);
 
 				}
-				//else ret = -1;
 			}
 			else if (cam_instance->indentify == "FlowerPinNeg")
 			{

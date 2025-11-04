@@ -825,7 +825,18 @@ MainWindow::MainWindow(QString str, QWidget* parent):
     setupMonitorThread();
     setupUpdateTimer();
     initSqlite3Db_Brader();
-    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
+    if (GlobalPara::MergePointNum > 0)
+    {
+        for (int i = 0; i < GlobalPara::MergePointNum; i++)
+        {
+            QString camId = QString::fromStdString(cams[i]->indentify);
+			int maxSize = 5;
+            MyDeque<int> temp_deque(maxSize);
+            MergePointVec.insert(camId, std::move(temp_deque));
+        }
+        GlobalPara::MergePoint = cams[0]->pointNumber;
+        setupOutPutThread();
+    }
     initCameralPara();
 }
 

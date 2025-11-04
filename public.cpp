@@ -24,7 +24,7 @@ int GlobalPara::Light2 = 100;
 int GlobalPara::Light3 = 100;
 int GlobalPara::Light4 = 100;
 
-QHash<QString, MyDeque> MergePointVec;
+QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;
 
@@ -85,7 +85,7 @@ namespace GlobalLog {
 }
 
 
-	void MyImageCallback(cv::Mat & image, void* pUser)
+void MyImageCallback(cv::Mat & image, void* pUser)
 	{
 		LOG_DEBUG(GlobalLog::logger, L"cap picture successful");
 		if (pUser == nullptr) {
@@ -138,8 +138,59 @@ namespace GlobalLog {
 		currentImageForQueue.reset();
 	}
 
+void MyImageCallback_Flower(cv::Mat& image, void* pUser)
+{
+	LOG_DEBUG(GlobalLog::logger, L"cap picture successful");
+	if (pUser == nullptr) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		return;
+	}
 
-	qint64 getAvailableSystemMemoryMB()
+	if (image.empty()) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		qCritical() << "MyImageCallback: Input 'image' is empty before cloning! This is the root cause.";
+		return;
+	}
+
+	if (!image.data) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		qCritical() << "MyImageCallback: Input 'image.data' is null before cloning! This is also a root cause.";
+		return;
+	}
+
+	qDebug() << "MyImageCallback: Input 'image' valid. Size:" << image.size().width << "x" << image.size().height;
+
+	std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
+	if (!currentImageForQueue) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		return;
+	}
+
+	auto* DequePtr = reinterpret_cast<ImageQueuePack*>(pUser);
+	if (DequePtr == nullptr) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		return;
+	}
+
+	std::unique_lock<std::mutex> lock(DequePtr->mutex);
+	DequePtr->cond.wait(lock, [DequePtr,currentImageForQueue]() {
+		if(DequePtr->queue.process_flag.load()==true) return false;
+		else DequePtr->queue.push_back(currentImageForQueue);
+		});
+
+	qDebug() << "  DequePtr->queue.size():    " << DequePtr->queue.size();
+	DequePtr->cond.notify_one();
+	
+
+	if (currentImageForQueue)
+		qDebug() << "currentImageForQueue. is not null";
+	else
+		qDebug() << "currentImageForQueue. is  null";
+
+	currentImageForQueue.reset();
+}
+
+qint64 getAvailableSystemMemoryMB()
 	{
 		PROCESS_MEMORY_COUNTERS pmc = { 0 };
 		if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))

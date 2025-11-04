@@ -70,7 +70,6 @@ set(SOURCES
     run_task_thread.cpp
     imageprocess_red.cpp
     outputhread_flower.cpp
-    MyStl.cpp
 )
 
 set(HEADERS

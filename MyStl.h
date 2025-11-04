@@ -2,25 +2,74 @@
 #define MYSTL_H
 
 #include <deque>
+#include <cstddef>
+#include <stdexcept>
 
+template <typename T>
 class MyDeque
 {
 public:
-    explicit MyDeque(size_t maxSize = 10);
+    explicit MyDeque(size_t maxSize = 10)
+        : m_maxSize(maxSize)
+    {
+    }
 
-    void push_back(int value);   // 若满则自动 pop_front() 再 push_back()
-    void pop_front();
-    int front() const;
-    size_t size() const;
-    bool empty() const;
-    void clear();
+    void push_back(const T& value)
+    {
+        if (m_data.size() >= m_maxSize)
+        {
+            m_data.pop_front();
+        }
+        m_data.push_back(value);
+    }
 
-    // --- 扩展接口 ---
-    bool full() const;           // 判断是否已满
-    void fill(int value);        // 若未满则自动补满 value
+    void pop_front()
+    {
+        if (!m_data.empty()) {
+            m_data.pop_front();
+        }
+    }
 
+    T front() const
+    {
+        if (m_data.empty())
+        {
+            throw std::out_of_range("MyDeque is empty");
+        }
+        return m_data.front();
+    }
+
+    size_t size() const
+    {
+        return m_data.size();
+    }
+
+    bool empty() const
+    {
+        return m_data.empty();
+    }
+
+    void clear()
+    {
+        m_data.clear();
+    }
+
+
+    bool full() const
+    {
+        return m_data.size() >= m_maxSize;
+    }
+
+    void fill(const T& value)
+    {
+        while (m_data.size() < m_maxSize - 1) {
+            m_data.push_back(value);
+        }
+    }
 private:
-    size_t m_maxSize;
-    std::deque<int> m_data;
+    size_t m_maxSize; 
+    std::deque<T> m_data;
+    
 };
+
 #endif // MYSTL_H

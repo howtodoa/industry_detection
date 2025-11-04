@@ -47,11 +47,7 @@ void OutPutThread_Flower::run()
 
         qDebug() << "OutPutThread_Flower consumer wakeup";
 
-        // 业务逻辑：队列不满则自动填充空料（0）
-        for (auto& key : MergePointVec.keys()) {
-            auto& deque = MergePointVec[key];
-            deque.fill(0);  // 使用 MyDeque 的 fill() 接口
-        }
+
 
         // 业务逻辑：判断所有队头是否都为 1
         bool allOne = true;
@@ -79,6 +75,12 @@ void OutPutThread_Flower::run()
         // 移除所有 Deque 的队头
         for (auto it = MergePointVec.begin(); it != MergePointVec.end(); ++it) {
             it.value().pop_front();
+        }
+
+        // 业务逻辑：队列不满则自动填充空料（0）
+        for (auto& key : MergePointVec.keys()) {
+            auto& deque = MergePointVec[key];
+            deque.fill(0); 
         }
 
         GateStatus.store(2);

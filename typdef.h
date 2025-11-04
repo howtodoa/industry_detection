@@ -18,11 +18,13 @@ struct  OutStampResParam;
 struct ImageQueuePack {
     std::mutex mutex;
     std::condition_variable cond;
-    std::deque<std::shared_ptr<cv::Mat>> queue;
+    MyDeque<std::shared_ptr<cv::Mat>> queue;
+    std::atomic<bool> process_flag = false;
 
     std::mutex mutex_red;
     std::condition_variable cond_red;
-    std::deque<std::shared_ptr<cv::Mat>> queue_red;
+    MyDeque<std::shared_ptr<cv::Mat>> queue_red;
+    std::atomic<bool> red_process_flag = false;
 
     std::atomic<bool> stop_flag=false;
 };
@@ -165,7 +167,7 @@ struct GlobalPara {
     static int Light4;
 };
 
-extern QHash<QString, MyDeque> MergePointVec;
+extern QHash<QString, MyDeque<int>> MergePointVec;
 extern std::mutex g_mutex;
 extern std::condition_variable g_cv;
 

@@ -41,6 +41,8 @@ cv::Mat loadMatFromFile(const QString& filePath);
 
 void MyImageCallback(cv::Mat& image, void* pUser);
 
+void MyImageCallback_Flower(cv::Mat& image, void* pUser);
+
 bool areMatFormatsIdentical(const cv::Mat& mat1, const cv::Mat& mat2);
 
 bool generateDir(const std::string& dirPath);
