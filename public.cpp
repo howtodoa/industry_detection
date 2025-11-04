@@ -172,21 +172,41 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 		return;
 	}
 
-	std::unique_lock<std::mutex> lock(DequePtr->mutex);
-	DequePtr->cond.wait(lock, [DequePtr,currentImageForQueue]() {
-		if(DequePtr->queue.process_flag.load()==true) return false;
-		else DequePtr->queue.push_back(currentImageForQueue);
-		});
+	{
+		std::unique_lock<std::mutex> lock(DequePtr->mutex);
 
-	qDebug() << "  DequePtr->queue.size():    " << DequePtr->queue.size();
-	DequePtr->cond.notify_one();
-	
+		if (DequePtr->process_flag.load() == false) {
+			// 标志位为 false：满足条件，执行放入操作
+			DequePtr->queue.push_back(currentImageForQueue);
 
-	if (currentImageForQueue)
-		qDebug() << "currentImageForQueue. is not null";
-	else
-		qDebug() << "currentImageForQueue. is  null";
+			qDebug() << " DequePtr->queue.size(): " << DequePtr->queue.size();
 
+			DequePtr->mutex.unlock();
+			DequePtr->cond.notify_one();
+		}
+		else
+		{
+			DequePtr->queue.clear();
+		}
+	}
+
+	{
+		std::unique_lock<std::mutex> lock(DequePtr->mutex_red);
+		if (DequePtr->red_process_flag.load() == false) {
+			// 标志位为 false：满足条件，执行放入操作
+			DequePtr->queue_red.push_back(currentImageForQueue);
+
+			qDebug() << " DequePtr->queue_red.size(): " << DequePtr->queue_red.size();
+
+			DequePtr->mutex_red.unlock();
+			DequePtr->cond.notify_one();
+		}
+		else
+		{
+			DequePtr->queue_red.clear();
+		}
+
+	}
 	currentImageForQueue.reset();
 }
 
