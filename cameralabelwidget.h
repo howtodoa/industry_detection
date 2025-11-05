@@ -65,6 +65,7 @@ public slots:
     void onCameraConnect(const QString& color);
     void onStartGetIn();
     void onImageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
+	void onStreamCapture(Cameral* cam);
 private:
     cv::Mat image;
     QPixmap currentPixmap;

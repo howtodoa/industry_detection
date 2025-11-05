@@ -39,6 +39,7 @@ struct InTopParam
 	float conf = 0.0;                      //置信度
 	float nms = 0.0;                       //非极大值抑制
 	bool isPosun = false;
+	bool iswhite = false;       //是否白色模型
 };
 
 struct OutTopParam

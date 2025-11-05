@@ -32,14 +32,17 @@ AlgoClass_Top::AlgoClass_Top(QString algopath, int al_core, float* Angle, QObjec
     if (map.contains("isExproofExist"))
         LearnPara::inParam3.isExproofExist = ParamDetail(map.value("isExproofExist").toMap()).value.toBool();
 
-    if (map.contains("isPosun"))
-        LearnPara::inParam3.isPosun = ParamDetail(map.value("isPosun").toMap()).value.toBool();
-
     if (map.contains("conf"))
         LearnPara::inParam3.conf = ParamDetail(map.value("conf").toMap()).value.toFloat();
 
     if (map.contains("nms"))
         LearnPara::inParam3.nms = ParamDetail(map.value("nms").toMap()).value.toFloat();
+
+    if (map.contains("isPosun"))
+        LearnPara::inParam3.isPosun = ParamDetail(map.value("isPosun").toMap()).value.toBool();
+
+    if (map.contains("iswhite"))
+        LearnPara::inParam3.iswhite = ParamDetail(map.value("iswhite").toMap()).value.toBool();
 }
 
 QWidget* AlgoClass_Top::createLeftPanel(QWidget* parent)
@@ -55,15 +58,6 @@ QWidget* AlgoClass_Top::createLeftPanel(QWidget* parent)
     exproofLayout->addWidget(lblExproof);
     exproofLayout->addWidget(chkExproof);
     layout->addLayout(exproofLayout);
-
-    // 破损检测
-    QHBoxLayout* posunLayout = new QHBoxLayout;
-    QLabel* lblPosun = new QLabel("破损检测:", panel);
-    QCheckBox* chkPosun = new QCheckBox(panel);
-    chkPosun->setChecked(LearnPara::inParam3.isPosun);
-    posunLayout->addWidget(lblPosun);
-    posunLayout->addWidget(chkPosun);
-    layout->addLayout(posunLayout);
 
     // 置信度
     QHBoxLayout* confLayout = new QHBoxLayout;
@@ -81,17 +75,35 @@ QWidget* AlgoClass_Top::createLeftPanel(QWidget* parent)
     nmsLayout->addWidget(editNms);
     layout->addLayout(nmsLayout);
 
+    // 是否破损检测
+    QHBoxLayout* posunLayout = new QHBoxLayout;
+    QLabel* lblPosun = new QLabel("破损检测:", panel);
+    QCheckBox* chkPosun = new QCheckBox(panel);
+    chkPosun->setChecked(LearnPara::inParam3.isPosun);
+    posunLayout->addWidget(lblPosun);
+    posunLayout->addWidget(chkPosun);
+    layout->addLayout(posunLayout);
+
+    // 是否白色模型
+    QHBoxLayout* whiteLayout = new QHBoxLayout;
+    QLabel* lblWhite = new QLabel("白色模型:", panel);
+    QCheckBox* chkWhite = new QCheckBox(panel);
+    chkWhite->setChecked(LearnPara::inParam3.iswhite);
+    whiteLayout->addWidget(lblWhite);
+    whiteLayout->addWidget(chkWhite);
+    layout->addLayout(whiteLayout);
+
     // 保存按钮
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
 
-    // 保存按钮更新数据
     connect(btnSave, &QPushButton::clicked, this, [=]() mutable {
         LearnPara::inParam3.isExproofExist = chkExproof->isChecked();
-        LearnPara::inParam3.isPosun = chkPosun->isChecked();
         LearnPara::inParam3.conf = editConf->text().toFloat();
         LearnPara::inParam3.nms = editNms->text().toFloat();
+        LearnPara::inParam3.isPosun = chkPosun->isChecked();
+        LearnPara::inParam3.iswhite = chkWhite->isChecked();
         saveParamAsync();
         });
 
@@ -103,9 +115,10 @@ void AlgoClass_Top::saveParamAsync()
     QVariantMap mapToSave;
 
     mapToSave["isExproofExist"] = QVariantMap{ {"值", LearnPara::inParam3.isExproofExist} };
-    mapToSave["isPosun"] = QVariantMap{ {"值", LearnPara::inParam3.isPosun} };
     mapToSave["conf"] = QVariantMap{ {"值", LearnPara::inParam3.conf} };
     mapToSave["nms"] = QVariantMap{ {"值", LearnPara::inParam3.nms} };
+    mapToSave["isPosun"] = QVariantMap{ {"值", LearnPara::inParam3.isPosun} };
+    mapToSave["iswhite"] = QVariantMap{ {"值", LearnPara::inParam3.iswhite} };
 
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;

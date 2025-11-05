@@ -12,6 +12,10 @@ public:
     explicit MyDeque(size_t maxSize = 10)
         : m_maxSize(maxSize)
     {
+        if constexpr (std::is_same_v<T, int>)
+        {
+            m_data.resize(m_maxSize, 0);
+        }
     }
 
     void push_back(const T& value)
@@ -20,7 +24,13 @@ public:
         {
             m_data.pop_front();
         }
-        m_data.push_back(value);
+
+       if(polution_flag==false) m_data.push_back(value);
+       else
+       {
+           polution_flag = false;
+           m_data.push_back(0);
+       }
     }
 
     void pop_front()
@@ -66,10 +76,24 @@ public:
             m_data.push_back(value);
         }
     }
+
+    void polution()
+    {
+        if (m_data.empty())
+        {
+            m_data.push_back(0);
+        }
+        else
+        {
+            m_data.back() = 0;
+        }
+        polution_flag = true;
+    }
+
 private:
     size_t m_maxSize; 
     std::deque<T> m_data;
-    
+	bool polution_flag = false;
 };
 
 #endif // MYSTL_H

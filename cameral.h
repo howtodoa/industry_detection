@@ -42,6 +42,7 @@ public:
     std::atomic<bool> running = false;
     std::atomic<int> pointNumber;
     std::atomic<bool> noneDisplay=false;
+    std::atomic<bool> ui_signal = false;
     std::atomic<int> ten=10;
     bool m_cameraWarningShown = false;
     std::string indentify="";

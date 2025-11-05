@@ -98,7 +98,7 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+#ifdef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 
         DWORD exitCode = 0;
         while (true) {
-            DWORD result = WaitForSingleObject(pi.hProcess, 5000);
+            DWORD result = WaitForSingleObject(pi.hProcess, 3000);
             if (result == WAIT_TIMEOUT) {
                 continue;
             }

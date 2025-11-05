@@ -55,10 +55,7 @@ void Imageprocess_Red::run()
 		}
 
 
-		if (GlobalPara::changed.load() == true && cam_instance->learn.load() == false) continue;
-
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
-		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;
 		int ret = -1;
 
@@ -67,216 +64,58 @@ void Imageprocess_Red::run()
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
-			for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
-				cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
-				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
-			}
 
-			if (cam_instance->indentify == "NaYin") {
-				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 0, LearnPara::inParam2);
-				OutStampResParam para;
-				ExportSpace::ResultOutStamp(*afterImagePtr, para, 0);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_stamp(para);
-				}
-				else if (ret == 2) {
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else ret = -1;
-				}
-				else ret = -1;
-				QString logMsg = QString("NaYin ret=%1").arg(ret);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-			else if (cam_instance->indentify == "FlowerPin")
+           if (cam_instance->indentify == "FlowerPin")
 			{
-				ret = ExportFlowerSpace::RunPosFlowerPin(*currentImagePtr, LearnPara::inParam7);
-				OutFlowerPinResParam para;
-				ExportFlowerSpace::ResultOutPosFlowerPin(*afterImagePtr, para);
+			   m_inputQueue->red_process_flag.store(true);
+			   ret = ExportFlowerSpace::RunPosTape(*currentImagePtr);
+			   m_inputQueue->red_process_flag.store(false);
 				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				qDebug() << cam_instance->cameral_name << "红胶带算法耗时：" << elapsed << "毫秒";
 				if (ret == 0) {
-					cam_instance->RI->updateActualValues(para);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_flower_pin(para);
-					if (ret == 1) ret = -1;
+					continue;
 				}
 				else
 				{
-					// --- 赋单值数据 ---
-					para.flowerNum = 5;            // 花瓣数量
-					para.areaFoil = 2.345f;        // 箔裂面积
-					para.disFlw2L = 1.05f;         // 花到L2距离
-					para.disFlw2Pin2 = 8.123f;     // 最后一朵花到针距离 (NG/OK检测项)
-					para.disFlw2Pin = 3.98f;       // 第一朵花到针距离
-					para.disFlowerAngle = 90.5f;   // 花的角度
-					para.disPinAngle = -15.0f;     // 针的角度
-					para.disL2Heigh = 0.55f;       // L2的高度
-
-					para.flowerArea = { 10.1f, 9.8f, 10.3f, 12.01f, 9.9f }; // 12.01f 可能是 NG 值
-
-					para.flowetLength = { 5.2f, 5.1f, 5.0f, 4.9f, 5.3f ,2.3f,2.3f,2.5f };
-
-					para.allFlowerLength = { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f };
-
-					cam_instance->RI->updateActualValues(para);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_flower_pin(para);
-
+					info.ret = ret;
+					if (cam_instance->DI.Shield == true) ret = 0;
+					ret = -1;
 				}
-				//else ret = -1;
 			}
 			else if (cam_instance->indentify == "FlowerPinNeg")
 			{
-				ret = ExportFlowerSpace::RunNegFlowerPin(*currentImagePtr, LearnPara::inParam8);
-				OutFlowerPinResParam para;
-				ExportFlowerSpace::ResultOutNegFlowerPin(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (ret == 0) {
-					cam_instance->RI->updateActualValues(para);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_flower_pin(para);
-				}
-				else ret = -1;
-			}
-			else if (cam_instance->indentify == "FlowerLook")
-			{
-				ret = ExportFlowerSpace::RunLookFlowerPin(*currentImagePtr, LearnPara::inParam9);
-				OutLookPinResParam para;
-				ExportFlowerSpace::ResultOutLookFlowerPin(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (ret == 0) {
-					cam_instance->RI->updateActualValues(para);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_look(para);
-				}
-				else ret = -1;
-			}
-			else if (cam_instance->indentify == "Pin") {
-				ret = BraidedTapeSpace::RunPin(*currentImagePtr, LearnPara::inParam5);
-				OutPinParam para;
-				BraidedTapeSpace::ResultOutPin(*afterImagePtr, para);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
-				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
-				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_pin(para);
-				}
-				else if (ret == 1)
-				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
-					//ret = -1;
-				}
-				else if (ret == 2) {
-					cam_instance->noneDisplay.store(true);
-					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
-					else
-					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
-						ret = -1;
-					}
-					QString logMsg = QString("Pin ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else if (ret == 3)
-				{
-
-					QString logMsg = QString("Pin ret=%1").arg(ret);
-					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-				}
-				else ret = -1;
+			   m_inputQueue->red_process_flag.store(true);
+			   ret = ExportFlowerSpace::RunPosTape(*currentImagePtr);
+			   m_inputQueue->red_process_flag.store(false);
+			   qint64 elapsed = timer.elapsed();
+			   qDebug() << cam_instance->cameral_name << "红胶带算法耗时：" << elapsed << "毫秒";
+			   if (ret == 0) {
+				   continue;
+			   }
+			   else
+			   {
+				   info.ret = ret;
+				   if (cam_instance->DI.Shield == true) ret = 0;
+				    
+			   }
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
 		}
 		else // 推流的情况
 		{
-			afterImagePtr = currentImagePtr;
-			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
-			else qDebug() << "afterImagePtrptr is null";
-			emit imageProcessed_Brader(afterImagePtr, info);
-			currentImagePtr.reset();
-			backupImagePtr.reset();
-			afterImagePtr.reset();
 			continue;
 		}
 
-		if (GlobalPara::cheatFlag.load() == false)info.ret = ret;
-
-
-		// 拍照的情况
-		if (cam_instance->photo.load() == true)
+		//没有屏蔽,正常处理
+		if (ret != 0)
 		{
-			emit ImageLoaded(currentImagePtr);
-			qDebug() << "start photo learn";
-			if (cam_instance->learn.load() == true) emit Learn();
-			cam_instance->photo.store(false);
-			cam_instance->learn.store(false);
-		}
+			QString camId = QString::fromStdString(cam_instance->indentify);
+			std::unique_lock<std::mutex> lk(g_mutex);
 
-		if (cam_instance->DI.Shield == true) ret = 0;
+			MergePointVec[camId].polution();
 
-
-		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
-		{
-			bool outputSignalInvert;
-			if (GlobalPara::changed.load() == false)	outputSignalInvert = false;
-			else outputSignalInvert = true;
-
-			int durationMs = 10; // 脉冲持续时间
-			// 第二次调用,如果OK给true信号
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 || ret == 1 || ret == 3)//非本地运行的情况
-		{
-
-			if (0)
-			{
-				bool outputSignalInvert = true;
-				int durationMs = 10; // 脉冲持续时间
-				int result;
-				GlobalPara::changed.store(true);
-				// 第二次调用,如果OK给false信号
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? false : true, durationMs);
-				Sleep(10);
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-				Sleep(300);
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? false : true, durationMs);
-
-				//	PCI::pci().setoutput(cam_instance->pointNumber.load(), false);
-
-				std::cout << "change:" << GlobalPara::changed.load();
-				emit SetButtonBackground("red");
-				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-			else
-			{
-				bool outputSignalInvert = true;
-
-				int durationMs = 10; // 脉冲持续时间
-				int result;
-				// 第二次调用,如果OK给false信号
-				result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-				GlobalPara::changed.store(true);
-				Sleep(200);
-				GlobalPara::changed.store(false);
-				emit StartGetIn();
-				//	emit SetButtonBackground("red");
-				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
-
-
+			lk.unlock();
+			g_cv.notify_all();
 		}
 
 		//存图
@@ -287,9 +126,9 @@ void Imageprocess_Red::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 3))
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 3|| info.ret==1))
 			{
-				dataToSave.imagePtr = currentImagePtr;
+				dataToSave.imagePtr = afterImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				//GlobalLog::logger.Mz_AddLog(L"pre Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
@@ -300,7 +139,7 @@ void Imageprocess_Red::run()
 			}
 			else
 			{
-				dataToSave.imagePtr = currentImagePtr;
+				dataToSave.imagePtr = afterImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				GlobalLog::logger.Mz_AddLog(L"all Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
@@ -308,17 +147,6 @@ void Imageprocess_Red::run()
 			saveToQueue->cond.notify_one();
 		}
 
-		UpdateRealtimeData(cam_instance->RI->unifyParams);
-
-		if (!afterImagePtr || afterImagePtr->empty()) {
-			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
-			emit imageProcessed(backupImagePtr, info);
-
-		}
-		else {
-			emit imageProcessed(afterImagePtr, info);
-
-		}
 
 	} // while 循环结束
 

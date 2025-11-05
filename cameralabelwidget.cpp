@@ -427,7 +427,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed_flower);
 
-	if(m_cam->indentify!="Look")this->m_imageProcessor_Red = new Imageprocess_Red(cam, m_saveQueue, this);
+	if(cam->indentify!="Look")this->m_imageProcessor_Red = new Imageprocess_Red(cam, m_saveQueue, this);
 #endif // USE_MAIN_WINDOW_CAPACITY
 
 
@@ -597,9 +597,11 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	pushStreamButton->setStyleSheet(buttonStyle);
 
 	connect(pushStreamButton, &QPushButton::clicked, [this, index, cam, pushStreamButton]() mutable {
-		if (Role::GetCurrentRole() == "操作员") return;
+		//if (Role::GetCurrentRole() == "操作员") return;
 		if (!pushStreamButton->isEnabled()) {
-			qDebug() << "推流按钮被禁用，忽略本次点击。";
+			//qDebug() << "推流按钮被禁用，忽略本次点击。";
+		//	LOG_DEBUG(GlobalLog::logger, L"推流按钮被禁用，忽略本次点击。");
+			//this->stopButton->click();	
 			return;
 		}
 		pushStreamButton->setEnabled(false); // 禁用，防止连点
@@ -925,6 +927,28 @@ void CameraLabelWidget::handleCameraPush(Cameral* cam)
 	Sleep(50);  // 启动前必须等待一段时间
 }
 
+void CameraLabelWidget::onStreamCapture(Cameral* cam)
+{
+	int ret = 0;
+
+	ret = cam->camOp->MsvStopImageCapture();
+
+	// 设置触发模式
+	ret = cam->camOp->SetTrrigerModel(0);
+	if (ret == -1)
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel(0) failed, error: %1").arg(ret).toStdWString().c_str());
+	else
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel(0) successful").toStdWString().c_str());
+
+	// 开始采图
+	ret = cam->camOp->MsvStartImageCapture();
+	if (ret == -1)
+		LOG_DEBUG(GlobalLog::logger, QString("MsvStartImageCapture() failed, error: %1").arg(ret).toStdWString().c_str());
+	else
+		LOG_DEBUG(GlobalLog::logger, QString("MsvStartImageCapture() successful").toStdWString().c_str());
+
+}
+
 void CameraLabelWidget::triggerCameraPhoto(Cameral* cam)
 {
 	{
@@ -1223,19 +1247,24 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 
 void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info)
 {
-
+	m_cam->ui_signal.store(true);
 	qDebug() << "this isonImageProcessed info.ret=:" << info.ret;
 	if (!processedImagePtr || processedImagePtr->empty()) {
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		return;
 	}
-	if (info.ret != 0)
+	if (m_cam->video == false)
 	{
-		dataToSave.work_path = dataToSave.savePath_NG;
-		this->ngcount->fetch_add(1);
+		if (info.ret != 0)
+		{
+			dataToSave.work_path = dataToSave.savePath_NG;
+			this->ngcount->fetch_add(1);
+		}
+		else dataToSave.work_path = dataToSave.savePath_OK;
+
+		this->sumcount->fetch_add(1);
 	}
-	else dataToSave.work_path = dataToSave.savePath_OK;
-	this->sumcount->fetch_add(1);
+
 	LOG_DEBUG(GlobalLog::logger, QString("camra:%1 sumcount: %2")
 		.arg(m_cam->indentify.c_str()) 
 		.arg(this->sumcount->load())
@@ -1273,18 +1302,27 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 		this->currentPixmap = QPixmap::fromImage(displayImage);
 		if (CheckPixmap(this->currentPixmap) == -1) return;
 
-		if (m_cam->video == false)
+		try
 		{
-			if (m_cam->noneDisplay.load() == false && info.ret == -1)
+			if (m_cam->video == false)
 			{
-				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				if (m_cam->noneDisplay.load() == false && info.ret == -1)
+				{
+					ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+
+				}
+				else if (info.ret == 0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				m_cam->noneDisplay.store(false);
+				ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 
 			}
-			else if (info.ret == 0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-			m_cam->noneDisplay.store(false);
-			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
-
 		}
+		catch (...)
+		{
+			GlobalLog::logger.Mz_AddLog(L"!!! 捕获到致命错误 ...");
+			return; // 失败了，直接从函数返回
+		}
+
 		std::shared_ptr<cv::Mat> afterImagePtr;
 		try
 		{
@@ -1342,7 +1380,7 @@ void CameraLabelWidget::onImageProcessed(std::shared_ptr<cv::Mat> processedImage
 	}
 	qint64 elapsed = timer.elapsed();  // 获取经过的毫秒数
 	qDebug() << "显示耗时：" << elapsed << "毫秒";
-
+	m_cam->ui_signal.store(false);
 }
 
 
@@ -1735,7 +1773,11 @@ void CameraLabelWidget::triggerCameraStart(Cameral* cam)
 
 		}
 		Sleep(50);
+#ifdef USE_MAIN_WINDOW_FLOWER
+		ret = cam->camOp->RegisterImageCallBack(MyImageCallback_Flower, &cam->imageQueue);
+#else
 		ret = cam->camOp->RegisterImageCallBack(MyImageCallback, &cam->imageQueue);
+#endif
 		if (ret != 0)
 		{
 			QString logMsg = QString("Register cameral ret value: %1").arg(ret);

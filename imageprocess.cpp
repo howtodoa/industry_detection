@@ -329,6 +329,16 @@ void ImageProcess::run()
 			}
 			saveToQueue->cond.notify_one();
 		}
+		int num = 5;
+		while (cam_instance->ui_signal.load() != false) 
+		{
+			Sleep(5);
+			num += 5;
+			if (num > 60) {
+				cam_instance->ui_signal.store(false);
+				break;
+			}
+		}
 
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");

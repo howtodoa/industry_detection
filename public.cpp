@@ -40,7 +40,7 @@ InStampParam LearnPara::inParam2 = {
 };
 
 InTopParam LearnPara::inParam3 = {
-	-90,false ,false,0.5,0.3,false
+	-90,false ,false,0.5,0.3,false,false
 };
 
 InSideParam LearnPara::inParam4 = {
@@ -72,7 +72,7 @@ InAbutParam LearnPara::inParam6 = {
 
 InFlowerPinParam LearnPara::inParam7 = { false,0,220,2,4 };
 
-InFlowerPinParam LearnPara::inParam8 = { false,0,180,2,4 };
+InFlowerPinParam LearnPara::inParam8 = { false,0,220,2,4 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 
@@ -158,8 +158,6 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 		return;
 	}
 
-	qDebug() << "MyImageCallback: Input 'image' valid. Size:" << image.size().width << "x" << image.size().height;
-
 	std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
 	if (!currentImageForQueue) {
 		LOG_DEBUG(GlobalLog::logger, L"ptr null");
@@ -203,7 +201,7 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 		}
 		else
 		{
-			DequePtr->queue_red.clear();
+
 		}
 
 	}
