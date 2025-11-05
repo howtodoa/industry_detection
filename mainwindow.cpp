@@ -838,6 +838,7 @@ MainWindow::MainWindow(QString str, QWidget* parent):
         setupOutPutThread();
     }
     initCameralPara();
+    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
 }
 
 MainWindow::MainWindow(int mode,QWidget* parent) :

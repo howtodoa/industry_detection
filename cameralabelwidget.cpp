@@ -496,6 +496,47 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	runButton->setToolTip("运行"); // 鼠标悬停提示
 	runButton->setStyleSheet(buttonStyle); // 应用样式
 	topLayout->addWidget(runButton);
+	
+#ifdef USE_MAIN_WINDOW_FLOWER
+	connect(runButton, &QPushButton::clicked, [this, index, cam]() mutable {
+		if (!runButton->isEnabled()) {
+			qDebug() << "运行按钮被禁用，忽略本次点击。";
+			return;
+		}
+		this->runButton->setEnabled(false); // 防止连点
+		qDebug() << "摄像头" << index + 1 << "的选项 运行 被点击。";
+		if (cam->running.load() == false)
+		{
+			int ret;
+			cam->running.store(true);
+			ret = cam->camOp->MsvOpenDevice();
+			if (ret != 0)
+			{
+				QString logMsg = QString("open cameral ret value: %1").arg(ret);
+
+				// 转为 wchar_t* 并调用日志宏
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				QString warningMessage = cam->cameral_name + "相机未连接";
+				QMessageBox::warning(nullptr, "连接警告", warningMessage);
+
+
+			}
+			ret = cam->camOp->RegisterImageCallBack(MyImageCallback_Flower, &cam->imageQueue);
+
+			ret = cam->camOp->SetTrrigerModel(0);
+
+			ret = cam->camOp->MsvStartImageCapture();
+
+		}
+		else {
+			int ret;
+			//triggerCameraStop(cam);
+			onStreamCapture();
+		}
+
+		this->runButton->setEnabled(true);//恢复
+		});
+#else
 	connect(runButton, &QPushButton::clicked, [this, index, cam]() mutable {
 		if (!runButton->isEnabled()) {
 			qDebug() << "运行按钮被禁用，忽略本次点击。";
@@ -542,7 +583,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 
 		this->runButton->setEnabled(true);//恢复
 		});
-
+#endif
 	// 拍照按钮
 	this->captureButton = new QPushButton(QIcon(iconPath_camera), "", this);
 	//captureButton->setFixedSize(32, 32);
@@ -584,7 +625,12 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		}
 
 		cam->photo.store(true);
+
+#ifdef USE_MAIN_WINDOW_FLOWER
+		triggerCameraPhoto_Stream(cam);
+#else
 		triggerCameraPhoto(cam);
+#endif
 
 		this->captureButton->setEnabled(true);
 		qDebug() << "拍照按钮已恢复可用";
@@ -927,26 +973,69 @@ void CameraLabelWidget::handleCameraPush(Cameral* cam)
 	Sleep(50);  // 启动前必须等待一段时间
 }
 
-void CameraLabelWidget::onStreamCapture(Cameral* cam)
+void CameraLabelWidget::onStreamCapture()
 {
 	int ret = 0;
 
-	ret = cam->camOp->MsvStopImageCapture();
+	ret = m_cam->camOp->MsvStopImageCapture();
 
 	// 设置触发模式
-	ret = cam->camOp->SetTrrigerModel(0);
+	ret = m_cam->camOp->SetTrrigerModel(0);
 	if (ret == -1)
 		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel(0) failed, error: %1").arg(ret).toStdWString().c_str());
 	else
 		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel(0) successful").toStdWString().c_str());
 
 	// 开始采图
-	ret = cam->camOp->MsvStartImageCapture();
+	ret = m_cam->camOp->MsvStartImageCapture();
 	if (ret == -1)
 		LOG_DEBUG(GlobalLog::logger, QString("MsvStartImageCapture() failed, error: %1").arg(ret).toStdWString().c_str());
 	else
 		LOG_DEBUG(GlobalLog::logger, QString("MsvStartImageCapture() successful").toStdWString().c_str());
 
+}
+
+
+void CameraLabelWidget::triggerCameraPhoto_Stream(Cameral* cam)
+{
+	{
+		std::unique_lock<std::mutex> lock(cam->imageQueue.mutex);
+		cam->imageQueue.stop_flag = false;
+	}
+	cam->imageQueue.cond.notify_all();
+
+	int ret = 0;
+
+	ret = cam->camOp->MsvStopImageCapture();
+
+
+	// 设置触发模式
+	ret = cam->camOp->SetTrrigerModel(1);
+	if (ret == 0) {
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel() successful").toStdWString().c_str());
+	}
+	else {
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerModel() failed, ret = %1").arg(ret).toStdWString().c_str());
+	}
+
+	// 设置触发源
+	ret = cam->camOp->SetTrrigerSource(7);
+	if (ret == 0) {
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerSource() successful").toStdWString().c_str());
+	}
+	else {
+		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerSource() failed, ret = %1").arg(ret).toStdWString().c_str());
+	}
+
+	ret = cam->camOp->MsvStartImageCapture();
+
+	startTask(cam, 1);
+
+	Sleep(50);
+
+	ret = cam->camOp->SetTrrigerModel(0);
+
+	ret = cam->camOp->MsvStartImageCapture();
 }
 
 void CameraLabelWidget::triggerCameraPhoto(Cameral* cam)
@@ -1773,11 +1862,9 @@ void CameraLabelWidget::triggerCameraStart(Cameral* cam)
 
 		}
 		Sleep(50);
-#ifdef USE_MAIN_WINDOW_FLOWER
-		ret = cam->camOp->RegisterImageCallBack(MyImageCallback_Flower, &cam->imageQueue);
-#else
+
 		ret = cam->camOp->RegisterImageCallBack(MyImageCallback, &cam->imageQueue);
-#endif
+
 		if (ret != 0)
 		{
 			QString logMsg = QString("Register cameral ret value: %1").arg(ret);
