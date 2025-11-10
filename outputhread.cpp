@@ -62,6 +62,11 @@ void OutPutThread::run()
             const auto& deque = MergePointVec.value(key);
             if (deque.front() != 1) {
                 allOne = false;
+                LOG_DEBUG(GlobalLog::logger,
+                    QString("Deque at key %1 front is %2, not 1")
+                    .arg(key)
+                    .arg(deque.front())
+					.toStdWString().c_str());
                 break;
             }
         }

@@ -447,6 +447,11 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	//启动执行线程
 	this->m_imageProcessor->start();
 
+#ifdef  USE_MAIN_WINDOW_FLOWER
+	this->m_imageProcessor_Red->start();
+#endif //  USE_MAIN_WINDOW_FLOWER
+
+
 	// 创建水平布局用于放置顶部图标和文字菜单按钮
 	QHBoxLayout* topLayout = new QHBoxLayout();
 	topLayout->setContentsMargins(0, 0, 0, 0); // 移除与窗口顶部的空隙
@@ -623,14 +628,14 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		if (cam->running == false) {
 			this->onCameraStart();
 		}
-
+		qDebug() << "photo ing1 ";
 		cam->photo.store(true);
 
-#ifdef USE_MAIN_WINDOW_FLOWER
-		triggerCameraPhoto_Stream(cam);
-#else
+		qDebug() << "photo ing2 ";
+	//	triggerCameraPhoto_Stream(cam);
+
 		triggerCameraPhoto(cam);
-#endif
+
 
 		this->captureButton->setEnabled(true);
 		qDebug() << "拍照按钮已恢复可用";
@@ -1040,10 +1045,12 @@ void CameraLabelWidget::triggerCameraPhoto_Stream(Cameral* cam)
 
 void CameraLabelWidget::triggerCameraPhoto(Cameral* cam)
 {
+	qDebug() << "photo ing 3";
 	{
 		std::unique_lock<std::mutex> lock(cam->imageQueue.mutex);
 		cam->imageQueue.stop_flag = false;
 	}
+	qDebug() << "photo ing 5";
 	cam->imageQueue.cond.notify_all();
 
 	int ret = 0;
@@ -1068,7 +1075,7 @@ void CameraLabelWidget::triggerCameraPhoto(Cameral* cam)
 	else {
 		LOG_DEBUG(GlobalLog::logger, QString("SetTrrigerSource() failed, ret = %1").arg(ret).toStdWString().c_str());
 	}
-
+	qDebug() << "photo ing 4";
 	ret = cam->camOp->MsvStartImageCapture();
 
 	startTask(cam, 1);

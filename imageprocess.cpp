@@ -24,10 +24,13 @@ ImageProcess::~ImageProcess()
 
 	if (m_inputQueue) {
 		std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
+		std::unique_lock<std::mutex> lock_red(m_inputQueue->mutex_red);
 		m_inputQueue->stop_flag = true;
+		m_inputQueue->red_process_flag = true;
 	}
 	if (m_inputQueue) {
 		m_inputQueue->cond.notify_all();
+		m_inputQueue->cond_red.notify_all();
 	}
 
 	qDebug() << "ImageProcess 析构：请求线程退出并等待...";

@@ -740,7 +740,9 @@ MainWindow::MainWindow(QWidget *parent) :
         for(int i=0;i< GlobalPara::MergePointNum;i++)
         {
             QString camId = QString::fromStdString(cams[i]->indentify);
-            MergePointVec.insert(camId, std::deque<int>());
+            int maxSize = 100;
+            MyDeque<int> temp_deque(maxSize);
+            MergePointVec.insert(camId, std::move(temp_deque));
 		}
         GlobalPara::MergePoint = cams[0]->pointNumber;
         setupOutPutThread();
@@ -1515,6 +1517,14 @@ MainWindow::~MainWindow()
     delete menuTools;   // "工具"菜单
     delete menuUser;    // "用户"菜单
 
+    if (GlobalPara::cameraType == GlobalPara::HIKVISION)
+    {
+        if (Mz_CameraConn::MsvCloseLib() != 0)
+        {
+            GlobalLog::logger.Mz_AddLog(L"cameral close fail");
+        }
+    }
+
     if (GlobalPara::ioType == GlobalPara::VC3000H)
     {
         for (int channel = 1; channel <= 4; ++channel) {
@@ -1607,13 +1617,7 @@ MainWindow::~MainWindow()
 
     }
 
-    if (GlobalPara::cameraType == GlobalPara::HIKVISION)
-    {
-        if (Mz_CameraConn::MsvCloseLib() != 0)
-        {
-            GlobalLog::logger.Mz_AddLog(L"cameral close fail");
-        }
-    }
+
 
     for (QWidget* widget : cameraLabels)
     {

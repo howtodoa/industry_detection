@@ -70,9 +70,9 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
-InFlowerPinParam LearnPara::inParam7 = { false,0,220,2,4 };
+InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,4 };
 
-InFlowerPinParam LearnPara::inParam8 = { false,0,220,2,4 };
+InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,4 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 
@@ -140,72 +140,59 @@ void MyImageCallback(cv::Mat & image, void* pUser)
 
 void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 {
-	LOG_DEBUG(GlobalLog::logger, L"cap picture successful");
-	if (pUser == nullptr) {
-		LOG_DEBUG(GlobalLog::logger, L"ptr null");
-		return;
-	}
-
-	if (image.empty()) {
-		LOG_DEBUG(GlobalLog::logger, L"ptr null");
-		qCritical() << "MyImageCallback: Input 'image' is empty before cloning! This is the root cause.";
-		return;
-	}
-
-	if (!image.data) {
-		LOG_DEBUG(GlobalLog::logger, L"ptr null");
-		qCritical() << "MyImageCallback: Input 'image.data' is null before cloning! This is also a root cause.";
-		return;
-	}
-
-	std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
-	if (!currentImageForQueue) {
-		LOG_DEBUG(GlobalLog::logger, L"ptr null");
-		return;
-	}
+	// ... (检查代码) ...
 
 	auto* DequePtr = reinterpret_cast<ImageQueuePack*>(pUser);
 	if (DequePtr == nullptr) {
-		LOG_DEBUG(GlobalLog::logger, L"ptr null");
 		return;
 	}
 
+	// --- 1. 创建主队列副本 ---
+	std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
+
+	// --- 2. 创建红队列副本 ---
+	// 为红队列创建独立副本，以防止跨线程数据竞争。
+	std::shared_ptr<cv::Mat> redImageForQueue = std::make_shared<cv::Mat>(image.clone());
+
+	// ### 1. 处理主队列 (queue) ###
 	{
 		std::unique_lock<std::mutex> lock(DequePtr->mutex);
 
 		if (DequePtr->process_flag.load() == false) {
-			// 标志位为 false：满足条件，执行放入操作
 			DequePtr->queue.push_back(currentImageForQueue);
+			qDebug() << "Callback (Queue): 放入图像，当前大小:" << DequePtr->queue.size();
 
-			qDebug() << " DequePtr->queue.size(): " << DequePtr->queue.size();
-
-			DequePtr->mutex.unlock();
+			// 修正：移除手动解锁
 			DequePtr->cond.notify_one();
+			qDebug() << "Callback (Queue): 已通知主队条件变量。";
 		}
 		else
 		{
 			DequePtr->queue.clear();
+			qWarning() << "Callback (Queue): 发现 process_flag 为 true，队列被清空！";
 		}
-	}
+	} // 锁在这里释放
 
+	// ### 2. 处理红队列 (queue_red) ###
 	{
 		std::unique_lock<std::mutex> lock(DequePtr->mutex_red);
 		if (DequePtr->red_process_flag.load() == false) {
-			// 标志位为 false：满足条件，执行放入操作
-			DequePtr->queue_red.push_back(currentImageForQueue);
+			DequePtr->queue_red.push_back(redImageForQueue); // 使用独立副本
+			qDebug() << "Callback (Red): 放入图像，当前大小:" << DequePtr->queue_red.size();
 
-			qDebug() << " DequePtr->queue_red.size(): " << DequePtr->queue_red.size();
-
-			DequePtr->mutex_red.unlock();
-			DequePtr->cond.notify_one();
+			// 修正：移除手动解锁，并使用正确的 cond_red
+			DequePtr->cond_red.notify_one();
+			qDebug() << "Callback (Red): 已通知红队 cond_red 条件变量。";
 		}
 		else
 		{
-
+			qWarning() << "Callback (Red): 发现 red_process_flag 为 true，新图像被丢弃。";
 		}
+	} // 锁在这里释放
 
-	}
+	// 释放智能指针
 	currentImageForQueue.reset();
+	redImageForQueue.reset();
 }
 
 qint64 getAvailableSystemMemoryMB()

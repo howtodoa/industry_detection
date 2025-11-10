@@ -168,6 +168,8 @@ void Imageprocess_Plate::run()
 				//std::this_thread::sleep_for(std::chrono::milliseconds(40));
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
+				QString logMsg = QString("Abut ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else if (cam_instance->indentify == "Rift") {
 				ret = ExportSpace::RunLift(*currentImagePtr, 1, cam_instance->DI.Angle, true);
@@ -284,7 +286,9 @@ void Imageprocess_Plate::run()
 				g_cv.notify_all();
 
 				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "等待耗时：" << elapsed << "毫秒";
+
+				QString logMsg = QString("cam:=%1,push=%2").arg(camId).arg(1);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 
 
@@ -311,6 +315,8 @@ void Imageprocess_Plate::run()
 
 				lk.unlock();
 				g_cv.notify_all();
+				QString logMsg = QString("cam:=%1,push=%2").arg(camId).arg(0);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 		}
 

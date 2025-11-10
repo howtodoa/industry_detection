@@ -1,7 +1,7 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
+#define ADAPTATEION
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -12,6 +12,7 @@
 #include "BraidedTape.h"
 #include "Api_FlowerPinDetection.h"
 #include "MyStl.h"
+#include <QtGlobal>
 
 struct  OutStampResParam;
 
@@ -271,6 +272,45 @@ struct UnifyParam
         return min + (static_cast<double>(rand()) / RAND_MAX) * (max - min);
     }
 
+    void toLogString() const
+    {
+        // 1. 构建详细的日志消息 (使用 toDebugString() 的逻辑)
+        QString logMsg;
+
+        logMsg = QString("--- UnifyParam DEBUG DUMP for '%1' (%2) ---\n")
+            .arg(label, unit);
+
+        logMsg += QString("  [Config] Mode: %1, Check: %2, Visible: %3, Result: %4\n")
+            .arg(need_value ? "BOOL" : "RANGE")
+            .arg(check ? "ON" : "OFF")
+            .arg(visible ? "YES" : "NO")
+            .arg(result == 1 ? "PASS" : (result == 0 ? "NG" : "N/A"));
+
+        logMsg += QString("  [Value] Current: %1, Learn: %2, Scale: %3\n")
+            .arg(value)
+            .arg(leranValue)
+            .arg(scaleFactor);
+
+        // 注意这里使用了 %lld 打印 64 位整数
+        logMsg += QString("  [Stats] TotalCount: %1, NG_Count: %2\n")
+            .arg(static_cast<qint64>(count))
+            .arg(static_cast<qint64>(ng_count));
+
+        logMsg += QString("  [Range] Limits: [%1 - %2, %3 + %4]\n")
+            .arg(lowerLimit)
+            .arg(lowfix)
+            .arg(upperLimit)
+            .arg(upfix);
+
+        logMsg += QString("  [Extra] Data Type: %1\n").arg(extraData.typeName());
+
+        logMsg += "--- END DEBUG DUMP ---";
+
+        // 2. 调用您的 LOG_DEBUG 宏进行打印
+        // 核心打印逻辑：
+        LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+    }
+
     void applyCorrection()
     {
         double currentValue = this->value;
@@ -305,6 +345,7 @@ struct UnifyParam
             this->value = correctedValue;
         }
     }
+
 
     bool checkBool()
     {
@@ -399,6 +440,39 @@ struct UnifyParam
         return true; // 所有元素都通过
     }
 };
+
+//QDebug operator<<(QDebug dbg, const UnifyParam& param)
+//{
+//    // 启用紧凑模式，让输出更整洁
+//    dbg.nospace() << "UnifyParam(\"" << param.label << "\") {\n";
+//
+//    // 1. 模式/状态
+//    dbg.nospace() << "  Mode: " << (param.need_value ? "BOOL" : "RANGE")
+//        << ", Check Enabled: " << (param.check ? "Yes" : "No")
+//        << ", Visible: " << (param.visible ? "Yes" : "No") << "\n";
+//
+//    // 2. 核心值/结果
+//    dbg.nospace() << "  Value: " << param.value
+//        << " " << param.unit
+//        << ", Result: " << (param.result == 1 ? "PASS" : (param.result == 0 ? "NG" : "N/A"))
+//        << "\n";
+//
+//    // 3. 范围和补偿
+//    dbg.nospace() << "  Range: [" << param.lowerLimit << " - " << param.lowfix
+//        << ", " << param.upperLimit << " + " << param.upfix << "]\n";
+//
+//    // 4. 统计
+//    dbg.nospace() << "  Stats: Total=" << (qint64)param.count
+//        << ", NG=" << (qint64)param.ng_count
+//        << ", ScaleFactor=" << param.scaleFactor << "\n";
+//
+//    // 5. 其他
+//    dbg.nospace() << "  Extra: Learn=" << param.leranValue
+//        << ", ExtraDataType=" << param.extraData.typeName()
+//        << "}\n";
+//
+//    return dbg;
+//}
 
 
 using AllUnifyParams = QMap<QString, UnifyParam>;

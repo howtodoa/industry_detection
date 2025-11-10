@@ -21,6 +21,7 @@ void OutPutThread_Flower::run()
 
     while (m_running)
     {
+
         std::unique_lock<std::mutex> lk(g_mutex);
 
         g_cv.wait(lk, [this]() {
@@ -86,6 +87,7 @@ void OutPutThread_Flower::run()
         GateStatus.store(2);
         lk.unlock();
         g_cv.notify_all();
+
     }
 
     qDebug() << "OutPutThread_Flower exiting normally.";

@@ -30,18 +30,43 @@ void Imageprocess_Flower::run()
 		std::shared_ptr<cv::Mat> currentImagePtr;
 
 		{
+			// --- 1. 尝试进入等待前的状态打印 ---
+			qDebug() << "ImageProcess::run() (Queue) - 准备进入等待，队列大小:" << m_inputQueue->queue.size()
+				<< " 停止标志(Input):" << m_inputQueue->stop_flag.load()
+				<< " 停止标志(Thread):" << thread_stopFlag.load();
+
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
-				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
+
+				bool queue_non_empty = !m_inputQueue->queue.empty();
+				bool input_stop_set = m_inputQueue->stop_flag.load();
+				bool thread_stop_set = thread_stopFlag.load();
+
+				// --- 2. 每次条件检查时的状态打印 ---
+				qDebug() << "ImageProcess::run() (Queue) - [Wait Check] 队列非空:" << queue_non_empty
+					<< " 输入停止:" << input_stop_set
+					<< " 线程停止:" << thread_stop_set
+					<< " 结果(OR):" << (queue_non_empty || input_stop_set || thread_stop_set);
+
+				return queue_non_empty || input_stop_set || thread_stop_set;
 				});
 
+			// --- 3. 被唤醒后的状态打印 ---
+			qDebug() << "ImageProcess::run() (Queue) - **唤醒**，队列大小:" << m_inputQueue->queue.size()
+				<< " 停止标志(Input):" << m_inputQueue->stop_flag.load()
+				<< " 停止标志(Thread):" << thread_stopFlag.load();
+
 			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
+				qDebug() << "ImageProcess::run() (Queue) - 满足退出/继续循环条件，执行 continue。";
 				continue;
 			}
 
-			currentImagePtr = m_inputQueue->queue.front();
+			// --- 4. 准备处理前的确认打印 ---
+			qDebug() << "ImageProcess::run() (Queue) - 条件满足，准备取出图像进行处理。";
 
+			currentImagePtr = m_inputQueue->queue.front();
+			qDebug() << "usually ";
 			if (!currentImagePtr || currentImagePtr->empty()) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null");
 				qWarning() << "ImageProcess::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
@@ -67,13 +92,11 @@ void Imageprocess_Flower::run()
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
-			for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
-				cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
-				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
-			}
 
              if (cam_instance->indentify == "FlowerPin")
 			{
+#if 1
+				 qDebug() << "this is the FlowerPin";
 				ret = ExportFlowerSpace::RunPosFlowerPin(*currentImagePtr, LearnPara::inParam7);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
@@ -81,6 +104,7 @@ void Imageprocess_Flower::run()
 					m_inputQueue->process_flag.store(true);
 					//调用算法第二个接口
 					OutFlowerPinResParam para;
+					
 					ret=ExportFlowerSpace::RunPosFlowerPinDeal(*currentImagePtr, LearnPara::inParam7);
 					ExportFlowerSpace::ResultOutPosFlowerPin(*afterImagePtr, para);
 
@@ -90,14 +114,21 @@ void Imageprocess_Flower::run()
 						cam_instance->RI->updateActualValues(para);
 						cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 						ret = cam_instance->RI->judge_flower_pin(para);
+						cam_instance->RI.unifyParams->toLogString();
 						if (ret == 1) ret = -1;
                     }
+
 				}
-				else continue;
-				
+				else if (ret == 3)
+				{
+					continue;
+				}
+#endif				
 			}
 			else if (cam_instance->indentify == "FlowerPinNeg")
 			{
+#if 1
+				 qDebug() << "this is the FlowerPinNeg";
 				ret = ExportFlowerSpace::RunNegFlowerPin(*currentImagePtr, LearnPara::inParam8);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
@@ -115,18 +146,28 @@ void Imageprocess_Flower::run()
 						ret = cam_instance->RI->judge_flower_pin(para);
 						if (ret == 1) ret = -1;
 					}
+
 				}
-				else continue;
+				else if (ret == 3)
+				{
+					continue;
+				}
+#endif
 			}
 			else if (cam_instance->indentify == "FlowerLook")
 			{
+#if 1
+				 qDebug() << "this is the Look";
 				ret = ExportFlowerSpace::RunLookFlowerPin(*currentImagePtr, LearnPara::inParam9);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (ret == 0) {
+					m_inputQueue->process_flag.store(true);
 					OutLookPinResParam para;
 					ExportFlowerSpace::RunLookFlowerPinDeal(*currentImagePtr, LearnPara::inParam9);
 					ExportFlowerSpace::ResultOutLookFlowerPin(*afterImagePtr, para);
+					m_inputQueue->process_flag.store(false);
+
 					cam_instance->RI->updateActualValues(para);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_look(para);
@@ -136,15 +177,17 @@ void Imageprocess_Flower::run()
 				{
 					continue;
 				}
+#endif 
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
+
 		}
 		else // 推流的情况
 		{
 			afterImagePtr = currentImagePtr;
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
-			emit imageProcessed_Brader(afterImagePtr, info);
+			emit imageProcessed(afterImagePtr, info);
 			currentImagePtr.reset();
 			backupImagePtr.reset();
 			afterImagePtr.reset();
@@ -219,11 +262,10 @@ void Imageprocess_Flower::run()
 			saveToQueue->cond.notify_one();
 		}
 
-		UpdateRealtimeData(cam_instance->RI->unifyParams);
 
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
-			emit imageProcessed(backupImagePtr, info);
+		//	emit imageProcessed(backupImagePtr, info);
 
 		}
 		else {
