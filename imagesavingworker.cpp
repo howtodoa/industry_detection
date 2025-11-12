@@ -63,7 +63,7 @@ void ImageSaverWorker::saveLoop()
         // 检查 cv::Mat 指针是否有效且不为空
         if (!dataToSave.imagePtr || dataToSave.imagePtr->empty()) 
         { 
-            LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
+           // LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
             continue;
         }
 

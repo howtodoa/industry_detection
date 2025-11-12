@@ -107,6 +107,16 @@ void Imageprocess_Flower::run()
 					
 					ret=ExportFlowerSpace::RunPosFlowerPinDeal(*currentImagePtr, LearnPara::inParam7);
 					ExportFlowerSpace::ResultOutPosFlowerPin(*afterImagePtr, para);
+					
+					LOG_DEBUG(
+						GlobalLog::logger,
+						QString("disFlw2Pin2 value: %1").arg(
+							para.disFlw2Pin2, // 要打印的 float 变量
+							0,                // 字段宽度 (0 为动态)
+							'f',              // 格式：'f' 表示定点小数格式
+							4                 // 精度：小数点后保留 4 位（您可以根据需要调整）
+						).toStdWString().c_str()
+					);
 
 					m_inputQueue->process_flag.store(false);
 					if (ret == 0)

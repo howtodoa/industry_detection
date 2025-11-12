@@ -267,7 +267,7 @@ void DisplayInfoWidget::updateDataFromUnifyParams(const AllUnifyParams& params)
 
 			// --- 1. 更新实测值 (value) ---
 			// 将 double 类型的 value 格式化为 4 位小数
-			QString valueStr = QString::number(p.value, 'f', 4);
+			QString valueStr = QString::number(p.value, 'f', 2);
 			rowWidgets.measuredValueLabel->setText(valueStr);
 
 			// --- 2. 更新 NG 计数 (ng_count) ---
@@ -326,8 +326,8 @@ void DisplayInfoWidget::buildUIFromUnifyParams(const AllUnifyParams& params)
 		const QString& baseName = p.label;
 
 		// 格式化上下限 (使用 double 值)
-		QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 4);
-		QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 4);
+		QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 2);
+		QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 2);
 
 		// 4. 创建 UI 控件 (name/limits/value/ngCount)
 		auto nameLabel = new QLabel(baseName);
@@ -370,8 +370,8 @@ void DisplayInfoWidget::updateLimitLabelsFromUnifyParams(const AllUnifyParams& p
 			const auto& rowWidgets = m_uiRows.value(baseName);
 
 			// 格式化上下限 (使用 double 值)
-			QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 4);
-			QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 4);
+			QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 2);
+			QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 2);
 
 			// 更新下限值和上限值
 			rowWidgets.lowerLimitLabel->setText(lowerStr);
