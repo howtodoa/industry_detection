@@ -37,14 +37,14 @@ public slots:
 
     void onUpdateRealtimeData(const AllUnifyParams& params);
 
-    void updateDataFromUnifyParams(const AllUnifyParams& params);
+    virtual void updateDataFromUnifyParams(const AllUnifyParams& params);
 
     //新结构兼容函数
     void onUpdateUnifyParameters(const AllUnifyParams& params);
 
     void onBuildUIFromUnifyParameters(const AllUnifyParams& params);
 
-private:
+public:
 
     void buildUIFromParameters(Parameters* params);
     void updateLimitLabels(Parameters* params);

@@ -58,11 +58,17 @@ void Imageprocess_Plate::run()
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;
 		int ret = -1;
-
-		//for(auto& val:cam_instance->RI->unifyParams)
+//		QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+		//for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
 		//{
-		//	val.result==0;
-		//	val.value = -99;
+		//	const QString paramKey = it.key();
+
+		//	UnifyParam& config = it.value();
+
+
+		//	config.change_value();
+
+	
 		//}
 
 		if (cam_instance->video == false) // 非推流的情况
@@ -115,7 +121,7 @@ void Imageprocess_Plate::run()
 					LOG_DEBUG(GlobalLog::logger, elapsedLogMsg.toStdWString().c_str());
 					if (ret == 1) ret = -1;
 				}
-				else if (ret == 2) {
+				else if (ret == 3) {
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 
@@ -161,11 +167,18 @@ void Imageprocess_Plate::run()
 				ExportSpace::ResultOutAbut(*afterImagePtr, OutResParam);
 				qint64 elapsed = timer.elapsed();
 				info.timeStr = QString::number(elapsed).toStdString();
-				cam_instance->RI->updateActualValues(OutResParam);
-				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-				ret = cam_instance->RI->judge_abut(OutResParam);
-				if (ret == 1) ret = -1;
-				//std::this_thread::sleep_for(std::chrono::milliseconds(40));
+				if (ret == 0)
+				{
+					cam_instance->RI->updateActualValues(OutResParam);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_abut(OutResParam);
+				}
+				else if (ret == 3)
+				{
+					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
+					else ret = -1;
+				}
+				else ret = -1;
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				QString logMsg = QString("Abut ret=%1").arg(ret);
@@ -293,7 +306,7 @@ void Imageprocess_Plate::run()
 
 
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 && cam_instance->photo.load() == false)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn &&  cam_instance->photo.load() == false)//非本地运行的情况
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)

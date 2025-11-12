@@ -2,6 +2,8 @@
 #define ROLE_H
 
 #include <QObject>
+#include <QTimer>
+#include <QDateTime>
 
 class Role : public QObject
 {
@@ -17,6 +19,8 @@ public:
     static bool IsMaintenance(const QString &role);       // 检查是否为机修
     static bool IsManufacturer(const QString &role);      // 检查是否为厂商
     static QString GetCurrentRole();                      // 获取当前角色
+	static void StartAutoLogout(qint64 milliseconds, QObject* receiver, const std::function<void()>& onLogout); // 启动自动注销计时器
+
 
     // 静态成员变量
     static QString CurrentRole;  // 当前角色（静态共享）
@@ -26,6 +30,10 @@ signals:
 
 private:
     static QString password;  // 密码（静态共享）
+
+private:
+    static QTimer* logoutTimer;          // 注销计时器
+    static QDateTime logoutTime;         // 预定的注销时间点
 };
 
 #endif // ROLE_H

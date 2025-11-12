@@ -1522,7 +1522,7 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 
 		if (m_cam->video == false)
 		{
-			if (m_cam->noneDisplay.load() == false&&info.ret==-1)
+			if (m_cam->noneDisplay.load() == false && (info.ret == -1 || info.ret == 1))
 			{
 				//ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());

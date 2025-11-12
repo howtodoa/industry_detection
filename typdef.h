@@ -346,6 +346,12 @@ struct UnifyParam
         }
     }
 
+    void change_value()
+    {
+        this->value = UNIFY_UNSET_VALUE;
+        this->need_value = false;
+		result = -1;
+    }
 
     bool checkBool()
     {

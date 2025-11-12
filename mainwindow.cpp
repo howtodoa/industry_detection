@@ -38,6 +38,7 @@
 #include "Api_FlowerPinDetection.h"
 #include "rezultinfo_look.h"
 #include "outputhread_flower.h"
+#include "displayinfowidget_flower.h"
 
 namespace AppConfig
 {
@@ -1153,7 +1154,10 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         //设置拉伸因子保持均匀分布
         displayInfoHLayout->setStretchFactor(infoWidget, 1);
 #else
-        DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
+        DisplayInfoWidget* infoWidget = nullptr;
+     //   DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
+      if(cams[idx]->indentify=="FlowerLook") infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
+      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams, 4, displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
         m_displayInfoWidgets.append(infoWidget);
         connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateRealtimeData, infoWidget, &DisplayInfoWidget::onUpdateRealtimeData);
@@ -1819,6 +1823,10 @@ void MainWindow::CreateMenu()
             if (!loginDialog->GetPassword().isEmpty()) {
                 m_roleLabel->setText(role.GetCurrentRole());
                 show();
+                Role::StartAutoLogout(600000, this, [this]() {
+                    m_roleLabel->setText("操作员");  // 自动更新界面
+                    qDebug() << "UI 已更新：角色自动注销为操作员";
+                    });
             }
             });
         loginDialog->show();

@@ -111,8 +111,8 @@ void ImageSaverWorker::saveLoop()
          } else {
              GlobalLog::logger.Mz_AddLog(L"QImage save failed");
          }
-         std::cout<<"image ptr use count:  "<<dataToSave.imagePtr.use_count()<<std::endl;
-        dataToSave.imagePtr.reset();
+      //   std::cout<<"image ptr use count:  "<<dataToSave.imagePtr.use_count()<<std::endl;
+      //  dataToSave.imagePtr.reset();
 
         qint64 elapsed = timer.elapsed();  // 获取经过的毫秒数
         qDebug() << "存图耗时：" << elapsed << "毫秒";

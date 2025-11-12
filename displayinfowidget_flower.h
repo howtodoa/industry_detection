@@ -19,6 +19,8 @@ private:
     // 重写 updateLimitLabelsFromUnifyParams
     void updateLimitLabelsFromUnifyParams(const AllUnifyParams& params) override;
 
+    void updateDataFromUnifyParams(const AllUnifyParams& params)  override;
+
 	int m_flowernum;
 };
 

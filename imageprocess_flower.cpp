@@ -114,7 +114,7 @@ void Imageprocess_Flower::run()
 						cam_instance->RI->updateActualValues(para);
 						cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 						ret = cam_instance->RI->judge_flower_pin(para);
-						cam_instance->RI.unifyParams->toLogString();
+					//	cam_instance->RI.unifyParams->toLogString();
 						if (ret == 1) ret = -1;
                     }
 
@@ -262,6 +262,7 @@ void Imageprocess_Flower::run()
 			saveToQueue->cond.notify_one();
 		}
 
+		UpdateRealtimeData(cam_instance->RI->unifyParams);
 
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");

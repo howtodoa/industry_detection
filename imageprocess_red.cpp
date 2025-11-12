@@ -156,12 +156,19 @@ void Imageprocess_Red::run()
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
+
+			SaveData currentSaveData;
+
 			if (saveToQueue->queue.size() > 100)
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 3|| info.ret==1))
 			{
+				currentSaveData.imagePtr = currentImagePtr;
+				currentSaveData.work_path = dataToSave.savePath_NG;
+				saveToQueue->queue.push_back(dataToSave);
+
 				dataToSave.imagePtr = afterImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				//GlobalLog::logger.Mz_AddLog(L"pre Save");
@@ -173,6 +180,10 @@ void Imageprocess_Red::run()
 			}
 			else
 			{
+				currentSaveData.imagePtr = currentImagePtr;
+				currentSaveData.work_path = dataToSave.savePath_OK;
+				saveToQueue->queue.push_back(dataToSave);
+
 				dataToSave.imagePtr = afterImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				GlobalLog::logger.Mz_AddLog(L"all Save");

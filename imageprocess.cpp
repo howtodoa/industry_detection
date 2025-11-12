@@ -308,14 +308,21 @@ void ImageProcess::run()
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
+
+			SaveData currentSaveData;
+			currentSaveData.savePath_Pre = dataToSave.savePath_Pre;
+			currentSaveData.work_path = dataToSave.work_path;
+			currentSaveData.savePath_OK = dataToSave.savePath_OK;
+			currentSaveData.savePath_NG = dataToSave.savePath_NG;
+
 			if (saveToQueue->queue.size() > 100)
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
 			{
-				dataToSave.imagePtr = currentImagePtr;
-				saveToQueue->queue.push_back(dataToSave);
+				currentSaveData.imagePtr = currentImagePtr;
+				saveToQueue->queue.push_back(currentSaveData);
 				GlobalLog::logger.Mz_AddLog(L"pre Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
@@ -325,8 +332,8 @@ void ImageProcess::run()
 			}
 			else
 			{
-				dataToSave.imagePtr = currentImagePtr;
-				saveToQueue->queue.push_back(dataToSave);
+				currentSaveData.imagePtr = currentImagePtr;
+				saveToQueue->queue.push_back(currentSaveData);
 				GlobalLog::logger.Mz_AddLog(L"all Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}

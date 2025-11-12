@@ -98,18 +98,31 @@ bool Login::validateLogin(const QString &role, const QString &password)
         qDebug() << "角色或密码为空！";
         return false;
     }
+#ifdef  USE_MAIN_WINDOW_BRADER
+    if (role == "厂商" && password == "mz2025") {
+        return true;
+    }
 
-    // 假设的角色和密码验证
-    if (role == "厂商" && password == "123456") {
+    if (role == "机修" && password == "mz2025") {
         return true;
     }
-    if (role == "机修" && password == "123456") {
-        return true;
-    }
+
     if (role == "操作员" && password == "123456") {
         return true;
     }
+#else
+    if (role == "厂商" && password == "123456") {
+        return true;
+    }
 
+    if (role == "机修" && password == "123456") {
+        return true;
+    }
+
+    if (role == "操作员" && password == "123456") {
+        return true;
+    }
+#endif
     // 验证失败
     qDebug() << "验证失败，角色或密码错误！";
     return false;
