@@ -117,8 +117,6 @@ void Imageprocess_Plate::run()
 					ret = cam_instance->RI->judge_plate(para);
 					qint64 elapsed = timer1.elapsed();  // 返回毫秒数
 					qDebug() << "执行 updateActualValues + applyScaleFactors 耗时:" << elapsed << "ms";
-					QString elapsedLogMsg = QString("%1 Plate执行updateActualValues + applyScaleFactors耗时：%2 毫秒").arg(cam_instance->cameral_name).arg(elapsed);
-					LOG_DEBUG(GlobalLog::logger, elapsedLogMsg.toStdWString().c_str());
 					if (ret == 1) ret = -1;
 				}
 				else if (ret == 3) {

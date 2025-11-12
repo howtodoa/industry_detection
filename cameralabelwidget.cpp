@@ -427,7 +427,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed_flower);
 
-	if(cam->indentify!="Look")this->m_imageProcessor_Red = new Imageprocess_Red(cam, m_saveQueue, this);
+	if(cam->indentify!="FlowerLook")this->m_imageProcessor_Red = new Imageprocess_Red(cam, m_saveQueue, this);
 #endif // USE_MAIN_WINDOW_CAPACITY
 
 

@@ -833,6 +833,15 @@ MainWindow::MainWindow(QString str, QWidget* parent):
         for (int i = 0; i < GlobalPara::MergePointNum; i++)
         {
             QString camId = QString::fromStdString(cams[i]->indentify);
+            
+            std::wstring wstrCamId = camId.toStdWString();
+
+            // 2. 将格式化后的日志消息也用 std::wstring 构造
+            std::wstring logMsg = L"Cam ID is: " + wstrCamId;
+
+            // 3. 使用您的 LOG_DEBUG 宏
+            LOG_DEBUG(GlobalLog::logger, logMsg.c_str());
+
 			int maxSize = 5;
             MyDeque<int> temp_deque(maxSize);
             MergePointVec.insert(camId, std::move(temp_deque));

@@ -242,7 +242,7 @@ void DisplayInfoWidget::onPaintSend(QVector<PaintDataItem> paintData)
 
 void DisplayInfoWidget::onUpdateRealtimeData(const AllUnifyParams& params)
 {
-	LOG_DEBUG(GlobalLog::logger, L"dsddddddddddddddddddddddddddddddddddddddd");
+	//LOG_DEBUG(GlobalLog::logger, L"dsddddddddddddddddddddddddddddddddddddddd");
 	updateDataFromUnifyParams(params);
 }
 

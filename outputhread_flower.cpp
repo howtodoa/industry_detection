@@ -23,21 +23,29 @@ void OutPutThread_Flower::run()
     {
 
         std::unique_lock<std::mutex> lk(g_mutex);
-
+    
         g_cv.wait(lk, [this]() {
             if (!m_running)
                 return true;
-
+  
             if (MergePointVec.isEmpty())
                 return false;
 
-            // 检查所有 Deque 是否都非空
-            for (const auto& key : MergePointVec.keys()) {
-                const auto& deque = MergePointVec.value(key);
-                if (deque.empty() || GateStatus.load() == 2)
-                    return false;
-            }
+                // 检查所有 Deque 是否都非空
+                for (const auto& key : MergePointVec.keys()) {
+                    const auto& deque = MergePointVec.value(key);
 
+                    if (deque.empty()) {
+                        LOG_DEBUG(GlobalLog::logger, (L"OutPutThread 阻塞原因：相机 [" + key.toStdWString() + L"] 队列为空。").c_str());
+                        return false;
+                    }
+
+                    if (GateStatus.load() == 2) {
+                      //  LOG_DEBUG(GlobalLog::logger, L"OutPutThread 阻塞原因：GateStatus 状态为 2。");
+                        return false;
+                    }
+                }
+            LOG_DEBUG(GlobalLog::logger, L"OutPutThread: 线程被唤醒");
             return true;
             });
 
@@ -47,13 +55,13 @@ void OutPutThread_Flower::run()
         }
 
         qDebug() << "OutPutThread_Flower consumer wakeup";
-
+        LOG_DEBUG(GlobalLog::logger, L"OutPutThread: 线程被唤醒，开始处理合并结果。");
 
 
         // 业务逻辑：判断所有队头是否都为 1
         bool allOne = true;
         for (const auto& key : MergePointVec.keys()) {
-            auto& deque = MergePointVec[key];
+            auto& deque = MergePointVec.find(key).value();
             if (deque.front() != 1) {
                 allOne = false;
                 break;
@@ -80,7 +88,7 @@ void OutPutThread_Flower::run()
 
         // 业务逻辑：队列不满则自动填充空料（0）
         for (auto& key : MergePointVec.keys()) {
-            auto& deque = MergePointVec[key];
+            auto& deque = MergePointVec.find(key).value();
             deque.fill(0); 
         }
 

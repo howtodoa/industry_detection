@@ -18,7 +18,7 @@ Imageprocess_Red::~Imageprocess_Red()
 
 void Imageprocess_Red::run()
 {
-	qDebug() << "ImageProcess::run() (thread started) in QThread ID:" << QThread::currentThreadId();
+	qDebug() << "ImageProcessRed::run() (thread started) in QThread ID:" << QThread::currentThreadId();
 
 	if (!m_inputQueue) {
 		qCritical() << "ImageProcess::run(): Input queue not available! Image processing cannot start.";
