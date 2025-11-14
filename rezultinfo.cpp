@@ -883,8 +883,94 @@ void RezultInfo::updateActualValues(const OutAbutResParam& ret)
     qDebug() << "--- END: 实测值更新完成 ---";
 }
 
+void RezultInfo::updateActualValues(const OutStampResParam& ret)
+{
+    qDebug() << "--- START: 更新实测值 (Stamp) ---";
 
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
 
+        QVariant actualValue;       // 用于日志记录
+        bool valueAssigned = false; // 标志位, 用于日志和 "未匹配" 逻辑
+
+        // --- 1. 匹配合并后的范围键 ---
+
+        if (paramKey == "capacitor_angle") {
+            actualValue = ret.phi;
+            config.value = ret.phi;
+            valueAssigned = true;
+        }
+        else if (paramKey == "positive_width") {
+            actualValue = ret.posWidth;
+            config.value = ret.posWidth;
+            valueAssigned = true;
+        }
+        else if (paramKey == "negative_width") {
+            actualValue = ret.negWidth;
+            config.value = ret.negWidth;
+            valueAssigned = true;
+        }
+
+        // --- 2. 匹配 1:1 键 (非范围) ---
+        else if (paramKey == "positive_defect_area") {
+            actualValue = ret.posErr;
+            config.value = ret.posErr;
+            valueAssigned = true;
+        }
+        else if (paramKey == "negative_mark") {
+            actualValue = ret.logoScores;
+            config.value = ret.logoScores;
+            valueAssigned = true;
+        }
+        else if (paramKey == "negative_defect_area") {
+            actualValue = ret.negErr;
+            config.value = ret.negErr;
+            valueAssigned = true;
+        }
+
+        // --- 3. 匹配 1:N 向量键 (character) ---
+        else if (paramKey.startsWith("character"))
+        {
+            // 提取 "character" 后面的数字 (例如 "character1" -> "1")
+            bool ok = false;
+            // 9 是 "character" 的长度
+            int characterIndex = paramKey.mid(9).toInt(&ok);
+
+            // 将 1-based 的 "character1" 转换为 0-based 的索引
+            int vectorIndex = characterIndex - 1;
+
+            if (ok && vectorIndex >= 0 && vectorIndex < ret.textScores.size())
+            {
+                // 索引有效, 且在传入的 vector 范围内
+                actualValue = ret.textScores[vectorIndex];
+                config.value = ret.textScores[vectorIndex];
+                valueAssigned = true;
+            }
+            else if (ok)
+            {
+                // 索引有效, 但超出了 vector 的范围
+                qWarning().nospace() << "  -> WARNING (Stamp): " << paramKey << " (索引 " << vectorIndex
+                    << ") 超出 textScores 范围 (大小: " << ret.textScores.size() << ")。跳过赋值。";
+            }
+            // else: !ok (例如 "character_foo"), 将在下面被捕获
+        }
+
+        // --- 未匹配 ---
+        if (!valueAssigned)
+        {
+            qWarning() << "警告 (Stamp): 配置项" << paramKey << "未在 OutStampResParam 匹配列表中找到，或索引越界，跳过赋值。";
+            continue; // 跳过 "SUCCESS" 日志
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (Stamp): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (Stamp) ---";
+}
 void RezultInfo::updateActualValues(const OutPlateResParam& ret)
 {
     qDebug() << "--- START: 更新实测值 (Plate) ---";
@@ -1319,10 +1405,6 @@ int RezultInfo::judge_flower_pin(const OutFlowerPinResParam& ret)
 	return 0;
 }
 
-int RezultInfo::judge_stamp_min(const OutStampResParam& ret)
-{
-    return 0;
-}
 
 void RezultInfo::printScore()
 {

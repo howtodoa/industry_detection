@@ -151,7 +151,7 @@ set(RC_FILE
     application.rc
 )
 
-add_executable(${PROJECT_NAME}  ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     #target_compile_definitions(${PROJECT_NAME} PRIVATE QT_NO_DEBUG_OUTPUT)

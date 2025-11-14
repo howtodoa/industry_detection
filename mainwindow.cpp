@@ -549,10 +549,13 @@ void MainWindow::init_algo()
               OutStampResParam para;
               ExportSpace::ResultOutStamp(mat, para, 1);
              LearnPara::inNum = para.textNum;
+#ifdef  ADAPTATEION
+#else
               for (int j = LearnPara::inNum; j < 15; j++)
               {
                   cams[i]->RI->m_PaintData[7 + j].check = false;
               }
+#endif
               break;
           }
       }
@@ -568,6 +571,9 @@ void MainWindow::init_algo()
               OutStampResParam para;
               ExportSpace::ResultOutStamp(mat, para, 0);
               LearnPara::inNum = para.textNum;
+#ifdef  ADAPTATEION
+
+#else
               for (int j = 0; j < LearnPara::inNum; j++)
               {
                   cams[i]->RI->m_PaintData[7 + j].check = true;
@@ -576,8 +582,10 @@ void MainWindow::init_algo()
               {
                   cams[i]->RI->m_PaintData[7+j].check = false;
               }
+#endif
               break;
           }
+
       }
       
 
@@ -842,7 +850,7 @@ MainWindow::MainWindow(QString str, QWidget* parent):
             // 3. 使用您的 LOG_DEBUG 宏
             LOG_DEBUG(GlobalLog::logger, logMsg.c_str());
 
-			int maxSize = 5;
+			int maxSize = 4;
             MyDeque<int> temp_deque(maxSize);
             MergePointVec.insert(camId, std::move(temp_deque));
         }
@@ -1350,6 +1358,21 @@ void MainWindow::initcams(int camnumber)
 
        if(caminfo[i-1].mapping=="NaYin")
        {
+#ifdef ADAPTATEION
+           cam->RI = new RezultInfo_NaYin(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_NaYin(cam->algopath, 0, &cam->DI.Angle, nullptr);
+
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           float temp = caminfo[i - 1].Angle;
+
+
+           LearnPara::inParam2.angleNum = caminfo[i - 1].Angle;
+           qDebug() << LearnPara::inParam2.angleNum;
+
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_NaYin(cam->unifyParams, nullptr);
+#else
+
            cam->RI=new RezultInfo_NaYin(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_NaYin(cam->algopath,0,&cam->DI.Angle,nullptr);
 
@@ -1359,6 +1382,7 @@ void MainWindow::initcams(int camnumber)
 
            LearnPara::inParam2.angleNum = caminfo[i - 1].Angle;
            qDebug()<< LearnPara::inParam2.angleNum;
+#endif
        }
        else if(caminfo[i-1].mapping=="Plate")
        {
@@ -1397,11 +1421,22 @@ void MainWindow::initcams(int camnumber)
        }
        else if(caminfo[i-1].mapping=="Carrier_NaYin")
        {
+#ifdef ADAPTATEION
+           cam->RI = new RezultInfo_NaYin(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_NaYin(cam->algopath, 1, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam1.angleNum = caminfo[i - 1].Angle;
+           qDebug() << "After: " << LearnPara::inParam1.angleNum;
+
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_NaYin(cam->unifyParams, nullptr);
+#else
             cam->RI=new RezultInfo_NaYin(&cam->RC->m_parameters,nullptr);
             cam->AC = new AlgoClass_NaYin(cam->algopath, 1, &cam->DI.Angle, nullptr);
             cam->indentify=caminfo[i-1].mapping.toStdString();
             LearnPara::inParam1.angleNum = caminfo[i - 1].Angle;
             qDebug() << "After: " << LearnPara::inParam1.angleNum;
+#endif
        }
        else if(caminfo[i-1].mapping=="Carrier_Plate")
        {
@@ -2733,7 +2768,14 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
- 
+
+    if (PCI::pci().setlight(0, 100, 100, 1, false, 1) != 0) {
+        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 
     if (PCI::pci().setlight(1, GlobalPara::Light1, 100, 1, false, 1) != 0) {
@@ -2754,7 +2796,7 @@ int MainWindow::initPCI_VC3000H()
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // 通道 3
-    if (PCI::pci().setlight(3, GlobalPara::Light3, 100, 1, false, 3) != 0) {
+    if (PCI::pci().setlight(3, 100, 100, 1, false, 3) != 0) {
         std::cerr << "[ERROR] 3通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
     }
     else {
@@ -2763,7 +2805,7 @@ int MainWindow::initPCI_VC3000H()
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // 通道 4
-    if (PCI::pci().setlight(4, GlobalPara::Light4, 100, 1, false, 4) != 0) {
+    if (PCI::pci().setlight(4,100, 100, 1, false, 4) != 0) {
         std::cerr << "[ERROR] 4通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
     }
     else {
@@ -2771,7 +2813,13 @@ int MainWindow::initPCI_VC3000H()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-
+    if (PCI::pci().setlight(8, 100, 100, 1, false, 1) != 0) {
+        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // 关闭输出
 

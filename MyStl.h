@@ -14,7 +14,7 @@ public:
     {
         if constexpr (std::is_same_v<T, int>)
         {
-            m_data.resize(m_maxSize, 0);
+            m_data.resize(m_maxSize, 1);
         }
     }
 

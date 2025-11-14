@@ -3,6 +3,7 @@
 #include "MZ_VC3000H.h"
 #include <string>
 #include "CapacitanceProgram.h"
+#include "public.h"
 
 Imageprocess_Plate::Imageprocess_Plate(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
 	: ImageProcess(cam, m_saveQueue, parent)
@@ -80,8 +81,6 @@ void Imageprocess_Plate::run()
 	
 
 			if (cam_instance->indentify == "NaYin") {
-				/*		LearnPara::inParam2.scoresNegLimit = cam_instance->RI->score_neg;
-						LearnPara::inParam2.scoresPosLimit = cam_instance->RI->score_pos;*/
 				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 0, LearnPara::inParam2);
 				OutStampResParam para;
 				ExportSpace::ResultOutStamp(*afterImagePtr, para, 0);
@@ -89,8 +88,10 @@ void Imageprocess_Plate::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_stamp(para);
+
 				}
 				else if (ret == 2) {
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
@@ -99,9 +100,14 @@ void Imageprocess_Plate::run()
 				else ret = -1;
 				QString logMsg = QString("NaYin ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+				info.timeStr = QString::number(elapsed).toStdString();
 			}
 			else if (cam_instance->indentify == "Plate") {
-				ret = ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
+				//ret = ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
+				int ret = callWithTimeout([&]() {
+					return ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
+					}, 150, -1);
 				OutPlateResParam para;
 				ExportSpace::ResultOutPlate(*afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
@@ -160,7 +166,15 @@ void Imageprocess_Plate::run()
 			}
 			else if (cam_instance->indentify == "Abut") {
 				InAbutParam inParam = LearnPara::inParam6;
-				ret = ExportSpace::RunAbut(*currentImagePtr, inParam);
+				//ret = ExportSpace::RunAbut(*currentImagePtr, inParam);
+				int ret = callWithTimeout([&]() {
+					return ExportSpace::RunAbut(*currentImagePtr, inParam);
+					}, 150, -1);
+				LOG_DEBUG(GlobalLog::logger,
+					QString("Final ret value after callWithTimeout (RunAbut): %1")
+					.arg(ret)
+					.toStdWString()
+					.c_str());
 				OutAbutResParam OutResParam;
 				ExportSpace::ResultOutAbut(*afterImagePtr, OutResParam);
 				qint64 elapsed = timer.elapsed();
@@ -209,7 +223,8 @@ void Imageprocess_Plate::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_plate(para);
 				}
 				else if (ret == 2) {
@@ -222,8 +237,6 @@ void Imageprocess_Plate::run()
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else if (cam_instance->indentify == "Carrier_NaYin") {
-				/*			LearnPara::inParam1.scoresNegLimit = cam_instance->RI->score_neg;
-							LearnPara::inParam1.scoresPosLimit = cam_instance->RI->score_pos;*/
 				std::cout << " LearnPara::inParam1.textkernl: " << LearnPara::inParam1.textkernl;
 				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 1, LearnPara::inParam1);
 				OutStampResParam para;
@@ -232,8 +245,10 @@ void Imageprocess_Plate::run()
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0) {
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_stamp(para);
+
 				}
 				else if (ret == 2) {
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;

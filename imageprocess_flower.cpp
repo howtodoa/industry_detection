@@ -220,23 +220,6 @@ void Imageprocess_Flower::run()
 		if (cam_instance->DI.Shield == true) ret = 0;
 
 
-		{
-			std::unique_lock<std::mutex> lk(g_mutex);
-			if (MergePointVec.contains("FlowerLook")) {
-				MergePointVec.remove("FlowerLook");
-				LOG_DEBUG(GlobalLog::logger, L"Initialization Cleanup: Forced removal of 'FlowerLook' from MergePointVec.");
-			}
-			QString action_log;
-			QString key_list = "MergePointVec Keys: {";
-			for (const QString& key : MergePointVec.keys()) {
-				key_list += key + "; ";
-			}
-			key_list += "}";
-
-			QString final_log = action_log + " || " + key_list;
-			LOG_DEBUG(GlobalLog::logger, final_log.toStdWString().c_str());
-		}
-
 
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
@@ -249,17 +232,12 @@ void Imageprocess_Flower::run()
 					.toStdWString();
 				LOG_DEBUG(GlobalLog::logger, log_msg.c_str());
 
-				QString action_log;
-				QString key_list = "MergePointVec Keys: {";
-				for (const QString& key : MergePointVec.keys()) {
-					key_list += key + "; ";
-				}
-				key_list += "}";
-
-				QString final_log = action_log + " || " + key_list;
-				LOG_DEBUG(GlobalLog::logger, final_log.toStdWString().c_str());
 			}
-			else GateStatus.store(1);
+			else
+			{
+				GateStatus.store(1);
+				LOG_DEBUG(GlobalLog::logger,L"gata into 1");
+			}
 			lk.unlock();
 			g_cv.notify_all();
 		}
@@ -275,17 +253,12 @@ void Imageprocess_Flower::run()
 					.toStdWString();
 				LOG_DEBUG(GlobalLog::logger, log_msg.c_str()); 
 
-				QString action_log;
-				QString key_list = "MergePointVec Keys: {";
-				for (const QString& key : MergePointVec.keys()) {
-					key_list += key + "; ";
-				}
-				key_list += "}";
-
-				QString final_log = action_log + " || " + key_list;
-				LOG_DEBUG(GlobalLog::logger, final_log.toStdWString().c_str());
 			}
-			else GateStatus.store(0);
+			else
+			{
+				GateStatus.store(0);
+				LOG_DEBUG(GlobalLog::logger, L"gata into 0");
+			}
 			lk.unlock();
 			g_cv.notify_all();
 		}

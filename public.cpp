@@ -195,6 +195,60 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 	redImageForQueue.reset();
 }
 
+
+int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue)
+{
+	// 1. 将任务提交到线程池
+	QFuture<int> future = QtConcurrent::run(func);
+	QFutureWatcher<int> watcher;
+	watcher.setFuture(future);
+
+	// 2. 事件循环等待任务完成或超时
+	QEventLoop loop;
+	// 任务完成时退出事件循环
+	QObject::connect(&watcher, &QFutureWatcher<int>::finished, &loop, &QEventLoop::quit);
+
+	QTimer timer;
+	timer.setSingleShot(true);
+	// 定时器超时时退出事件循环
+	QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+
+	timer.start(timeoutMs);
+	loop.exec(); // 等待任务完成或超时
+
+	// 3. 检查任务状态
+	if (!future.isFinished()) {
+		// --- 明确超时分支 ---
+		// 任务在定时器到期时仍未完成，判定为超时
+		// 注意：这里只是退出了事件循环，但任务仍在线程池中运行（不会被取消）
+		LOG_DEBUG(GlobalLog::logger,
+			QString("callWithTimeoutQt: Function execution timed out (Timeout: %1 ms). Returning default value: %2")
+			.arg(timeoutMs)
+			.arg(defaultValue)
+			.toStdWString()
+			.c_str());
+		return defaultValue;
+	}
+
+	// --- 明确完成分支 ---
+	// 任务在超时前完成
+	int result = future.result();
+
+	// 如果定时器仍在运行，需要停止它，防止它后续触发退出事件循环
+	if (timer.isActive()) {
+		timer.stop();
+	}
+
+	LOG_DEBUG(GlobalLog::logger,
+		QString("callWithTimeoutQt: Function finished (within %1 ms). Returned: %2")
+		.arg(timeoutMs)
+		.arg(result)
+		.toStdWString()
+		.c_str());
+
+	return result;
+}
+
 qint64 getAvailableSystemMemoryMB()
 	{
 		PROCESS_MEMORY_COUNTERS pmc = { 0 };

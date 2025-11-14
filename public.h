@@ -28,7 +28,9 @@
 #include <Pdh.h> 
 #include <psapi.h>
 #include <winternl.h>
-
+#include <QtConcurrent/QtConcurrentRun>
+#include <QFuture>
+#include <QFutureWatcher>
 
 
 void renameJpgFiles(const QString& directoryPath);
@@ -62,6 +64,8 @@ QImage convertMatToQImage(const cv::Mat& mat);
 qint64 getAvailableSystemMemoryMB();
 
 qint64 getAvailableVRAM_MB();
+
+int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue = -1);
 
 int CheckRAM();
 

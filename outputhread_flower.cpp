@@ -64,15 +64,24 @@ void OutPutThread_Flower::run()
             auto& deque = MergePointVec.find(key).value();
             if (deque.front() != 1) {
                 allOne = false;
+
+                std::wstring fail_msg = QString("MergeCheck: 队列 [%1] 导致 allOne=false (值=%2)")
+                    .arg(key)
+                    .arg(allOne)
+                    .toStdWString();
+                LOG_DEBUG(GlobalLog::logger, fail_msg.c_str());
+
                 break;
             }
         }
 
         PCI::pci().setOutputMode(
             GlobalPara::MergePoint,
-            (allOne && GateStatus.load() == 1) ? true : false,
+            (allOne==1 && GateStatus.load() == 1) ? false : true,
             100
         );
+
+            // PCI::pci().setoutput( GlobalPara::MergePoint,(allOne==1 && GateStatus.load() == 1) ? false : true);
 
         LOG_DEBUG(GlobalLog::logger,
             QString("setOutputMode: MergePoint=%1, allOne=%2")
@@ -90,6 +99,7 @@ void OutPutThread_Flower::run()
         for (auto& key : MergePointVec.keys()) {
             auto& deque = MergePointVec.find(key).value();
             deque.fill(0); 
+    
         }
 
         GateStatus.store(2);

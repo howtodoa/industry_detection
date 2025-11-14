@@ -35,7 +35,6 @@ public:
     virtual int judge_top(const OutTopParam& ret);
     virtual int judge_side(const OutSideParam& ret);
     virtual int judge_flower_pin(const OutFlowerPinResParam& ret);
-    virtual int judge_stamp_min(const OutStampResParam& ret);
     virtual int judge_look(const OutLookPinResParam& ret);
     float getAdjustedLowerThreshold(const QString& key) const;
     float getAdjustedUpperThreshold(const QString& key) const;
@@ -43,6 +42,7 @@ public:
    void printPaintDataVector(const QVector<PaintDataItem>& dataVector, const QString& description = "");
     void updateActualValues(const OutAbutResParam& ret);
     void updateActualValues(const OutPlateResParam& ret);
+    void updateActualValues(const OutStampResParam& ret);
 	void updateActualValues(const OutFlowerPinResParam& ret);
     void updateActualValues(const OutLookPinResParam& ret);
     template<typename T>

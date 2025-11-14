@@ -83,7 +83,7 @@ void Imageprocess_Red::run()
 		}
 
 
-		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
+		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;
 		int ret = -1;
 
@@ -97,7 +97,7 @@ void Imageprocess_Red::run()
 			{
 #if 1
 			   m_inputQueue->red_process_flag.store(true);
-			   ret = ExportFlowerSpace::RunPosTape(*currentImagePtr);
+			   ret = ExportFlowerSpace::RunPosTape(*afterImagePtr);
 			   m_inputQueue->red_process_flag.store(false);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "红胶带算法耗时：" << elapsed << "毫秒";
@@ -108,7 +108,6 @@ void Imageprocess_Red::run()
 				{
 					info.ret = ret;
 					if (cam_instance->DI.Shield == true) ret = 0;
-					ret = -1;
 				}
 #endif
 			}
@@ -116,7 +115,7 @@ void Imageprocess_Red::run()
 			{
 #if 1
 			   m_inputQueue->red_process_flag.store(true);
-			   ret = ExportFlowerSpace::RunNegTape(*currentImagePtr);
+			   ret = ExportFlowerSpace::RunNegTape(*afterImagePtr);
 			   m_inputQueue->red_process_flag.store(false);
 			   qint64 elapsed = timer.elapsed();
 			   qDebug() << cam_instance->cameral_name << "红胶带算法耗时：" << elapsed << "毫秒";
@@ -145,7 +144,7 @@ void Imageprocess_Red::run()
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			std::unique_lock<std::mutex> lk(g_mutex);
-
+			LOG_DEBUG(GlobalLog::logger,L"red intodeque");
 			MergePointVec[camId].polution();
 
 			lk.unlock();
@@ -153,7 +152,7 @@ void Imageprocess_Red::run()
 		}
 
 		//存图
-		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
+		if (cam_instance->DI.saveflag.load() >= 2 && cam_instance->video == false)
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
 
@@ -163,30 +162,16 @@ void Imageprocess_Red::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 3|| info.ret==1))
-			{
-				currentSaveData.imagePtr = currentImagePtr;
-				currentSaveData.work_path = dataToSave.savePath_NG;
-				saveToQueue->queue.push_back(dataToSave);
-
-				dataToSave.imagePtr = afterImagePtr;
-				saveToQueue->queue.push_back(dataToSave);
-				//GlobalLog::logger.Mz_AddLog(L"pre Save");
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
-			}
-			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == 0)
-			{
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
-			}
 			else
 			{
 				currentSaveData.imagePtr = currentImagePtr;
-				currentSaveData.work_path = dataToSave.savePath_OK;
-				saveToQueue->queue.push_back(dataToSave);
+				currentSaveData.work_path = dataToSave.savePath_Pre;
+				saveToQueue->queue.push_back(currentSaveData);
 
 				dataToSave.imagePtr = afterImagePtr;
+				dataToSave.work_path = dataToSave.savePath_NG;
 				saveToQueue->queue.push_back(dataToSave);
-				GlobalLog::logger.Mz_AddLog(L"all Save");
+				LOG_DEBUG(GlobalLog::logger, L"red Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
 			saveToQueue->cond.notify_one();

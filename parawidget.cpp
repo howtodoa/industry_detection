@@ -18,9 +18,7 @@
 #include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QDoubleSpinBox>
-#include <QPushButton>
 #include <QtGlobal>
-#include <QVBoxLayout>
 #include <QFormLayout>
 #include "imageviewerwindow.h"
 #include <opencv2/opencv.hpp>

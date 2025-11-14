@@ -103,14 +103,18 @@ void CameraLabelWidget::onLearn()
 		OutStampResParam para;
 		ExportSpace::ResultOutStamp(afterImagePtr, para, 1);
 		LearnPara::inNum = para.textNum;
+#ifdef  ADAPTATEION
+
+#else
 		for (int j = 0; j < LearnPara::inNum; j++)
 		{
-			m_cam->RI->m_PaintData[7 + j].check = true;
+			cams[i]->RI->m_PaintData[7 + j].check = true;
 		}
-		for (int j = para.textNum; j < 15; j++)
+		for (int j = LearnPara::inNum; j < 15; j++)
 		{
-			m_cam->RI->m_PaintData[7 + j].check = false;
+			cams[i]->RI->m_PaintData[7 + j].check = false;
 		}
+#endif
 		qDebug() << "onLearn end";
 
 		std::string path = "../../../resources/images/Carrier_NaYin.jpg";
@@ -123,22 +127,25 @@ void CameraLabelWidget::onLearn()
 	else if (m_cam->indentify == "NaYin")
 	{
 
-	/*	LearnPara::inParam2.scoresNegLimit = m_cam->RI->score_neg;
-		LearnPara::inParam2.scoresPosLimit = m_cam->RI->score_pos;*/
+
 		qDebug() << "onLearn start";
 		ExportSpace::RunStamp(*this->learnimage, 0, 0, LearnPara::inParam2);
 
 		OutStampResParam para;
 		ExportSpace::ResultOutStamp(afterImagePtr, para, 0);
 		LearnPara::inNum = para.textNum;
+#ifdef  ADAPTATEION
+
+#else
 		for (int j = 0; j < LearnPara::inNum; j++)
 		{
-			m_cam->RI->m_PaintData[7 + j].check = true;
+			cams[i]->RI->m_PaintData[7 + j].check = true;
 		}
-		for (int j = para.textNum; j < 15; j++)
+		for (int j = LearnPara::inNum; j < 15; j++)
 		{
-			m_cam->RI->m_PaintData[7 + j].check = false;
+			cams[i]->RI->m_PaintData[7 + j].check = false;
 		}
+#endif
 		qDebug() << "onLearn end";
 
 		std::string path = "../../../resources/images/NaYin.jpg";
@@ -448,7 +455,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	this->m_imageProcessor->start();
 
 #ifdef  USE_MAIN_WINDOW_FLOWER
-	this->m_imageProcessor_Red->start();
+	if(cam->indentify!="FlowerLook") this->m_imageProcessor_Red->start();
 #endif //  USE_MAIN_WINDOW_FLOWER
 
 
