@@ -104,10 +104,38 @@ void Imageprocess_Plate::run()
 				info.timeStr = QString::number(elapsed).toStdString();
 			}
 			else if (cam_instance->indentify == "Plate") {
-				//ret = ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
-				int ret = callWithTimeout([&]() {
-					return ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
-					}, 150, -1);
+				int flagCopy = 0; // 这里的 0 是固定值
+				int angleCopy = cam_instance->DI.Angle; // 拷贝 angle 的值
+
+				// 深拷贝 cv::Mat 数据。这是线程安全的关键！
+				cv::Mat imageCopy = currentImagePtr->clone();
+
+				QElapsedTimer totalTimer; // 用于测量整个流程的总耗时
+				totalTimer.start();
+
+				// 2. 调用 C++11 超时函数
+				int ret_from_call = callWithTimeout_cpp11([imageCopy, flagCopy, angleCopy]() mutable -> int {
+
+					QElapsedTimer innerTimer;
+					innerTimer.start();
+
+					// ！！在子线程中执行 RunPlate，使用副本 ！！
+					int innerResult = ExportSpace::RunPlate(imageCopy, flagCopy, angleCopy);
+
+					qint64 elapsedMs = innerTimer.elapsed();
+					LOG_DEBUG(GlobalLog::logger,
+						QString("RunPlate Internal Timing (C++11): Execution Time: %1 ms, Returned: %2")
+						.arg(elapsedMs)
+						.arg(innerResult)
+						.toStdWString()
+						.c_str());
+
+					return innerResult;
+					}, 150, -1); // 注意：这里使用了您原定的 150ms 超时
+
+				// 3. 将结果赋给外部 ret (注意：这里使用外部定义的 int ret)
+				// 由于您的 Plate 分支内定义了局部 int ret，这里改为赋值给外部的 ret (假设外部已定义)
+				ret = ret_from_call;
 				OutPlateResParam para;
 				ExportSpace::ResultOutPlate(*afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
@@ -167,11 +195,42 @@ void Imageprocess_Plate::run()
 			else if (cam_instance->indentify == "Abut") {
 				InAbutParam inParam = LearnPara::inParam6;
 				//ret = ExportSpace::RunAbut(*currentImagePtr, inParam);
-				int ret = callWithTimeout([&]() {
-					return ExportSpace::RunAbut(*currentImagePtr, inParam);
-					}, 150, -1);
+				QElapsedTimer innerTimer;
+				innerTimer.start();
+
+				InAbutParam paramCopy = LearnPara::inParam6;
+
+				// 深拷贝 cv::Mat 数据。这是线程安全的关键！
+				cv::Mat imageCopy = currentImagePtr->clone();
+
+				// 2. 调用 C++11 超时函数
+				int ret_from_call = callWithTimeout_cpp11([imageCopy, paramCopy]() mutable -> int {
+
+					QElapsedTimer innerTimer;
+					innerTimer.start();
+
+					// ！！在子线程中执行 RunAbut，使用副本 (mutable 允许非 const 引用绑定)
+					int innerResult = ExportSpace::RunAbut(imageCopy, paramCopy);
+
+					qint64 elapsedMs = innerTimer.elapsed();
+					LOG_DEBUG(GlobalLog::logger,
+						QString("RunAbut Internal Timing (C++11): Execution Time: %1 ms, Returned: %2")
+						.arg(elapsedMs)
+						.arg(innerResult)
+						.toStdWString()
+						.c_str());
+
+					return innerResult;
+					}, 120, -1);
+
+				// 3. 将结果赋给外部 ret
+				ret = ret_from_call;
+
+				qint64 elapsedMs = innerTimer.elapsed();
+
 				LOG_DEBUG(GlobalLog::logger,
-					QString("Final ret value after callWithTimeout (RunAbut): %1")
+					QString("RunAbut Internal Timing: Execution Time: %1 ms, Returned: %2")
+					.arg(elapsedMs)
 					.arg(ret)
 					.toStdWString()
 					.c_str());

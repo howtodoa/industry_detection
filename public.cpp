@@ -249,6 +249,46 @@ int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue)
 	return result;
 }
 
+int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultValue)
+{
+	using namespace std::chrono;
+
+	// 1. 使用 std::async 启动异步任务
+	// std::launch::async 强制在新线程中执行任务
+	std::future<int> future = std::async(std::launch::async, func);
+
+	// 2. 阻塞等待，带超时
+	std::future_status status = future.wait_for(milliseconds(timeoutMs));
+
+	// 3. 检查状态
+	if (status == std::future_status::ready)
+	{
+		// --- 任务完成分支 ---
+		int result = future.get(); // 获取结果
+
+		LOG_DEBUG(GlobalLog::logger,
+			QString("callWithTimeout_cpp11: Function finished (within %1 ms). Returned: %2")
+			.arg(timeoutMs)
+			.arg(result)
+			.toStdWString()
+			.c_str());
+		return result;
+	}
+	else
+	{
+		// --- 超时分支 ---
+		// 任务仍在后台执行，但我们已超时
+
+		LOG_DEBUG(GlobalLog::logger,
+			QString("callWithTimeout_cpp11: Function execution timed out (Timeout: %1 ms). Returning default value: %2")
+			.arg(timeoutMs)
+			.arg(defaultValue)
+			.toStdWString()
+			.c_str());
+		return defaultValue;
+	}
+}
+
 qint64 getAvailableSystemMemoryMB()
 	{
 		PROCESS_MEMORY_COUNTERS pmc = { 0 };
