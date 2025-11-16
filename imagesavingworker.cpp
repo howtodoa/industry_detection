@@ -2,7 +2,9 @@
 #include "public.h"
 #include <filesystem>
 #include <opencv2/opencv.hpp>
-
+#include <string>
+#include <locale>
+#include <codecvt>
 
 ImageSaverWorker::ImageSaverWorker(SaveQueue& saveQueue, QObject *parent)
     : QObject(parent),
@@ -107,7 +109,13 @@ void ImageSaverWorker::saveLoop()
 
 
          if (qImage.save(qFullPath, "JPG")) {
-           //  GlobalLog::logger.Mz_AddLog(L"save img successful (Qt via reused converter)");
+             std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+
+             // 2. 将 std::string (UTF-8) 转换为 std::wstring
+             std::wstring wstr = converter.from_bytes(dataToSave.info);
+
+             // 3. 传入宏，使用 std::wstring 的 c_str()
+             LOG_DEBUG(GlobalLog::logger, wstr.c_str());
          } else {
              GlobalLog::logger.Mz_AddLog(L"QImage save failed");
          }

@@ -92,6 +92,8 @@ set(HEADERS
     "include/DBOperation.h"
     "include/Api_FlowerPinDetection.h"
     "include/FlowerPinParam.h"
+    "include/common.h"
+    "include/Api_Welding.h"
     syspara.h
     cameralabelwidget.h
     zoomablelabel.h
@@ -206,6 +208,8 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/CapacitanceProgram.lib"
         "${CMAKE_SOURCE_DIR}/lib/BraidedTape.lib"
         "${CMAKE_SOURCE_DIR}/lib/FlowerPinDetection.lib"
+        "${CMAKE_SOURCE_DIR}/lib/OVDetector.lib"
+        "${CMAKE_SOURCE_DIR}/lib/1T4Library.lib"
         ${OPENVINO_LIBS}
         ${OPENCV_LIB_TO_LINK}
         Dbghelp

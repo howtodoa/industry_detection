@@ -157,6 +157,7 @@ void Imageprocess_Red::run()
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
 
 			SaveData currentSaveData;
+			SaveData afterSaveData;
 
 			if (saveToQueue->queue.size() > 100)
 			{
@@ -168,9 +169,19 @@ void Imageprocess_Red::run()
 				currentSaveData.work_path = dataToSave.savePath_Pre;
 				saveToQueue->queue.push_back(currentSaveData);
 
-				dataToSave.imagePtr = afterImagePtr;
+	/*			dataToSave.imagePtr = afterImagePtr;
 				dataToSave.work_path = dataToSave.savePath_NG;
-				saveToQueue->queue.push_back(dataToSave);
+				dataToSave.info = "this is red ng pic";
+				saveToQueue->queue.push_back(dataToSave);*/
+
+				afterSaveData.imagePtr = afterImagePtr;
+				// 假设 savePath_NG 是 dataToSave 的一个有效配置成员
+				afterSaveData.work_path = dataToSave.savePath_Pre;
+				afterSaveData.info = "this is red ng pic";
+
+				// 3. 将新的局部变量推入队列
+				saveToQueue->queue.push_back(afterSaveData);
+
 				LOG_DEBUG(GlobalLog::logger, L"red Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}

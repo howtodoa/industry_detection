@@ -96,7 +96,8 @@ void Imageprocess_Flower::run()
              if (cam_instance->indentify == "FlowerPin")
 			{
 #if 1
-				 qDebug() << "this is the FlowerPin";
+
+
 				ret = ExportFlowerSpace::RunPosFlowerPin(*currentImagePtr, LearnPara::inParam7);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
@@ -105,18 +106,19 @@ void Imageprocess_Flower::run()
 					//调用算法第二个接口
 					OutFlowerPinResParam para;
 					
-					ret=ExportFlowerSpace::RunPosFlowerPinDeal(*currentImagePtr, LearnPara::inParam7);
+					QElapsedTimer innerTimer;
+					innerTimer.start();
+
+					ret = ExportFlowerSpace::RunPosFlowerPinDeal(*currentImagePtr, LearnPara::inParam7);
 					ExportFlowerSpace::ResultOutPosFlowerPin(*afterImagePtr, para);
-					
-					//LOG_DEBUG(
-					//	GlobalLog::logger,
-					//	QString("disFlw2Pin2 value: %1").arg(
-					//		para.disFlw2Pin2, // 要打印的 float 变量
-					//		0,                // 字段宽度 (0 为动态)
-					//		'f',              // 格式：'f' 表示定点小数格式
-					//		4                 // 精度：小数点后保留 4 位（您可以根据需要调整）
-					//	).toStdWString().c_str()
-					//);
+
+					qint64 elapsedMs = innerTimer.elapsed();
+					LOG_DEBUG(GlobalLog::logger,
+						QString("pos : %1 ms, Returned: %2")
+						.arg(elapsedMs)
+						.arg(ret)
+						.toStdWString()
+						.c_str());				
 
 					m_inputQueue->process_flag.store(false);
 					if (ret == 0)
@@ -140,14 +142,22 @@ void Imageprocess_Flower::run()
 #if 1
 				 qDebug() << "this is the FlowerPinNeg";
 				ret = ExportFlowerSpace::RunNegFlowerPin(*currentImagePtr, LearnPara::inParam8);
-				qint64 elapsed = timer.elapsed();
-				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+
 				if (ret == 0) {
 					m_inputQueue->process_flag.store(true);
 					//调用算法第二个接口
 					OutFlowerPinResParam para;
 					ret = ExportFlowerSpace::RunNegFlowerPinDeal(*currentImagePtr, LearnPara::inParam8);
 					ExportFlowerSpace::ResultOutNegFlowerPin(*afterImagePtr, para);
+					qint64 elapsed = timer.elapsed();
+					qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+					LOG_DEBUG(GlobalLog::logger,
+						QString("neg : %1 ms, Ret: %2")
+						.arg(elapsed)
+						.arg(ret)
+						.toStdWString()
+						.c_str());
+
 					m_inputQueue->process_flag.store(false);
 					if (ret == 0)
 					{

@@ -2,6 +2,7 @@
 #define TYPDEF_H
 
 #define ADAPTATEION
+#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
