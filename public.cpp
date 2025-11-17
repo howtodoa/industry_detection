@@ -1,5 +1,9 @@
 #include "public.h"
 
+std::shared_ptr<WeldingDetector> g_detector=nullptr;
+
+struct  OutStampResParam;
+
 QString SystemPara::VERSION = "电容视觉检测系统";
 QString SystemPara::DATA_DIR = "../../../data";
 QString SystemPara::LOG_DIR = "../var";

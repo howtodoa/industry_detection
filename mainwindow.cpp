@@ -734,7 +734,11 @@ MainWindow::MainWindow(QWidget *parent) :
     init_cap();
     initcams(caminfo.size());
     initSqlite3Db_Plater();
+#ifdef FOURBRADER
+	init_algo_FourBrader();
+#else
     init_algo();
+#endif
     setupImageSaverThread();
     CreateMenu();
     CreateImageGrid(caminfo.size());
@@ -743,7 +747,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
     setupUpdateTimer();
-#ifdef ADAPTATEION
+#ifdef ADAPTATEION || FOURBRADER
     if (GlobalPara::MergePointNum > 0)
     {
         for(int i=0;i< GlobalPara::MergePointNum;i++)
@@ -859,6 +863,13 @@ MainWindow::MainWindow(QString str, QWidget* parent):
     }
     initCameralPara();
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
+}
+
+void MainWindow::init_algo_FourBrader()
+{
+    g_detector = Obj<WeldingDetector>::GetInstance();
+    g_detector->Initialize(&g_detector->m_params);
+	//g_detector->m_params = g_params;
 }
 
 MainWindow::MainWindow(int mode,QWidget* parent) :
@@ -1515,6 +1526,38 @@ void MainWindow::initcams(int camnumber)
            cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "FlowerLook")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           }
+       else if (caminfo[i - 1].mapping == "Xs")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           }
+       else if (caminfo[i - 1].mapping == "Ny")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           }
+       else if (caminfo[i - 1].mapping == "Bottom1")
+       {
+           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           }
+       else if (caminfo[i - 1].mapping == "Bottom2")
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
@@ -2878,26 +2921,47 @@ void MainWindow::initSqlite3Db_Brader()
         return;
     }
 
-    // 2. 准备当天的表名和表结构定义
-    QString datePrefix = QDate::currentDate().toString("yyyyMMdd");
-    QString summaryTableName = datePrefix + "_All_summary";
-    QString detailTableName = datePrefix + "_NG_details";
+    // --- 2. 计算当前班次的表名 ---
+    QDateTime now = QDateTime::currentDateTime();
+    int currentHour = now.time().hour();
+    QDate logicalDate = now.date(); // 逻辑日期
+    QString suffix = "";
 
+    // 判断逻辑：
+    // 08:00 - 19:59 为白班 (_daytime)
+    // 20:00 - 07:59 (次日) 为晚班 (_night)
+    if (currentHour >= 8 && currentHour < 20) {
+        // 白班
+        suffix = "_daytime";
+    }
+    else {
+        // 晚班
+        suffix = "_night";
+        if (currentHour < 8) {
+            // 如果是凌晨 00:00-07:59，逻辑上属于前一天的晚班
+            logicalDate = logicalDate.addDays(-1);
+        }
+    }
+
+    QString datePrefix = logicalDate.toString("yyyyMMdd");
+    QString summaryTableName = datePrefix + "_All_summary" + suffix;
+    QString detailTableName = datePrefix + "_NG_details" + suffix;
+
+    // 3. 确保当前班次的表都存在
     QString summaryCols = QStringLiteral(
         "\"相机名称\" TEXT PRIMARY KEY, "
         "\"总数\" INT, "
         "\"NG数\" INT, "
         "\"良率\" REAL"
     );
+    SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
+
     QString detailCols = QStringLiteral(
         "\"相机名称\" TEXT, "
         "\"缺陷类型\" TEXT, "
         "\"数量\" INT, "
         "PRIMARY KEY(\"相机名称\", \"缺陷类型\")"
     );
-
-    // 3. 确保当天的表都存在 (使用 CREATE TABLE IF NOT EXISTS)
-    SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
     SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
 
     // --- 4. 为每个相机加载或创建初始数据 ---
@@ -2908,7 +2972,7 @@ void MainWindow::initSqlite3Db_Brader()
 
         const QString& cameraName = camera->cameral_name;
 
-        // --- PART A: 处理总览表 ---
+        // --- PART A: 加载总览表 ---
         QString summaryCondition = QString("\"相机名称\" = '%1'").arg(cameraName);
         std::map<std::string, std::variant<int, double, std::string>> dbRecord;
         SqliteDB::DBOperation::GetFullRecord(
@@ -2933,22 +2997,21 @@ void MainWindow::initSqlite3Db_Brader()
         else {
             // **记录不存在**: 插入初始值为0的新记录
             std::vector<std::variant<int, double, std::string>> valuesToInsert;
-            valuesToInsert.push_back(cameraName.toStdString()); // 相机名称
-            valuesToInsert.push_back(0);                       // 总数
-            valuesToInsert.push_back(0);                       // NG数
-            valuesToInsert.push_back(1.0);                     // 良率 (初始为100%)
+            valuesToInsert.push_back(cameraName.toUtf8().toStdString()); // 写入UTF-8
+            valuesToInsert.push_back(0);
+            valuesToInsert.push_back(0);
+            valuesToInsert.push_back(1.0);
             SqliteDB::DBOperation::InsertRecord(summaryTableName.toUtf8().constData(), valuesToInsert);
             // 内存中的计数器保持默认的0即可
         }
 
-        // --- PART B: 处理NG细分表 ---
+        // --- PART B: 加载NG细分表 ---
         bool hasPaintData = (camera->RI && !camera->RI->m_PaintData.isEmpty());
         if (hasPaintData) {
             for (auto& item : camera->RI->m_PaintData) {
                 const QString& defectType = item.label;
                 QString detailCondition = QString("\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(defectType);
 
-                // 【关键修改】在这里将 variant 初始化为一个明确的 "空" 状态
                 std::variant<int, double, std::string> dbDefectCount = "";
 
                 SqliteDB::DBOperation::GetRecordValue(
@@ -2958,37 +3021,67 @@ void MainWindow::initSqlite3Db_Brader()
                     dbDefectCount
                 );
 
-                // 现在，只有当 GetRecordValue 真正从数据库读到了一个整数并覆盖了初始值时，
-                // 这个 if 判断才会为 true。
                 if (std::holds_alternative<int>(dbDefectCount)) {
                     item.count = std::get<int>(dbDefectCount);
                 }
                 else {
-                    // 记录不存在，插入初始值为0的新记录
                     std::vector<std::variant<int, double, std::string>> defectValuesToInsert;
-                    defectValuesToInsert.push_back(cameraName.toStdString());
-                    defectValuesToInsert.push_back(defectType.toStdString());
+                    defectValuesToInsert.push_back(cameraName.toUtf8().toStdString()); // 写入UTF-8
+                    defectValuesToInsert.push_back(defectType.toUtf8().toStdString()); // 写入UTF-8
                     defectValuesToInsert.push_back(0);
                     SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), defectValuesToInsert);
-                    item.count = 0; // 确保内存中的值也为0
+                    item.count = 0;
                 }
             }
         }
     }
 }
 
+
 void MainWindow::updateDB_Brader()
 {
-    // 1. 获取当天和昨天的日期，确定表名
-    QString datePrefix = QDate::currentDate().toString("yyyyMMdd");
-    QString yesterdayDatePrefix = QDate::currentDate().addDays(-1).toString("yyyyMMdd");
+    // --- 1. 计算当前班次和上一班次的表名 ---
+    QDateTime now = QDateTime::currentDateTime();
+    int currentHour = now.time().hour();
+    QDate logicalDate = now.date();
 
-    QString summaryTableName = datePrefix + "_All_summary";
-    QString detailTableName = datePrefix + "_NG_details";
-    QString yesterdaySummaryTableName = yesterdayDatePrefix + "_All_summary";
-    QString yesterdayDetailTableName = yesterdayDatePrefix + "_NG_details";
+    QString currentSuffix;
+    QString prevSuffix;
+    QDate prevLogicalDate;
 
-    // 2. 确保当天的两张表都存在 (如果不存在则创建)
+    // 判断逻辑：8点和20点为界
+    if (currentHour >= 8 && currentHour < 20) {
+        // 当前是: 白班 (Today_daytime)
+        // 上一班: 昨天的晚班 (Yesterday_night)
+        currentSuffix = "_daytime";
+        prevSuffix = "_night";
+        prevLogicalDate = logicalDate.addDays(-1);
+    }
+    else {
+        // 当前是: 晚班
+        currentSuffix = "_night";
+        if (currentHour < 8) {
+            // 如果是凌晨，归属到前一天
+            logicalDate = logicalDate.addDays(-1);
+        }
+
+        // 上一班: 今天的白班
+        prevSuffix = "_daytime";
+        prevLogicalDate = logicalDate;
+    }
+
+    QString dateStr = logicalDate.toString("yyyyMMdd");
+    QString prevDateStr = prevLogicalDate.toString("yyyyMMdd");
+
+    // 当前表名
+    QString summaryTableName = dateStr + "_All_summary" + currentSuffix;
+    QString detailTableName = dateStr + "_NG_details" + currentSuffix;
+
+    // 上一班表名 (用于结转)
+    QString prevSummaryTableName = prevDateStr + "_All_summary" + prevSuffix;
+    QString prevDetailTableName = prevDateStr + "_NG_details" + prevSuffix;
+
+    // --- 2. 确保当前班次的表存在 ---
     QString summaryCols = QStringLiteral(
         "\"相机名称\" TEXT PRIMARY KEY, "
         "\"总数\" INT, "
@@ -3005,18 +3098,17 @@ void MainWindow::updateDB_Brader()
     );
     SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
 
-    // 3. 遍历所有相机
+    // --- 3. 遍历所有相机进行更新 ---
     for (const auto& camera : cams) {
-        if (!camera) {
-            continue;
-        }
+        if (!camera) continue;
 
         const QString& cameraName = camera->cameral_name;
         long long currentAbsoluteTotal = camera->sum_count.load();
         long long currentAbsoluteNg = camera->error_count.load();
 
-        // --- 统一的“新一天”判断 ---
         QString condition = QString("\"相机名称\" = '%1'").arg(cameraName);
+
+        // 检查当前班次的记录是否存在
         std::map<std::string, std::variant<int, double, std::string>> existingRecord;
         SqliteDB::DBOperation::GetFullRecord(
             summaryTableName.toUtf8().constData(),
@@ -3025,71 +3117,77 @@ void MainWindow::updateDB_Brader()
         );
 
         if (existingRecord.empty()) {
-            // --- 新的一天：对两个表都执行结转操作 ---
+            // --- 换班了：当前班次无记录，执行结转 ---
 
-            // a. 结转总览表
-            std::map<std::string, std::variant<int, double, std::string>> yesterdayRecord;
+            // a. 读取上一班次的数据
+            std::map<std::string, std::variant<int, double, std::string>> prevRecord;
             SqliteDB::DBOperation::GetFullRecord(
-                yesterdaySummaryTableName.toUtf8().constData(),
+                prevSummaryTableName.toUtf8().constData(),
                 condition.toUtf8().constData(),
-                yesterdayRecord
+                prevRecord
             );
 
-            long long yesterdayTotal = 0, yesterdayNg = 0;
-            if (!yesterdayRecord.empty()) {
-                if (yesterdayRecord.count("总数")) yesterdayTotal = std::get<int>(yesterdayRecord.at("总数"));
-                if (yesterdayRecord.count("NG数")) yesterdayNg = std::get<int>(yesterdayRecord.at("NG数"));
+            long long prevTotal = 0;
+            long long prevNg = 0;
+            if (!prevRecord.empty()) {
+                if (prevRecord.count("总数")) prevTotal = std::get<int>(prevRecord.at("总数"));
+                if (prevRecord.count("NG数")) prevNg = std::get<int>(prevRecord.at("NG数"));
             }
 
-            long long todayInitialTotal = currentAbsoluteTotal - yesterdayTotal;
-            long long todayInitialNg = currentAbsoluteNg - yesterdayNg;
-            double yieldRate = (todayInitialTotal > 0) ? (static_cast<double>(todayInitialTotal - todayInitialNg) / todayInitialTotal) : 0.0;
+            // b. 计算当前班次的初始增量
+            long long currentShiftTotal = currentAbsoluteTotal - prevTotal;
+            long long currentShiftNg = currentAbsoluteNg - prevNg;
+            double yieldRate = (currentShiftTotal > 0) ? (static_cast<double>(currentShiftTotal - currentShiftNg) / currentShiftTotal) : 0.0;
 
+            // c. 插入新表
             std::vector<std::variant<int, double, std::string>> summaryValues;
             summaryValues.push_back(cameraName.toUtf8().toStdString());
-            summaryValues.push_back(static_cast<int>(todayInitialTotal));
-            summaryValues.push_back(static_cast<int>(todayInitialNg));
+            summaryValues.push_back(static_cast<int>(currentShiftTotal));
+            summaryValues.push_back(static_cast<int>(currentShiftNg));
             summaryValues.push_back(yieldRate);
             SqliteDB::DBOperation::InsertRecord(summaryTableName.toUtf8().constData(), summaryValues);
 
-            camera->sum_count.store(todayInitialTotal);
-            camera->error_count.store(todayInitialNg);
+            // d. 【关键】重置内存计数器为当前班次的初始值
+            camera->sum_count.store(currentShiftTotal);
+            camera->error_count.store(currentShiftNg);
 
-            // b. 结转NG详情表
+            // e. 结转NG详情表
             bool hasPaintData = (camera->RI && !camera->RI->m_PaintData.isEmpty());
             if (hasPaintData) {
                 for (auto& item : camera->RI->m_PaintData) {
                     const QString& defectType = item.label;
-                    long long currentAbsoluteDefectCount = item.count;
+                    long long currentAbsoluteDefect = item.count;
                     QString detailCondition = QString("\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(defectType);
 
-                    std::variant<int, double, std::string> yesterdayDefectCountVar;
+                    std::variant<int, double, std::string> prevDefectCountVar = "";
                     SqliteDB::DBOperation::GetRecordValue(
-                        yesterdayDetailTableName.toUtf8().constData(), "数量", detailCondition.toUtf8().constData(), yesterdayDefectCountVar
+                        prevDetailTableName.toUtf8().constData(), "数量", detailCondition.toUtf8().constData(), prevDefectCountVar
                     );
 
-                    long long yesterdayDefectCount = 0;
-                    if (std::holds_alternative<int>(yesterdayDefectCountVar)) {
-                        yesterdayDefectCount = std::get<int>(yesterdayDefectCountVar);
+                    long long prevDefectCount = 0;
+                    if (std::holds_alternative<int>(prevDefectCountVar)) {
+                        prevDefectCount = std::get<int>(prevDefectCountVar);
                     }
 
-                    long long todayInitialDefectCount = currentAbsoluteDefectCount - yesterdayDefectCount;
+                    long long currentShiftDefect = currentAbsoluteDefect - prevDefectCount;
 
                     std::vector<std::variant<int, double, std::string>> detailValues;
                     detailValues.push_back(cameraName.toUtf8().toStdString());
                     detailValues.push_back(defectType.toUtf8().toStdString());
-                    detailValues.push_back(static_cast<int>(todayInitialDefectCount));
+                    detailValues.push_back(static_cast<int>(currentShiftDefect));
                     SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
 
-                    item.count = todayInitialDefectCount;
+                    // 重置内存中的NG计数
+                    item.count = currentShiftDefect;
                 }
             }
+
         }
         else {
-            // --- 当天已存在记录：对两个表都执行常规更新 ---
+            // --- 班次内：常规更新 ---
 
-            // a. 更新总览表
             double newYieldRate = (currentAbsoluteTotal > 0) ? (static_cast<double>(currentAbsoluteTotal - currentAbsoluteNg) / currentAbsoluteTotal) : 0.0;
+
             std::map<std::string, std::variant<int, double, std::string>> summaryValues;
             summaryValues["总数"] = static_cast<int>(currentAbsoluteTotal);
             summaryValues["NG数"] = static_cast<int>(currentAbsoluteNg);
@@ -3097,11 +3195,10 @@ void MainWindow::updateDB_Brader()
             SqliteDB::DBOperation::UpdateFullRecord(
                 summaryTableName.toUtf8().constData(), summaryValues, condition.toUtf8().constData()
             );
-     
-            // b. 更新NG详情表
+
             bool hasPaintData = (camera->RI && !camera->RI->m_PaintData.isEmpty());
             if (hasPaintData) {
-                for ( auto& item : camera->RI->m_PaintData) {
+                for (auto& item : camera->RI->m_PaintData) {
                     QString detailCondition = QString("\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(item.label);
                     SqliteDB::DBOperation::UpdateRecordValue(
                         detailTableName.toUtf8().constData(),
@@ -3114,6 +3211,7 @@ void MainWindow::updateDB_Brader()
         }
     }
 }
+
 
 void MainWindow::initSqlite3Db_Plater()
 {

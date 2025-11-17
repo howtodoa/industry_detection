@@ -59,18 +59,6 @@ void Imageprocess_Plate::run()
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;
 		int ret = -1;
-//		QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
-		//for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
-		//{
-		//	const QString paramKey = it.key();
-
-		//	UnifyParam& config = it.value();
-
-
-		//	config.change_value();
-
-	
-		//}
 
 		if (cam_instance->video == false) // 非推流的情况
 		{
@@ -154,6 +142,19 @@ void Imageprocess_Plate::run()
 					if (ret == 1) ret = -1;
 				}
 				else if (ret == 3) {
+					
+							QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+		for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+		{
+			const QString paramKey = it.key();
+
+			UnifyParam& config = it.value();
+
+
+			config.change_value();
+
+
+		}
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 

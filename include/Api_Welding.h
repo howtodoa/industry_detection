@@ -8,6 +8,11 @@
 #include <regex>
 #include <cmath>
 
+#ifndef MYLIBRARY_EXPORTS
+#define MYLIBRARY_API __declspec(dllimport)
+#else
+#define MYLIBRARY_API __declspec(dllexport)
+#endif
 
 template<class T>
 class Obj
@@ -23,7 +28,7 @@ public:
 	}
 };
 
-inline std::string GetProgramDir() 
+inline std::string GetProgramDir()
 {
 	char buf[1024] = "";
 	std::string path = std::string();
@@ -31,10 +36,10 @@ inline std::string GetProgramDir()
 	std::regex reg("\\\\");
 	path = regex_replace(buf, reg, "/");
 	return path;
-	
+
 }
 
-class WeldingDetector
+class MYLIBRARY_API WeldingDetector
 {
 public:
 	WeldingDetector();
@@ -78,7 +83,7 @@ public:
 
 	int m_PY_x, m_PY_y;//µçÈÝÎ»ÖÃ¿ÙÍ¼Æ«ÒÆ×ø±ê
 
-private:
+public:
 	void Process(int id, const cv::Mat& src, ALLResult& result);
 	void SegandObjDetec(ALLResult& result);
 

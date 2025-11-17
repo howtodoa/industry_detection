@@ -15,6 +15,10 @@
 #include "MyStl.h"
 #include <QtGlobal>
 
+#include "Api_Welding.h"
+
+extern std::shared_ptr<WeldingDetector> g_detector;
+
 struct  OutStampResParam;
 
 struct ImageQueuePack {

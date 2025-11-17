@@ -23,6 +23,7 @@
 #include "Imageprocess_plate.h"
 #include "Imageprocess_flower.h"
 #include "Imageprocess_red.h"
+#include "imageprocess_Fourbrader.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -410,7 +411,11 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 #ifdef USE_MAIN_WINDOW_CAPACITY
 
 
-#ifdef ADAPTATEION
+#ifdef FOURBRADER
+	this->m_imageProcessor = new Imageprocess_FourBrader(cam, m_saveQueue, this);
+	connect(m_imageProcessor, &ImageProcess::imageProcessed,
+		this, &CameraLabelWidget::onImageProcessed_plate);
+#elif defined(ADAPTATEION)
 	this->m_imageProcessor = new Imageprocess_Plate(cam, m_saveQueue, this);
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed_plate);

@@ -16,6 +16,7 @@
 #include "displayinfowidget.h"
 #include "DBOperation.h" 
 #include "outputhread.h"
+#include "Api_Welding.h"
 namespace Ui {
 class MainWindow;
 }
@@ -52,6 +53,7 @@ public:
     void init_algo();
     void init_algo_Braider();
     void init_algo_Flower();
+	void init_algo_FourBrader();
     void init_cap();
     void initSqlite3Db_Brader();
     void initSqlite3Db_Plater();

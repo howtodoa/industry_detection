@@ -70,6 +70,7 @@ set(SOURCES
     run_task_thread.cpp
     imageprocess_red.cpp
     outputhread_flower.cpp
+    imageprocess_Fourbrader.cpp
 )
 
 set(HEADERS
@@ -93,6 +94,7 @@ set(HEADERS
     "include/Api_FlowerPinDetection.h"
     "include/FlowerPinParam.h"
     "include/common.h"
+    "include/infer.h"
     "include/Api_Welding.h"
     syspara.h
     cameralabelwidget.h
@@ -139,6 +141,7 @@ set(HEADERS
     imageprocess_red.h
     outputhread_flower.h
     MyStl.h
+    imageprocess_Fourbrader.h
 )
 
 set(UI_FILES
@@ -180,7 +183,9 @@ if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG")
 endif()
 
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include/tbb/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
+
 
 set(OPENCV_LIB_TO_LINK "")
 
@@ -208,7 +213,7 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/CapacitanceProgram.lib"
         "${CMAKE_SOURCE_DIR}/lib/BraidedTape.lib"
         "${CMAKE_SOURCE_DIR}/lib/FlowerPinDetection.lib"
-        "${CMAKE_SOURCE_DIR}/lib/OVDetector.lib"
+        "${CMAKE_SOURCE_DIR}/lib/1T4OVDetector.lib"
         "${CMAKE_SOURCE_DIR}/lib/1T4Library.lib"
         ${OPENVINO_LIBS}
         ${OPENCV_LIB_TO_LINK}
