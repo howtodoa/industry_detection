@@ -115,7 +115,7 @@ void ImageSaverWorker::saveLoop()
              std::wstring wstr = converter.from_bytes(dataToSave.info);
 
              // 3. 传入宏，使用 std::wstring 的 c_str()
-             LOG_DEBUG(GlobalLog::logger, wstr.c_str());
+           //  LOG_DEBUG(GlobalLog::logger, wstr.c_str());
          } else {
              GlobalLog::logger.Mz_AddLog(L"QImage save failed");
          }

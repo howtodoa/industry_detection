@@ -137,7 +137,6 @@ public:
 };
 
 
-
 struct GlobalPara {
 
     enum IoType {

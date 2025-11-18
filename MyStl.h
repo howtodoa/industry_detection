@@ -90,10 +90,11 @@ public:
         polution_flag = true;
     }
 
-private:
+public:
     size_t m_maxSize; 
     std::deque<T> m_data;
 	bool polution_flag = false;
+    long long time_id;
 };
 
 #endif // MYSTL_H

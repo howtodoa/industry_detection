@@ -54,6 +54,36 @@ void OutPutThread::run()
             break;
         }
 
+        long long minTime = LLONG_MAX;
+        long long maxTime = LLONG_MIN;
+        QString oldKey;
+
+        for (const auto& key : MergePointVec.keys()) {
+            long long t = MergePointVec.value(key).time_id;
+
+            if (t < minTime) {
+                minTime = t;
+                oldKey = key;
+            }
+            if (t > maxTime) {
+                maxTime = t;
+            }
+        }
+
+        if ((maxTime - minTime) > 200) {
+            MergePointVec[oldKey].pop_front();
+            g_cv.notify_all();
+            continue;
+        }
+        else {
+            LOG_DEBUG(GlobalLog::logger,
+                QString("Sync OK: MaxTime=%1, MinTime=%2, Diff=%3 ms")
+                .arg(maxTime)
+                .arg(minTime)
+                .arg(maxTime - minTime)
+                .toStdWString().c_str());
+        }
+
         qDebug() << "out consumer wait";
 
         // 业务判断：读取当前队头进行判断

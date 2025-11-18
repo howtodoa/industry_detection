@@ -7,7 +7,6 @@
 #include <QAction>
 #include <QDebug>
 #include <QToolButton>
-#include <QPushButton>
 
 class CameraMenu : public QWidget {
     Q_OBJECT

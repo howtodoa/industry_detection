@@ -253,18 +253,80 @@ int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue)
 	return result;
 }
 
+//int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultValue)
+//{
+//	using namespace std::chrono;
+//
+//	// 1. 使用 std::async 启动异步任务
+//	// std::launch::async 强制在新线程中执行任务
+//	std::future<int> future = std::async(std::launch::async, func);
+//
+//	// 2. 阻塞等待，带超时
+//	std::future_status status = future.wait_for(milliseconds(timeoutMs));
+//
+//	// 3. 检查状态
+//	if (status == std::future_status::ready)
+//	{
+//		// --- 任务完成分支 ---
+//		int result = future.get(); // 获取结果
+//
+//		LOG_DEBUG(GlobalLog::logger,
+//			QString("callWithTimeout_cpp11: Function finished (within %1 ms). Returned: %2")
+//			.arg(timeoutMs)
+//			.arg(result)
+//			.toStdWString()
+//			.c_str());
+//		return result;
+//	}
+//	else
+//	{
+//		// --- 超时分支 ---
+//		// 任务仍在后台执行，但我们已超时
+//
+//		LOG_DEBUG(GlobalLog::logger,
+//			QString("callWithTimeout_cpp11: Function execution timed out (Timeout: %1 ms). Returning default value: %2")
+//			.arg(timeoutMs)
+//			.arg(defaultValue)
+//			.toStdWString()
+//			.c_str());
+//		return defaultValue;
+//	}
+//}
 int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultValue)
 {
 	using namespace std::chrono;
 
-	// 1. 使用 std::async 启动异步任务
-	// std::launch::async 强制在新线程中执行任务
-	std::future<int> future = std::async(std::launch::async, func);
+	// 1. 创建一个共享的 promise 对象
+	// 使用 shared_ptr 是必须的！因为如果超时，这个函数会先返回，栈变量会被销毁。
+	// 必须保证 promise 在后台线程运行结束前一直有效。
+	auto promisePtr = std::make_shared<std::promise<int>>();
+	std::future<int> future = promisePtr->get_future();
 
-	// 2. 阻塞等待，带超时
+	// 2. 启动线程执行任务
+	std::thread t([promisePtr, func]() {
+		try {
+			// 执行算法
+			int res = func();
+			// 设置返回值 (即便主线程已经不再等待，写入也是安全的)
+			promisePtr->set_value(res);
+		}
+		catch (...) {
+			// 捕获异常，防止后台线程崩溃导致整个程序退出
+			try {
+				promisePtr->set_exception(std::current_exception());
+			}
+			catch (...) {}
+		}
+		});
+
+	// 3. 【关键】分离线程！
+	// 这意味着：不管当前函数是否结束，线程 t 都会在后台继续跑，不会阻塞这里的析构
+	t.detach();
+
+	// 4. 阻塞等待，带超时
 	std::future_status status = future.wait_for(milliseconds(timeoutMs));
 
-	// 3. 检查状态
+	// 5. 检查状态并打印日志
 	if (status == std::future_status::ready)
 	{
 		// --- 任务完成分支 ---
@@ -281,7 +343,8 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 	else
 	{
 		// --- 超时分支 ---
-		// 任务仍在后台执行，但我们已超时
+		// 任务仍在后台执行（因为 detach 了），但我们直接返回默认值
+		// 这里的日志会告诉你发生了超时
 
 		LOG_DEBUG(GlobalLog::logger,
 			QString("callWithTimeout_cpp11: Function execution timed out (Timeout: %1 ms). Returning default value: %2")
@@ -289,6 +352,7 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 			.arg(defaultValue)
 			.toStdWString()
 			.c_str());
+
 		return defaultValue;
 	}
 }

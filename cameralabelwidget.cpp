@@ -1508,7 +1508,7 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		return;
 	}
-	if (info.ret == -1)
+	if (info.ret != 0)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
@@ -1718,9 +1718,9 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 	if (info.ret == -1||info.ret==1 || info.ret==3 ||info.ret==4)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
-		this->ngcount->fetch_add(1);
+		if (this->ngDisplay.load() == false) this->ngcount->fetch_add(1);
 	}
-	else dataToSave.work_path = dataToSave.savePath_OK;
+	else  dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
 

@@ -339,7 +339,7 @@ void MainWindow::loadjson_layer(const QString& filePath)
     }
 
     if (configMap.contains("LIGHT4")) {
-        ParamDetail detail(configMap.value("Light4").toMap());
+        ParamDetail detail(configMap.value("LIGHT4").toMap());
         GlobalPara::Light4 = detail.value.toInt();
         qDebug() << "Parsed Light3" << GlobalPara::Light4;
     }
@@ -753,7 +753,7 @@ MainWindow::MainWindow(QWidget *parent) :
         for(int i=0;i< GlobalPara::MergePointNum;i++)
         {
             QString camId = QString::fromStdString(cams[i]->indentify);
-            int maxSize = 100;
+            int maxSize = 1;
             MyDeque<int> temp_deque(maxSize);
             MergePointVec.insert(camId, std::move(temp_deque));
 		}
@@ -2812,14 +2812,6 @@ int MainWindow::initPCI_VC3000H()
     }
 
 
-    if (PCI::pci().setlight(0, 100, 100, 1, false, 1) != 0) {
-        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-    }
-    else {
-        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
 
     if (PCI::pci().setlight(1, GlobalPara::Light1, 100, 1, false, 1) != 0) {
         std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
@@ -2856,13 +2848,6 @@ int MainWindow::initPCI_VC3000H()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    if (PCI::pci().setlight(8, 100, 100, 1, false, 1) != 0) {
-        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-    }
-    else {
-        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // 关闭输出
 

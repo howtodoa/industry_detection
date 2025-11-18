@@ -42,6 +42,16 @@ void Imageprocess_Plate::run()
 			}
 			
 			currentImagePtr = m_inputQueue->queue.front();
+
+			cam_instance->triggerNum.fetch_add(1);
+
+			int curTrigger = cam_instance->triggerNum.fetch_add(1);
+
+			QString logMsg = QString("Camera=%1 triggerNum=%2")
+				.arg(cam_instance->cameral_name)
+				.arg(curTrigger);
+
+			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
  
 			if (!currentImagePtr || currentImagePtr->empty()) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null");
@@ -60,6 +70,7 @@ void Imageprocess_Plate::run()
 		cv::Mat image;
 		int ret = -1;
 
+		long long birthtime = QDateTime::currentMSecsSinceEpoch();
 		if (cam_instance->video == false) // 非推流的情况
 		{
 	
@@ -143,17 +154,12 @@ void Imageprocess_Plate::run()
 				}
 				else if (ret == 3) {
 					
-							QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+		QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
 		for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
 		{
 			const QString paramKey = it.key();
-
 			UnifyParam& config = it.value();
-
-
 			config.change_value();
-
-
 		}
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
@@ -247,6 +253,13 @@ void Imageprocess_Plate::run()
 				}
 				else if (ret == 3)
 				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 				}
@@ -327,8 +340,6 @@ void Imageprocess_Plate::run()
 		else // 推流的情况
 		{
 			afterImagePtr = currentImagePtr;
-			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
-			else qDebug() << "afterImagePtrptr is null";
 			emit imageProcessed(afterImagePtr, info);
 			qDebug() << "this is in push";
 			currentImagePtr.reset();
@@ -366,6 +377,7 @@ void Imageprocess_Plate::run()
 
 				if (MergePointVec.contains(camId)) {
 					MergePointVec[camId].push_back(1);
+					MergePointVec[camId].time_id = birthtime;
 				}
 
 				lk.unlock();
@@ -397,6 +409,7 @@ void Imageprocess_Plate::run()
 
 				if (MergePointVec.contains(camId)) {
 					MergePointVec[camId].push_back(0);
+					MergePointVec[camId].time_id = birthtime;
 				}
 
 				lk.unlock();
@@ -424,11 +437,10 @@ void Imageprocess_Plate::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 && info.ret == 2 && info.ret == 3 && ret == 1))
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
-				//GlobalLog::logger.Mz_AddLog(L"pre Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == 0)
@@ -448,7 +460,6 @@ void Imageprocess_Plate::run()
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed(backupImagePtr, info);
-
 		}
 		else {
 			emit imageProcessed(afterImagePtr, info);

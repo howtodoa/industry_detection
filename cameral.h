@@ -44,6 +44,7 @@ public:
     std::atomic<bool> noneDisplay=false;
     std::atomic<bool> ui_signal = false;
     std::atomic<int> ten=10;
+    std::atomic<int> triggerNum = 0;
     bool m_cameraWarningShown = false;
     std::string indentify="";
     QVector<SimpleParam> ScaleArray;
