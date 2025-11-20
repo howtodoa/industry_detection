@@ -39,6 +39,9 @@
 #include "rezultinfo_look.h"
 #include "outputhread_flower.h"
 #include "displayinfowidget_flower.h"
+#include "rezultinfo_Xs.h"
+#include "rezultinfo_ny.h"
+#include "rezultinfo_bottom.h"
 
 namespace AppConfig
 {
@@ -1411,9 +1414,17 @@ void MainWindow::initcams(int camnumber)
        }
        else if(caminfo[i-1].mapping=="Lift")
        {
+#ifdef ADAPTATEION
+           cam->RI = new RezultInfo_Lift(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+		   cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+		   cam->RI = new RezultInfo_Lift(cam->unifyParams, nullptr);
+#else
            cam->RI=new RezultInfo_Lift(&cam->RC->m_parameters,nullptr);
            cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
             cam->indentify=caminfo[i-1].mapping.toStdString();
+#endif
        }
        else if(caminfo[i-1].mapping=="YYGJ")
        {
@@ -1465,9 +1476,17 @@ void MainWindow::initcams(int camnumber)
        }
        else if(caminfo[i-1].mapping=="Rift")
        {
-           cam->RI=new RezultInfo_Lift(&cam->RC->m_parameters,nullptr);
-           cam->AC = new AlgoClass_Lift(cam->algopath, 1, &cam->DI.Angle, nullptr);
-           cam->indentify=caminfo[i-1].mapping.toStdString();
+#ifdef ADAPTATEION
+           cam->RI = new RezultInfo_Lift(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Lift(cam->unifyParams, nullptr);
+#else
+           cam->RI = new RezultInfo_Lift(&cam->RC->m_parameters, nullptr);
+           cam->AC = new AlgoClass_Lift(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+#endif
        }
        else  if (caminfo[i - 1].mapping == "Top")
        {
@@ -1537,33 +1556,29 @@ void MainWindow::initcams(int camnumber)
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
-           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
-           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           cam->RI = new RezultInfo_Xs(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "Ny")
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
-           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
-           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           cam->RI = new RezultInfo_Ny(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "Bottom1")
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
-           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
-           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "Bottom2")
        {
            cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
-           LearnPara::inParam9.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
-           cam->RI = new RezultInfo_Look(cam->unifyParams, nullptr);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
            }
        cam->cameral_name=caminfo[i-1].name;
        cam->rounte=caminfo[i-1].rounte;

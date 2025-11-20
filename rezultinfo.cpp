@@ -713,6 +713,16 @@ void RezultInfo::updateUnifyParams(AllUnifyParams unifyParams)
 
 }
 
+int RezultInfo::judge_xs(const XSResult& ret)
+{
+    return 0;
+}
+
+int RezultInfo::judge_ny(const NYResult& ret)
+{
+    return 0;
+}
+
 void RezultInfo::applyScaleFactors(double scale)
 {
     qDebug() << "--- START: 应用缩放因子 (New Logic Debug) ---";
@@ -1095,6 +1105,224 @@ void RezultInfo::updateActualValues(const OutPlateResParam& ret)
     }
 
     qDebug() << "--- END: 实测值更新完成 (Plate) ---";
+}
+
+int RezultInfo::judge_bottom(const Crop_BottomResult& ret)
+{
+    return 0;
+}
+
+void RezultInfo::updateActualValues(const Crop_BottomResult& ret)
+{
+    qDebug() << "--- START: 更新实测值 (Bottom) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
+
+        QVariant actualValue; // 用于日志记录
+
+        // --- 根据 paramKey 匹配 Crop_BottomResult 的成员 ---
+
+        // 1. 算法输出结果 (枚举 -> float)
+        if (paramKey == "NGResult") {
+            // 将枚举转换为数值 (假设 0 是 OK)
+            float enumVal = static_cast<float>(ret.NGResult);
+            actualValue = enumVal;
+            config.value = enumVal;
+        }
+
+        // 2. JM (绝缘膜/胶膜) 相关检测项
+        else if (paramKey == "JM_PSallArea") {
+            actualValue = ret.JM_PSallArea;
+            config.value = ret.JM_PSallArea;
+        }
+        else if (paramKey == "JM_PSmaxArea") {
+            actualValue = ret.JM_PSmaxArea;
+            config.value = ret.JM_PSmaxArea;
+        }
+        else if (paramKey == "WB_MaxArea") { // 丸棒最大面积
+            actualValue = ret.WB_MaxArea;
+            config.value = ret.WB_MaxArea;
+        }
+
+        // 3. 铝壳 (LK) 瑕疵检测项
+        else if (paramKey == "LK_PSallArea") {
+            actualValue = ret.LK_PSallArea;
+            config.value = ret.LK_PSallArea;
+        }
+        else if (paramKey == "LK_PSmaxArea") {
+            actualValue = ret.LK_PSmaxArea;
+            config.value = ret.LK_PSmaxArea;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            // 图像数据 (JM_dstImg, LK_dstImg) 不需要映射
+            qWarning() << "警告 (Bottom): 配置项" << paramKey << "未在 Crop_BottomResult 中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (Bottom): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (Bottom) ---";
+}
+
+void RezultInfo::updateActualValues(const NYResult& ret)
+{
+    qDebug() << "--- START: 更新实测值 (NY) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
+
+        QVariant actualValue; // 用于日志记录
+
+        // --- 根据 paramKey 匹配 NYResult 的成员 ---
+
+        // 1. 算法处理结果 (枚举类型)
+        if (paramKey == "NGResult") {
+            // 将枚举转换为数值 (假设 0 是 OK)
+            // 判定时，JSON配置范围 "0-0" 即表示要求结果必须为 OK
+            float enumVal = static_cast<float>(ret.NGResult);
+            actualValue = enumVal;
+            config.value = enumVal;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            qWarning() << "警告 (NY): 配置项" << paramKey << "未在 NYResult 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (NY): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (NY) ---";
+}
+
+void RezultInfo::updateActualValues(const XSResult& ret)
+{
+    qDebug() << "--- START: 更新实测值 (XS/LookPin) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
+
+        QVariant actualValue; // 用于日志记录
+
+        // --- 根据 paramKey 匹配 XSResult 的成员 ---
+
+        // 1. 算法输出结果 (枚举类型)
+        if (paramKey == "NGResult") {
+            // 将 enum class 转换为 float 存储 (OK=0, AX_Err=1, ...)
+            // 判定时，JSON配置范围 "0-0" 即表示要求结果必须为 OK
+            float enumVal = static_cast<float>(ret.NGResult);
+            actualValue = enumVal;
+            config.value = enumVal;
+
+ 
+        }
+
+        // 2. JM相关检测项
+        else if (paramKey == "JM_height") {
+            actualValue = ret.JM_height;
+            config.value = ret.JM_height;
+        }
+        else if (paramKey == "SHUJIAO_Width") {
+            actualValue = ret.SHUJIAO_Width;
+            config.value = ret.SHUJIAO_Width;
+        }
+
+        // 3. 瑕疵检测项
+        else if (paramKey == "ZW_ALLArea") {
+            actualValue = ret.ZW_ALLArea;
+            config.value = ret.ZW_ALLArea;
+        }
+        else if (paramKey == "ZW_MaxArea") {
+            actualValue = ret.ZW_MaxArea;
+            config.value = ret.ZW_MaxArea;
+        }
+        else if (paramKey == "AX_MaxArea") {
+            actualValue = ret.AX_MaxArea;
+            config.value = ret.AX_MaxArea;
+        }
+        else if (paramKey == "HS_MaxArea") {
+            actualValue = ret.HS_MaxArea;
+            config.value = ret.HS_MaxArea;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            // 注意：dstImg 是图像数据，不需要映射到参数中
+            qWarning() << "警告 (XS): 配置项" << paramKey << "未在 XSResult 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (XS): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (XS) ---";
+}
+
+void RezultInfo::updateActualValues(const OutLiftResParam& ret)
+{
+    qDebug() << "--- START: 更新实测值 (Lift) ---";
+
+    // 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = this->unifyParams.begin(); it != this->unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
+
+        QVariant actualValue; // 用于日志记录
+
+        // --- 根据 paramKey 匹配 OutLiftResParam 的成员 ---
+        // (paramKey 对应您之前提供的 JSON 中的顶级键)
+
+        if (paramKey == "m_PinWidthLift") {
+            actualValue = ret.m_PinWidthLift;
+            config.value = ret.m_PinWidthLift;
+        }
+        else if (paramKey == "m_PinHeightLift") {
+            actualValue = ret.m_PinHeightLift;
+            config.value = ret.m_PinHeightLift;
+        }
+        else if (paramKey == "m_disLift") {
+            actualValue = ret.m_disLift;
+            config.value = ret.m_disLift;
+        }
+        else if (paramKey == "m_PinAngle") {
+            actualValue = ret.m_PinAngle;
+            config.value = ret.m_PinAngle;
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            // 如果 unifyParams 中包含 OutLiftResParam 里没有的键
+            qWarning() << "警告 (Lift): 配置项" << paramKey << "未在 OutLiftResParam 匹配列表中找到，跳过赋值。";
+            continue;
+        }
+
+        // 打印赋值信息
+        qDebug().nospace() << "  -> SUCCESS (Lift): " << config.label << " (" << paramKey << ") 赋值实测值: " << actualValue.toString();
+    }
+
+    qDebug() << "--- END: 实测值更新完成 (Lift) ---";
 }
 
 void RezultInfo::updateActualValues(const OutFlowerPinResParam& ret)

@@ -100,5 +100,5 @@ void FullScreenWindow::resizeEvent(QResizeEvent *event)
 
     // 确保窗口的大小更新时，图像也被适配
    imageLabel->resize(size());  // 使 ZoomableLabel 自适应窗口大小
-    imageLabel->updateScaledPixmap();  // 调用自定义的缩放更新函数
+  //  imageLabel->updateScaledPixmap();  // 调用自定义的缩放更新函数
 }

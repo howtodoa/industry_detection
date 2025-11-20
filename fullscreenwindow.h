@@ -20,11 +20,9 @@ public:
     ZoomableLabel *imageLabel;
     static void ShowOriginalSize(const QPixmap& pixmap, bool deleteOnClose = true);
     static FullScreenWindow* s_lastInstance;
-protected:
     void keyPressEvent(QKeyEvent *event) override;  // 用于关闭窗口
     void resizeEvent(QResizeEvent *event) override; // 窗口大小调整时
     void closeEvent(QCloseEvent* event) override;
-private:
     QPixmap m_pixmap;              // 存储图像的 QPixmap
        // 用 ZoomableLabel 显示图像
     QPushButton *closeButton;      // 关闭按钮

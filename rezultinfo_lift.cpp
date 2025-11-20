@@ -6,6 +6,12 @@ RezultInfo_Lift::RezultInfo_Lift(Parameters *rangepara, QObject *parent)
     initLiftPaintVector(rangepara);
 }
 
+RezultInfo_Lift::RezultInfo_Lift(AllUnifyParams& unifyParams, QObject* parent)
+    : RezultInfo()
+{
+    this->unifyParams = unifyParams;
+}
+
 void RezultInfo_Lift::printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange)
 {
     QString status = outOfRange ? "FAIL" : "PASS";
@@ -21,7 +27,76 @@ void RezultInfo_Lift::updatePaintData(Parameters* rangePara)
     initLiftPaintVector(rangePara);
 }
 
+#ifdef ADAPTATEION
+int RezultInfo_Lift::judge_lift(const OutLiftResParam& ret)
+{
+    qDebug() << "--- START: 判定参数 (Lift) ---";
+    bool allPassed = true;
 
+    // 1. 遍历成员变量 unifyParams 中的所有配置项
+    for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+    {
+        const QString paramKey = it.key();
+        UnifyParam& config = it.value(); // !!! 必须使用非 const 引用来修改 config !!!
+
+        // 1.1 检查是否启用了检测
+        if (!config.check) {
+            config.result = 1; // 未启用检测，默认通过
+            qDebug() << "  -> Skipping judgement for disabled param:" << config.label;
+            continue;
+        }
+
+        // 1.2 统计更新：增加总检测次数
+        config.count++;
+
+        bool checkResult = false; // 当前项的判定结果 (true=通过)
+
+        qDebug() << "--- JUDGING (" << config.count << "):" << config.label << " (" << paramKey << ") ---";
+
+        // 2. 根据 paramKey 匹配，并调用判定方法
+        // (注意: config.value 应该已经被 updateActualValues 更新为实测值了)
+
+        // --- 数值类型 (Lift 项目全为数值范围判定) ---
+        if (paramKey == "m_disLift") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "m_PinWidthLift") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "m_PinAngle") {
+            checkResult = config.checkRange();
+        }
+        else if (paramKey == "m_PinHeightLift") {
+            checkResult = config.checkRange();
+        }
+
+        // --- 未匹配 ---
+        else
+        {
+            qWarning() << "警告 (Lift Judge): 配置项" << paramKey << "未在匹配列表中找到，跳过判定。";
+            continue;
+        }
+
+        // 3. 汇总结果和统计更新
+        if (checkResult)
+        {
+            config.result = 1; // 通过
+            qDebug() << "  -> PASSED.";
+        }
+        else
+        {
+            config.result = 0; // 不通过
+            config.ng_count++; // 增加 NG 次数
+            allPassed = false; // 标记存在 NG 项
+            qCritical() << "  -> !!! FAILED:" << config.label << " (" << paramKey << ") 未通过检测 !!!";
+        }
+    }
+
+    qDebug() << "--- END: 判定完成 (Lift) --- Final Result (0=OK, 1=NG):" << (allPassed ? 0 : 1);
+    // 返回整数结果：0 为全部通过，1 为存在 NG
+    return allPassed ? 0 : 1;
+}
+#else
 int RezultInfo_Lift::judge_lift(const OutLiftResParam& ret)
 {
     int random_num = QRandomGenerator::global()->bounded(10);
@@ -117,3 +192,4 @@ int RezultInfo_Lift::judge_lift(const OutLiftResParam& ret)
     qDebug() << (hasAnyFail ? "--- 有项未通过 ---" : "--- 所有 Lift 检测项通过 ---");
     return hasAnyFail ? -1 : 0;
 }
+#endif

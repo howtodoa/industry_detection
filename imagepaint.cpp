@@ -643,6 +643,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     }
 
     // 4. 计算缩放比率和画布尺寸
+    // actualOnScreenSize 用于计算为了让人眼看着舒服，字体在原图上应该画多大
     QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
     const QSize canvasSize = pixmap.size();
 
@@ -658,7 +659,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     // 字体高度和行间距的画布尺寸计算
     double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
     int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
-    if (fontSizeOnCanvas < 1) return;
+    if (fontSizeOnCanvas < 1) fontSizeOnCanvas = 1; // 防止字体过小
 
     double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
     int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
@@ -679,46 +680,48 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     // 默认画笔颜色
     QColor defaultColor = Qt::green;
 
-    // --- 新增：统计需要绘制的项 ---
+    // --- 统计需要绘制的项 ---
     int totalItemsToDraw = 0;
     for (auto it = unifyParams.constBegin(); it != unifyParams.constEnd(); ++it)
     {
         const UnifyParam& item = it.value();
-        // 核心条件：只有当 (item.check && item.visible) 或 item.result != 1 时才绘制
         if ((item.check && item.visible) || item.result != 1)
         {
             totalItemsToDraw++;
         }
     }
 
-    // --- 新增：计算布局参数 (单/双列) ---
+    // --- 计算布局参数 (优先填满第一列) ---
+
     // 图像可用于绘制文本的垂直高度
     int availableHeight = canvasSize.height() - 2 * yMarginOnCanvas;
 
-    // 一列能容纳的最大行数 (向下取整)
+    // 一列能容纳的最大行数 (物理极限)
     int maxRowsInOneColumn = availableHeight / totalRowHeight;
+    if (maxRowsInOneColumn <= 0) maxRowsInOneColumn = 1; // 防止极小图片导致的除零
 
-    // 默认是单列，如果总数超过一列能容纳的最大行数，则分成两列
-    int maxItemsPerColumn = totalItemsToDraw;
+    // 默认是单列
     int numColumns = 1;
 
-    if (totalItemsToDraw > maxRowsInOneColumn && maxRowsInOneColumn > 0) {
+    // 【修改点】：每列最大项数直接等于屏幕物理能容纳的最大行数
+    // 只有超过这个数，才会去第二列
+    int maxItemsPerColumn = maxRowsInOneColumn;
+
+    // 如果总数超过一列能容纳的最大行数，则开启第二列
+    if (totalItemsToDraw > maxRowsInOneColumn) {
         numColumns = 2;
-        // 每列容纳的项数 (向上取整)
-        maxItemsPerColumn = (totalItemsToDraw + 1) / 2;
     }
 
-    // 计算第二列的起始 X 坐标 (均匀分配两列空间)
-    // 假设两列平均分配宽度，左列从 xMarginOnCanvas 开始，右列从 canvasSize.width() / 2 开始
-    int columnWidth = canvasSize.width() / numColumns;
-    int secondColumnStartX = columnWidth + xMarginOnCanvas; // 第二列的起始 X 坐标
+    // 计算第二列的起始 X 坐标
+    int columnWidth = canvasSize.width() / (numColumns > 0 ? numColumns : 1);
+    int secondColumnStartX = columnWidth + xMarginOnCanvas;
     // 确保第二列的起始 X 坐标不会太靠左，至少是图像宽度的一半
     if (numColumns == 2) {
         secondColumnStartX = qMax(secondColumnStartX, canvasSize.width() / 2);
     }
 
     // 9. 初始化起始绘制位置和行计数器
-    int currentRow = 0; // 用于计算垂直偏移量
+    int currentRow = 0;
     int currentColumn = 1;
     int currentX = xMarginOnCanvas;
 
@@ -730,59 +733,45 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
         // 核心条件：只有当 (item.check && item.visible) 或 item.result != 1 时才绘制
         if ((item.check && item.visible) || item.result != 1)
         {
-            // --- 新增：检查是否需要换列 ---
-            if (currentRow >= maxItemsPerColumn && numColumns == 2) {
+            // --- 【修改点】：检查是否需要换列 ---
+            // 逻辑：如果当前行号已经达到了单列最大容量，并且是双列模式，且当前还在第一列
+            if (currentRow >= maxItemsPerColumn && numColumns == 2 && currentColumn == 1) {
                 // 换到第二列
-                currentRow = 0;
-                currentColumn = 2;
-                currentX = secondColumnStartX;
+                currentRow = 0;             // 重置行号
+                currentColumn = 2;          // 标记为第二列
+                currentX = secondColumnStartX; // X坐标移到右侧
             }
 
-            // 如果超出两列能绘制的最大项数，则停止绘制
-            if (currentColumn > 2) {
+            // 安全检查：如果第二列也满了，或者单列模式下满了，停止绘制
+            if (currentRow >= maxItemsPerColumn) {
                 break;
             }
 
-            // 构建要绘制的文本 (中文标签: 实测值)
-            // 假设保留三位小数
+            // 构建要绘制的文本
             QString formattedValue = QString::number(item.value, 'f', 3);
-
-            QString resultText = (item.result != 1) ? "" : "";
-
-            // 完整文本格式：标签: 实测值 [结果]
+            QString resultText = (item.result != 1) ? "" : ""; // 保持原逻辑
             QString text = QString("%1: %2 %3").arg(item.label, formattedValue, resultText);
 
             // 检查 NG 项并设置颜色
             if (item.result != 1) {
-                // 如果是 NG 项，使用红色
                 painter.setPen(Qt::red);
             }
             else {
-                // 如果是 OK 项，使用默认的绿色
                 painter.setPen(defaultColor);
             }
 
             // 计算当前行的垂直位置 (y 轴)
-            // y 坐标是基线位置 (Baseline)，所以我们加上 fontSizeOnCanvas
             int y = yMarginOnCanvas + currentRow * totalRowHeight;
 
             // 绘制文本
+            // 注意：drawText 的 y 坐标通常是基线，所以加上 fontSizeOnCanvas
             painter.drawText(currentX, y + fontSizeOnCanvas, text);
 
             // 移动到下一行
             currentRow++;
-
-            // 可选：检查是否超出当前列的图像边界，如果超出则停止绘制
-            if (y + totalRowHeight > canvasSize.height() - yMarginOnCanvas) {
-                // 如果当前列满了，且是单列，或者已经是第二列，则停止绘制
-                if (numColumns == 1 || currentColumn == 2) {
-                    break;
-                }
-            }
         }
     }
 }
-
 void ImagePaint::drawPaintDataEx_flower(QPixmap& pixmap,
     const AllUnifyParams unifyParams,
     QSize displaySize)

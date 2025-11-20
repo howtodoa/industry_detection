@@ -314,12 +314,23 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	
 	setStyleSheet("background-color: transparent;");
 
+	QSize parentSize = parent ? parent->size() : QSize(320, 240);
 	// 创建显示图像的标签，使用 ZoomableLabel 替换原有的 QLabel
+	/*imageLabel = new ZoomableLabel(this);*/
+	int width = parentSize.width() / 3 - 10;   // 减去间距
+	int height = parentSize.height();     // 留一点垂直间距
+	QSize camSize(width, height);
+
 	imageLabel = new ZoomableLabel(this);
 	imageLabel->setObjectName("cameraImageLabel");
 	// 设置 imageLabel 的样式：背景色为 rgb边框为 1px solid black 
 	imageLabel->setStyleSheet("background-color: rgb(24, 26, 32); border: 1px solid #D8D8D8;");
 	imageLabel->setAlignment(Qt::AlignCenter);
+
+	//固定图片区域，防止自动扩大
+	//QVBoxLayout* layout = new QVBoxLayout(this);
+	//layout->setContentsMargins(0, 0, 0, 0);
+	//layout->addWidget(imageLabel);
 
 	// 定义统一的顶部背景色 (#ADD8E6)
 	const QString topBarBackgroundColor = "#D8D8D8"; //灰色

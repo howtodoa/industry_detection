@@ -117,13 +117,13 @@ struct XSResult
     XS_NGReults NGResult;
     cv::Mat dstImg;
     //JM相关检测项
-    float JM_height;
-    float SHUJIAO_Width;
+    float JM_height = 0.0f;
+    float SHUJIAO_Width = 0.0f;
     //瑕疵检测项
-    float ZW_ALLArea;//脏污所有面积
-    float ZW_MaxArea;//脏污所有面积
-    float AX_MaxArea;//凹陷面积
-    float HS_MaxArea;//划伤面积
+    float ZW_ALLArea = 0.0f;//脏污所有面积
+    float ZW_MaxArea = 0.0f;//脏污所有面积
+    float AX_MaxArea = 0.0f;//凹陷面积
+    float HS_MaxArea = 0.0f;//划伤面积
 };
 struct NYResult
 {
@@ -136,12 +136,12 @@ struct Crop_BottomResult
     cv::Mat JM_dstImg;
     cv::Mat LK_dstImg;
     //JM相关检测项
-    float JM_PSallArea;
-    float JM_PSmaxArea;//最大面积
-    float WB_MaxArea;//丸棒最大面积
+    float JM_PSallArea = 0.0f;
+    float JM_PSmaxArea = 0.0f;//最大面积
+    float WB_MaxArea = 0.0f;//丸棒最大面积
     //铝壳瑕疵检测项
-    float LK_PSallArea;
-    float LK_PSmaxArea;//最大面积
+    float LK_PSallArea = 0.0f;
+    float LK_PSmaxArea = 0.0f;//最大面积
 };
 
 
