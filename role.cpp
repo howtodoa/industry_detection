@@ -3,7 +3,7 @@
 // 初始化静态成员变量
 QString Role::CurrentRole = "Operator";  // 默认角色
 #ifdef  USE_MAIN_WINDOW_BRADER
-QString Role::password = "mz2025";     // 默认密码
+QString Role::password = "ah2025";     // 默认密码
 #else 
 QString Role::password = "12345678";     // 默认密码
 #endif

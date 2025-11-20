@@ -518,6 +518,14 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         return;
     }
 
+    // --- 【新增：宏判断】 ---
+#ifdef USE_MAIN_WINDOW_BRADER
+    const bool showCheckItems = false;
+#else
+    const bool showCheckItems = true;
+#endif
+    // --- 【新增结束】 ---
+
     // 根据角色判断补偿值是否可见
     bool isManufacturer = (Role::CurrentRole == "厂商");
 
@@ -557,14 +565,21 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             QLabel* nameLabel = new QLabel(paramName, this);
             QLineEdit* valueEdit = new QLineEdit(paramDetail.value.toString(), this);
             QLabel* unitLabel = new QLabel(QString("单位: %1").arg(paramDetail.unit), this);
+
+            // 检测相关控件
             QLabel* checkLabel = new QLabel("检测:", this);
             QCheckBox* checkCheckBox = new QCheckBox(this);
             checkCheckBox->setChecked(paramDetail.check);
 
             // 补偿值控件
-            QLabel* compensationLabel = new QLabel("补偿值:", this);
+            QLabel* compensationLabel = new QLabel("FixValue:", this);
             // 确保显示足够的小数位，例如3位
             QLineEdit* compensationEdit = new QLineEdit(QString::number(paramDetail.compensation, 'f', 3), this);
+
+            // --- 【修改点 1: 隐藏检测相关的控件】 ---
+            checkLabel->setVisible(showCheckItems);
+            checkCheckBox->setVisible(showCheckItems);
+            // --- 【修改点 1 结束】 ---
 
             // 设置控件样式和大小
             nameLabel->setMinimumWidth(100);
@@ -593,7 +608,8 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
             m_paramCompensationEdits[projectName].insert(paramName, compensationEdit);
 
             // 将控件添加到网格布局
-            // 注意：因为移除了“范围”，列索引需要调整
+            // 因为我们使用了 setVisible(false) 隐藏控件，而不是移除它们，
+            // 所以网格布局的列索引保持不变，以保持原有的布局结构。
             gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
             gridLayout->addWidget(valueEdit, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
             gridLayout->addWidget(unitLabel, row, 2, Qt::AlignLeft | Qt::AlignVCenter);
@@ -612,7 +628,7 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
         gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 1);
         gridLayout->setColumnStretch(6, 0);
-        gridLayout->setColumnStretch(7, 1);
+        gridLayout->setColumnStretch(7, 1); // 最后的拉伸列（弹簧）
 
         subTabContentLayout->addLayout(gridLayout);
         subTabContentLayout->addStretch(1);
@@ -645,7 +661,6 @@ void ParaWidget::setupRangeTab(QTabWidget* tabWidget)
 
 
     connect(saveButton, &QPushButton::clicked, this, &ParaWidget::saveRangePara);
-
 }
 
 void ParaWidget::setupRangeTab_EX(QTabWidget* tabWidget) // 修改函数定义

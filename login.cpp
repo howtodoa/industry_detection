@@ -99,11 +99,11 @@ bool Login::validateLogin(const QString &role, const QString &password)
         return false;
     }
 #ifdef  USE_MAIN_WINDOW_BRADER
-    if (role == "厂商" && password == "mz2025") {
+    if (role == "厂商" && password == "ah2025") {
         return true;
     }
 
-    if (role == "机修" && password == "mz2025") {
+    if (role == "机修" && password == "ah2025") {
         return true;
     }
 

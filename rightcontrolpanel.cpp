@@ -8,6 +8,7 @@
 #include <QFont>
 #include<QProcess>
 #include "cameral.h" 
+#include "role.h"
 
 RightControlPanel::RightControlPanel(const QVector<Cameral*>& cams, const QVector<Camerinfo>& caminfo, QWidget* parent)
     : QWidget(parent), m_cams(cams)
@@ -262,6 +263,7 @@ QGroupBox* RightControlPanel::createAllShieldButtonArea() {
 
     // 使用 connect 连接 toggled 信号
     connect(allShieldBtn, &QPushButton::toggled, this, [this, allShieldBtn, checkedStyle, uncheckedStyle, baseStyle](bool checked) {
+		if (Role::GetCurrentRole() == "操作员") return; // 操作员无权限切换调机模式
         if (checked) {
             // 如果按钮被选中，设置为红色样式，并发射 true 信号
             allShieldBtn->setStyleSheet(checkedStyle + baseStyle);
