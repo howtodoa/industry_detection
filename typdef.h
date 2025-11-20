@@ -195,7 +195,11 @@ struct SimpleParam {
     double value;
 };
 
-struct ExpandParam {};
+struct ExpandParam 
+{
+    double self_learn = 0.0f;
+	bool scale_enable = true;
+};
 
 
 constexpr double UNIFY_UNSET_VALUE = -9999.0;

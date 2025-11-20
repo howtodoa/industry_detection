@@ -90,13 +90,30 @@ void Imageprocess_Plate::run()
 					cam_instance->RI->updateActualValues(para);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_stamp(para);
-
+					if (ret == 1) ret = -1;
 				}
 				else if (ret == 2) {
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 				}
-				else ret = -1;
+				else
+				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
+					ret = -1;
+				}
 				QString logMsg = QString("NaYin ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
@@ -130,7 +147,7 @@ void Imageprocess_Plate::run()
 						.c_str());
 
 					return innerResult;
-					}, 150, -1); // 注意：这里使用了您原定的 150ms 超时
+					}, 170, -1); 
 
 				// 3. 将结果赋给外部 ret (注意：这里使用外部定义的 int ret)
 				// 由于您的 Plate 分支内定义了局部 int ret，这里改为赋值给外部的 ret (假设外部已定义)
@@ -165,7 +182,17 @@ void Imageprocess_Plate::run()
 					else ret = -1;
 
 				}
-				else ret = -1;
+				else
+				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
+					ret = -1;
+				}
 				QString logMsg = QString("Plate ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
@@ -178,18 +205,34 @@ void Imageprocess_Plate::run()
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0)
 				{
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-
-					ret = cam_instance->RI->judge_lift(para);
-
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->judge_lift(para);
 				}
 				else if (ret == 2)
 				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 
 				}
-				else ret = -1;
+				else
+				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
+					ret = -1;
+				}
 			}
 			else if (cam_instance->indentify == "YYGJ") {
 				ret = ExportSpace::RunYYGJ(*currentImagePtr, cam_instance->DI.Angle, true);
@@ -278,8 +321,9 @@ void Imageprocess_Plate::run()
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				if (ret == 0)
 				{
-					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_lift(para);
+					cam_instance->RI->updateActualValues(para);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					cam_instance->RI->judge_lift(para);
 				}
 				else if (ret == 2)
 				{
@@ -335,7 +379,7 @@ void Imageprocess_Plate::run()
 				Sleep(20);
 				ret = 0;
 			}
-		//	info.timeStr = QString::number(timer.elapsed()).toStdString();
+			info.timeStr = QString::number(timer.elapsed()).toStdString();
 		}
 		else // 推流的情况
 		{
@@ -437,7 +481,7 @@ void Imageprocess_Plate::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 && info.ret == 2 && info.ret == 3 && ret == 1))
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 2 || info.ret == 3 || ret == 1))
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);

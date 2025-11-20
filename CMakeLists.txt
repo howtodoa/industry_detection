@@ -71,6 +71,9 @@ set(SOURCES
     imageprocess_red.cpp
     outputhread_flower.cpp
     imageprocess_Fourbrader.cpp
+    rezultinfo_xs.cpp
+    rezultinfo_ny.cpp
+    rezultinfo_bottom.cpp
 )
 
 set(HEADERS
@@ -142,6 +145,9 @@ set(HEADERS
     outputhread_flower.h
     MyStl.h
     imageprocess_Fourbrader.h
+    rezultinfo_xs.h
+    rezultinfo_ny.h
+    rezultinfo_bottom.h
 )
 
 set(UI_FILES

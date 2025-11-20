@@ -9,6 +9,8 @@ class RezultInfo_Lift : public RezultInfo
     Q_OBJECT
 public:
     explicit RezultInfo_Lift(Parameters *rangepara, QObject *parent);
+    explicit RezultInfo_Lift(AllUnifyParams& unifyParam, QObject* parent = nullptr);
+
 
     void printCheckInfo(const QString& paramName, float actualValue, float thresholdValue, bool isUpperLimit, bool outOfRange) override;
 
