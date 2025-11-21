@@ -2,6 +2,7 @@
 #define TYPDEF_H
 
 #define ADAPTATEION
+#define QIMAGE
 #define FOURBRADER
 
 #include <thread>

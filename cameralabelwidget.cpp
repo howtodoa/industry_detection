@@ -1908,9 +1908,10 @@ void CameraLabelWidget::triggerCameraStart(Cameral* cam)
 		}
 		Sleep(50);
 		ret = cam->camOp->SetTrrigerSource(cam->rounte);
-		if (ret != 0)
+		if (ret == 0) qDebug() << "set cam->route: cam->rounte successful";
+		else if (ret != 0)
 		{
-			qDebug() << "cam->rounte:       " << cam->rounte;
+			qDebug() << "cam->rounte:       " << cam->rounte<<"ret=" <<ret;
 			QString logMsg = QString("set triggsoureceret value: %1").arg(ret);
 
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());

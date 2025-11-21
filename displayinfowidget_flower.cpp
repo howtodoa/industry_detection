@@ -149,11 +149,11 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
 
     // 5. 设置列伸展
     // 【关键修改 4】: 设置 5 列伸展，但将隐藏列 (1 和 2) 的权重设为 0
-    m_gridLayout->setColumnStretch(0, 5); // 参数名称
+    m_gridLayout->setColumnStretch(0, 3); // 参数名称
     m_gridLayout->setColumnStretch(1, 0); // 下限值 (隐藏)
     m_gridLayout->setColumnStretch(2, 0); // 上限值 (隐藏)
     m_gridLayout->setColumnStretch(3, 4); // 实测值
-    m_gridLayout->setColumnStretch(4, 2); // 不符数
+    m_gridLayout->setColumnStretch(4, 2); // 不符数                                   
 
     m_gridLayout->setColumnMinimumWidth(1, 0);
     m_gridLayout->setColumnMinimumWidth(2, 0);
