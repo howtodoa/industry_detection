@@ -113,12 +113,11 @@ void Imageprocess_FourBrader::run()
 				g_detector->Process(algo_id, imgCopy, result);
 				qDebug() << "out XS process";
 				ret = result.xsResult.NGResult == XS_NGReults::OK ? 0 : -1;
-				if (ret == 0)
-				{
+			
 					cam_instance->RI->updateActualValues(result.xsResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_xs(result.xsResult);
-				}
+
 
 				*afterImagePtr = result.xsResult.dstImg.clone();
 			}
@@ -133,22 +132,24 @@ void Imageprocess_FourBrader::run()
 
 				ret = result.nyResult.NGResult == NY_NGReults::OK ? 0 : -1;
 				
-				if (ret == 0)
-				{
+				
 					cam_instance->RI->updateActualValues(result.nyResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_ny(result.nyResult);
-				}
+			
 
 				*afterImagePtr = result.nyResult.dstImg.clone();
 			}
 
 			// 底面 Bottom1
 			else if (cam_instance->indentify == "Bottom1") {
-				int algo_id = 3;
+				LOG_DEBUG(GlobalLog::logger, L"into Bottom1 process");
+				int algo_id = 3;//胶帽
 				cv::Mat imgCopy = currentImagePtr->clone();
 
 				ALLResult result;
+				g_detector_mutex.lock();
+
 				g_detector->Process(algo_id, imgCopy, result);
 
 				ret = result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK ? 0 : -1;
@@ -162,27 +163,34 @@ void Imageprocess_FourBrader::run()
 
 				// 你可以选择 JM 或 LK 图，或者做 merge
 				*afterImagePtr = result.crop_bootomResult.JM_dstImg.clone();
+				g_detector_mutex.unlock();
 			}
 
 			// 底面 Bottom2
 			else if (cam_instance->indentify == "Bottom2") {
-				int algo_id = 4;
+				LOG_DEBUG(GlobalLog::logger, L"into Bottom2 process");
+				int algo_id = 2;//铝壳
 				cv::Mat imgCopy = currentImagePtr->clone();
 
 				ALLResult result;
+
+				g_detector_mutex.lock();
+		
+
 				g_detector->Process(algo_id, imgCopy, result);
 
 				ret = result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK ? 0 : -1;
 		
-				if (ret == 0)
-				{
+		
 					cam_instance->RI->updateActualValues(result.crop_bootomResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					// 你可以选择 JM 或 LK 图，或者做 merge
 					ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
-				}
+				
 
 				*afterImagePtr = result.crop_bootomResult.LK_dstImg.clone();
+
+				g_detector_mutex.unlock();
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
 

@@ -32,6 +32,7 @@ QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;
 
+std::mutex g_detector_mutex;
 
 QString GlobalPara::DeviceId = "Q01";
 

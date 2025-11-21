@@ -271,7 +271,7 @@ void Imageprocess_Plate::run()
 						.c_str());
 
 					return innerResult;
-					}, 120, -1);
+					}, 170, -1);
 
 				// 3. 将结果赋给外部 ret
 				ret = ret_from_call;

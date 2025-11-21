@@ -154,6 +154,9 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
     m_gridLayout->setColumnStretch(2, 0); // 上限值 (隐藏)
     m_gridLayout->setColumnStretch(3, 4); // 实测值
     m_gridLayout->setColumnStretch(4, 2); // 不符数
+
+    m_gridLayout->setColumnMinimumWidth(1, 0);
+    m_gridLayout->setColumnMinimumWidth(2, 0);
 }
 
 void DisplayInfoWidget_Flower::updateLimitLabelsFromUnifyParams(const AllUnifyParams& params)

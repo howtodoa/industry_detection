@@ -421,7 +421,6 @@ void DisplayInfoWidget::resetCounters()
 		it.value() = 0;
 
 		if (m_uiRows.contains(it.key())) {
-
 			m_uiRows.value(it.key()).ngCountLabel->setText("0");
 
 		}

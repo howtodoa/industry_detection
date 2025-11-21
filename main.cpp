@@ -98,7 +98,7 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
-#ifdef USE_MAIN_WINDOW_CAPACITY
+#ifndef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {

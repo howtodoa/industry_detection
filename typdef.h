@@ -18,6 +18,7 @@
 #include "Api_Welding.h"
 
 extern std::shared_ptr<WeldingDetector> g_detector;
+extern std::mutex g_detector_mutex;
 
 struct  OutStampResParam;
 
@@ -222,7 +223,8 @@ struct UnifyParam
     double scaleFactor; // 缩放因子
     double leranValue;  // 学习值
     QVariant extraData; // 额外数据字段，灵活存储其他信息  
-    ExpandParam expandParam; // 扩展参数结构体
+    ExpandParam
+        expandParam; // 扩展参数结构体
 
     UnifyParam()
         : upperLimit(UNIFY_UNSET_VALUE),

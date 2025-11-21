@@ -200,11 +200,15 @@ QGroupBox* RightControlPanel::createStatisticsArea(const QVector<Camerinfo>& cam
     m_ngCountLabels.last()->setStyleSheet("color: #DC3545;");
     layouts[1]->addRow("总和:", m_ngCountLabels.last());
 
+    QLabel* totalLabel2 = new QLabel("总和:");
     m_totalCountLabels.last() = new QLabel("0");
     m_totalCountLabels.last()->setFont(QFont("Arial", 16, QFont::Bold));
     m_totalCountLabels.last()->setStyleSheet("color: #00BFFF;");
-    layouts[2]->addRow("总和:", m_totalCountLabels.last());
-
+    //layouts[2]->addRow("总和:", m_totalCountLabels.last());
+    layouts[2]->addRow(totalLabel2, m_totalCountLabels.last());
+    m_totalCountLabels.last()->hide();
+    totalLabel2->hide();
+    m_totalCountLabels.last()->hide();
     return groupBox;
 }
 
