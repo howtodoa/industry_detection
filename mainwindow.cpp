@@ -769,105 +769,114 @@ MainWindow::MainWindow(QWidget *parent) :
     this->onPhotoAllCamerasClicked();
 }
 
-MainWindow::MainWindow(QString str, QWidget* parent):
-     QMainWindow(parent),
-     ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
-    //ui->mainToolBar->setVisible(false);
-    setWindowTitle("钉卷机视觉检测系统V2.0.0_Beta");
-
-    setWindowIcon(QIcon(":/images/resources/images/oo.ico"));
-
-
-    HWND hwnd = (HWND)this->winId();
-    BOOL useDarkMode = TRUE;
-
-
-    HRESULT result = DwmSetWindowAttribute(
-        hwnd,
-        20, // DWMWA_USE_IMMERSIVE_DARK_MODE for Windows 10 1809+
-        &useDarkMode,
-        sizeof(useDarkMode)
-    );
-
-
-    this->setStyleSheet(
-        "QMainWindow {"
-        "    background-color: rgb(24, 26, 32);"
-        "}"
-        "QMenuBar {"
-        "    background-color: rgb(24, 26, 32);"
-        "    color: white;"
-        "}"
-        "QMenuBar::item:selected {"
-        "    background-color: #343844; /* 一个稍亮的颜色用于悬停 */"
-        "}"
-        "QToolBar#mainToolBar {"
-        "    background-color: rgb(24, 26, 32);"
-        "    border: none;"
-        "    min-height: 40px; /* 增加工具栏高度 */"
-        "    max-height: 40px;"
-        "}"
-        "QStatusBar {"
-        "    background-color: rgb(24, 26, 32);"
-        "    color: white;"
-        "}"
-    );
-    // 获取主屏幕的分辨率
-    QScreen* screen = QGuiApplication::primaryScreen();
-    QRect screenGeometry = screen->geometry(); // 获取屏幕的几何信息
-    int screenWidth = screenGeometry.width();  // 屏幕宽度
-    int screenHeight = screenGeometry.height(); // 屏幕高度
-
-    int windowWidth = screenWidth * 1;
-    int windowHeight = screenHeight * 1;
-
-    resize(windowWidth, windowHeight);
-
-    // 将窗口居中
-    int x = (screenWidth - windowWidth) / 2;
-    int y = (screenHeight - windowHeight) / 2;
-    move(x, y);
-    SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Flower.json";
-    loadjson_layer(SystemPara::GLOBAL_DIR);
-    loadjson_layer2(SystemPara::CAMERAL_DIR);
-    if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
-    init_log();
-    init_cap();
-    initcams(caminfo.size());
-    init_algo_Flower();
-    setupImageSaverThread();
-    CreateMenu();
-    CreateImageGrid_Braider(caminfo.size());
-    setupMonitorThread();
-    setupUpdateTimer();
-    initSqlite3Db_Brader();
-    if (GlobalPara::MergePointNum > 0)
+        MainWindow::MainWindow(QString str, QWidget * parent) :
+        QMainWindow(parent),
+        ui(new Ui::MainWindow)
     {
-        for (int i = 0; i < GlobalPara::MergePointNum; i++)
-        {
-            QString camId = QString::fromStdString(cams[i]->indentify);
-            
-            std::wstring wstrCamId = camId.toStdWString();
+        ui->setupUi(this);
 
-            // 2. 将格式化后的日志消息也用 std::wstring 构造
-            std::wstring logMsg = L"Cam ID is: " + wstrCamId;
+        //ui->mainToolBar->setVisible(false);
+        setWindowTitle("钉卷机视觉检测系统V2.0.0_Beta");
 
-            // 3. 使用您的 LOG_DEBUG 宏
-            LOG_DEBUG(GlobalLog::logger, logMsg.c_str());
+        setWindowIcon(QIcon(":/images/resources/images/oo.ico"));
 
-			int maxSize = 4;
-            MyDeque<int> temp_deque(maxSize);
-            MergePointVec.insert(camId, std::move(temp_deque));
+
+        HWND hwnd = (HWND)this->winId();
+        BOOL useDarkMode = TRUE;
+
+
+        HRESULT result = DwmSetWindowAttribute(
+            hwnd,
+            20, // DWMWA_USE_IMMERSIVE_DARK_MODE for Windows 10 1809+
+            &useDarkMode,
+            sizeof(useDarkMode)
+        );
+
+
+        this->setStyleSheet(
+            "QMainWindow {"
+            "    background-color: rgb(24, 26, 32);"
+            "}"
+            "QMenuBar {"
+            "    background-color: rgb(24, 26, 32);"
+            "    color: white;"
+            "}"
+            "QMenuBar::item:selected {"
+            "    background-color: #343844; /* 一个稍亮的颜色用于悬停 */"
+            "}"
+            "QToolBar#mainToolBar {"
+            "    background-color: rgb(24, 26, 32);"
+            "    border: none;"
+            "    min-height: 40px; /* 增加工具栏高度 */"
+            "    max-height: 40px;"
+            "}"
+            "QStatusBar {"
+            "    background-color: rgb(24, 26, 32);"
+            "    color: white;"
+            "}"
+        );
+
+        // ------------------------------------------------------------------
+        // 【核心修改区域】：使用 availableGeometry 设置窗口尺寸和最大限制
+        // ------------------------------------------------------------------
+        QScreen* screen = QGuiApplication::primaryScreen();
+        if (screen) {
+            // 获取屏幕的可用几何尺寸（排除了任务栏/Dock栏等）
+            QRect availableGeometry = screen->availableGeometry();
+
+            // 1. 强制限制主窗口的最大尺寸为可用尺寸，防止布局溢出
+            this->setMaximumSize(availableGeometry.size());
+
+            // 2. 设置初始尺寸为可用尺寸，让窗口占据整个可用屏幕
+            int windowWidth = availableGeometry.width();
+            int windowHeight = availableGeometry.height();
+            resize(windowWidth, windowHeight);
+
+            // 3. 将窗口移动到可用屏幕的左上角 (通常是 0, 0)
+            // 这确保窗口占据整个可用空间
+            move(availableGeometry.topLeft());
         }
-        GlobalPara::MergePoint = cams[0]->pointNumber;
-        setupOutPutThread();
-    }
-    initCameralPara();
-    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
-}
+        // ------------------------------------------------------------------
 
+
+        SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Flower.json";
+        loadjson_layer(SystemPara::GLOBAL_DIR);
+        loadjson_layer2(SystemPara::CAMERAL_DIR);
+        if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
+        init_log();
+        init_cap();
+        initcams(caminfo.size());
+        init_algo_Flower();
+        setupImageSaverThread();
+        CreateMenu();
+        CreateImageGrid_Braider(caminfo.size());
+        setupMonitorThread();
+        setupUpdateTimer();
+        initSqlite3Db_Brader();
+        if (GlobalPara::MergePointNum > 0)
+        {
+            for (int i = 0; i < GlobalPara::MergePointNum; i++)
+            {
+                QString camId = QString::fromStdString(cams[i]->indentify);
+
+                std::wstring wstrCamId = camId.toStdWString();
+
+                // 2. 将格式化后的日志消息也用 std::wstring 构造
+                std::wstring logMsg = L"Cam ID is: " + wstrCamId;
+
+                // 3. 使用您的 LOG_DEBUG 宏
+                LOG_DEBUG(GlobalLog::logger, logMsg.c_str());
+
+                int maxSize = 4;
+                MyDeque<int> temp_deque(maxSize);
+                MergePointVec.insert(camId, std::move(temp_deque));
+            }
+            GlobalPara::MergePoint = cams[0]->pointNumber;
+            setupOutPutThread();
+        }
+        initCameralPara();
+        if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
+    }
 void MainWindow::init_algo_FourBrader()
 {
     g_detector = Obj<WeldingDetector>::GetInstance();

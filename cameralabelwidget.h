@@ -70,7 +70,7 @@ public slots:
 private:
     cv::Mat image;
     QPixmap currentPixmap;
-    QLabel *imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
+    ZoomableLabel *imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
     QLabel        *fixedText;  // 固定文本标签
     CameraMenu    *cameraMenu; // 操作菜单
     QPushButton* runButton;

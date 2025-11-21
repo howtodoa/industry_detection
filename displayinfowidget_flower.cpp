@@ -22,6 +22,7 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
 {
     // 1. 清理旧 UI 和数据
     QLayoutItem* item;
+    // 假设 m_gridLayout 是 DisplayInfoWidget 的成员变量 QGridLayout*
     while ((item = m_gridLayout->takeAt(0)) != nullptr) {
         if (item->widget()) delete item->widget();
         delete item;
@@ -29,22 +30,21 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
     m_uiRows.clear();
     m_ngCounters.clear();
 
-    // --- 提取特殊键的初始上下限 (保留此逻辑，即使隐藏) ---
+    // --- 提取特殊键的初始上下限 ---
     QString flowerInitialLowerStr = "--";
     QString flowerInitialUpperStr = "--";
     const QStringList flowerKeys = { "allFlowerLength", "flowetLength", "flowerArea" };
 
     for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
-        const QString& keyName = it.key();
         const UnifyParam& p = it.value();
-        if (flowerKeys.contains(keyName) && p.check) {
+        if (flowerKeys.contains(it.key()) && p.check) {
             flowerInitialLowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 2);
             flowerInitialUpperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 2);
         }
     }
     // ------------------------------------------
 
-    // 2. 创建表头 (恢复 5 列)
+    // 2. 创建表头 (5 列)
     QStringList headers = { "参数名称", "下限值", "上限值", "实测值", "不符数" };
     QFont headerFont("微软雅黑", 12, QFont::Bold);
     for (int i = 0; i < headers.size(); ++i) {
@@ -53,7 +53,7 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
         headerLabel->setStyleSheet("background-color: #444; padding: 5px; border-radius: 3px; color: white;");
         headerLabel->setAlignment(Qt::AlignCenter);
 
-        // 【关键修改 1】: 隐藏 "下限值" (i=1) 和 "上限值" (i=2) 的表头
+        // 隐藏 "下限值" (i=1) 和 "上限值" (i=2) 的表头
         if (i == 1 || i == 2) {
             headerLabel->setVisible(false);
         }
@@ -61,104 +61,83 @@ void DisplayInfoWidget_Flower::buildUIFromUnifyParams(const AllUnifyParams& para
         m_gridLayout->addWidget(headerLabel, 0, i);
     }
 
-    QFont valueFont("Arial", 12, QFont::Bold);
+    // 设置内容字体 (使用较小字体减少垂直和水平空间占用)
+    QFont valueFont("Arial", 11);
     int currentRow = 1;
 
-    // 3. 创建花瓣行 (N行)
-    for (int i = 1; i <= m_flowernum; ++i) {
-        QString baseName = QString("花瓣 %1").arg(i);
+    // 3. 确定所有需要创建的行键 (花瓣行 + 普通参数行)
+    QList<QString> allKeys;
 
-        // 创建 UI 控件 (恢复 5 个)
+    // a. 优先添加花瓣行
+    for (int i = 1; i <= m_flowernum; ++i) {
+        allKeys.append(QString("花瓣 %1").arg(i));
+    }
+
+    // b. 添加其他需要显示的参数
+    for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
+        if (!allKeys.contains(it.value().label) && it.value().visible && !flowerKeys.contains(it.key())) {
+            allKeys.append(it.value().label);
+        }
+    }
+
+    // 4. 循环创建每一行
+    for (const QString& baseName : allKeys) {
+        // 判断是否是花瓣行，以确定上下限文本
+        bool isFlowerRow = baseName.startsWith("花瓣");
+
+        // 4.1 创建 UI 控件 (5 个)
         auto nameLabel = new QLabel(baseName);
-        auto lowerLimitLabel = new QLabel(flowerInitialLowerStr);
-        auto upperLimitLabel = new QLabel(flowerInitialUpperStr);
+        auto lowerLimitLabel = new QLabel(isFlowerRow ? flowerInitialLowerStr : "--");
+        auto upperLimitLabel = new QLabel(isFlowerRow ? flowerInitialUpperStr : "--");
         auto measuredValueLabel = new QLabel("-");
         auto ngCountLabel = new QLabel("0");
 
-        // 【关键修改 2】: 隐藏上下限标签
+        // 4.2 【空间优化 1】：隐藏上下限标签
         lowerLimitLabel->setVisible(false);
         upperLimitLabel->setVisible(false);
 
-        // 设置样式
+        // 4.3 设置样式和对齐
         nameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        lowerLimitLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        upperLimitLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         measuredValueLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         ngCountLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
+
         ngCountLabel->setStyleSheet("color: #DC3545;");
 
-        // 加入布局 (恢复 5 列)
+        // 设置字体
+        nameLabel->setFont(valueFont);
+        measuredValueLabel->setFont(valueFont);
+        ngCountLabel->setFont(valueFont);
+
+        // 4.4 加入布局
         m_gridLayout->addWidget(nameLabel, currentRow, 0);
         m_gridLayout->addWidget(lowerLimitLabel, currentRow, 1);
         m_gridLayout->addWidget(upperLimitLabel, currentRow, 2);
         m_gridLayout->addWidget(measuredValueLabel, currentRow, 3);
         m_gridLayout->addWidget(ngCountLabel, currentRow, 4);
 
-        // 存储引用 (恢复 5 列，不再需要 nullptr)
+        // 4.5 存储引用
         m_uiRows[baseName] = { nameLabel, lowerLimitLabel, upperLimitLabel, measuredValueLabel, ngCountLabel };
         m_ngCounters[baseName] = 0;
         currentRow++;
     }
 
-    // 4. 创建所有 UnifyParam 行 (正常解析显示)，排除特殊键
-    QList<UnifyParam> orderedParams = params.values();
-    const QStringList ignoredKeys = { "allFlowerLength", "flowetLength", "flowerArea" };
+    // 5. 设置列伸展和最小宽度
 
-    for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
-        const UnifyParam& p = it.value();
-
-        if (ignoredKeys.contains(it.key())) continue;
-        if (!p.visible || p.extraData.type() == qMetaTypeId<QList<double>>()) continue;
-
-        const QString& baseName = p.label;
-
-        // 格式化上下限 (保留逻辑)
-        QString lowerStr = (p.lowerLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.lowerLimit, 'f', 2);
-        QString upperStr = (p.upperLimit == UNIFY_UNSET_VALUE) ? "--" : QString::number(p.upperLimit, 'f', 2);
-
-        // 创建 UI 控件 (恢复 5 个)
-        auto nameLabel = new QLabel(baseName);
-        auto lowerLimitLabel = new QLabel(lowerStr);
-        auto upperLimitLabel = new QLabel(upperStr);
-        auto measuredValueLabel = new QLabel("-");
-        auto ngCountLabel = new QLabel(QString::number(p.ng_count));
-
-        // 【关键修改 3】: 隐藏上下限标签
-        lowerLimitLabel->setVisible(false);
-        upperLimitLabel->setVisible(false);
-
-        nameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        lowerLimitLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        upperLimitLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        measuredValueLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        ngCountLabel->setAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        ngCountLabel->setStyleSheet("color: #DC3545;");
-
-        // 加入布局 (恢复 5 列)
-        m_gridLayout->addWidget(nameLabel, currentRow, 0);
-        m_gridLayout->addWidget(lowerLimitLabel, currentRow, 1);
-        m_gridLayout->addWidget(upperLimitLabel, currentRow, 2);
-        m_gridLayout->addWidget(measuredValueLabel, currentRow, 3);
-        m_gridLayout->addWidget(ngCountLabel, currentRow, 4);
-
-        // 存储引用 (恢复 5 列，不再需要 nullptr)
-        m_uiRows[baseName] = { nameLabel, lowerLimitLabel, upperLimitLabel, measuredValueLabel, ngCountLabel };
-        m_ngCounters[baseName] = p.ng_count;
-        currentRow++;
-    }
-
-    // 5. 设置列伸展
-    // 【关键修改 4】: 设置 5 列伸展，但将隐藏列 (1 和 2) 的权重设为 0
-    m_gridLayout->setColumnStretch(0, 3); // 参数名称
+    // 【优化伸展因子】：将空间从名称转移到实测值
+    m_gridLayout->setColumnStretch(0, 2); // 参数名称: 权重降至 2 (更紧凑)
     m_gridLayout->setColumnStretch(1, 0); // 下限值 (隐藏)
     m_gridLayout->setColumnStretch(2, 0); // 上限值 (隐藏)
-    m_gridLayout->setColumnStretch(3, 4); // 实测值
-    m_gridLayout->setColumnStretch(4, 2); // 不符数                                   
+    m_gridLayout->setColumnStretch(3, 7); // 实测值: 权重升至 7 (获取最大比例空间，容纳长数组)
+    m_gridLayout->setColumnStretch(4, 2); // 不符数: 保持 2
 
-    m_gridLayout->setColumnMinimumWidth(1, 0);
-    m_gridLayout->setColumnMinimumWidth(2, 0);
+    // 【关键修复：防止长文本挤压布局】
+    // 强制限制列的最小宽度，防止长字符串导致布局同步失败。
+    m_gridLayout->setColumnMinimumWidth(0, 80);  // 参数名称：最小 80px
+    m_gridLayout->setColumnMinimumWidth(1, 0);   // 隐藏列
+    m_gridLayout->setColumnMinimumWidth(2, 0);   // 隐藏列
+    m_gridLayout->setColumnMinimumWidth(3, 160); // 实测值：强制最小宽度 160px
+    m_gridLayout->setColumnMinimumWidth(4, 50);  // 不符数：最小 50px
 }
-
 void DisplayInfoWidget_Flower::updateLimitLabelsFromUnifyParams(const AllUnifyParams& params)
 {
     // 【修改 11】: 移除整个函数逻辑，因为它只用于更新上下限
@@ -260,7 +239,8 @@ void DisplayInfoWidget_Flower::updateDataFromUnifyParams(const AllUnifyParams& p
                     int index = startIndex + j;
                     if (index < flowerDataList.size()) {
                         double val = flowerDataList.at(index).toDouble();
-                        values.append(QString::number(val, 'f', 2));
+                        values.append(QString::number(val, 'f', 0));
+                       // values.append("-");
                     }
                     else {
                         values.append("-");

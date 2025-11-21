@@ -13,7 +13,7 @@ ZoomableLabel::ZoomableLabel(QWidget *parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void ZoomableLabel::setPixmap(const QPixmap &pixmap)
+void ZoomableLabel::setPixmap(const QPixmap& pixmap)
 {
     if (pixmap.isNull()) return;
 
@@ -21,9 +21,18 @@ void ZoomableLabel::setPixmap(const QPixmap &pixmap)
     scaleFactor = 1.0;
 
     // 延迟更新，保证布局完成
-    QTimer::singleShot(0, this, [this]() { updateScaledPixmap(); });
-}
+    QTimer::singleShot(0, this, [this]() {
+        updateScaledPixmap();
 
+        // ------------------------------------------------
+        // 【核心修复代码】: 在图像加载并缩放完成后，强制请求父控件更新布局
+        // updateGeometry() 通知父布局：我的尺寸要求可能变了，请重新计算！
+        if (parentWidget()) {
+            parentWidget()->updateGeometry();
+        }
+        // ------------------------------------------------
+        });
+}
 void ZoomableLabel::setOriginalPixmap(const QPixmap &pixmap)
 {
     originalPixmap = pixmap;

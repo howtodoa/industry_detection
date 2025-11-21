@@ -126,7 +126,9 @@ void DisplayInfoWidget::buildUIFromParameters(Parameters* params)
 
 		auto headerLabel = new QLabel(headers[i]);
 
-		headerLabel->setFont(QFont("微软雅黑", 12, QFont::Bold));
+	    QFont headerFont("Arial", 12, QFont::Bold); 
+
+		headerLabel->setFont(headerFont);
 
 		headerLabel->setStyleSheet("background-color: #444; padding: 5px; border-radius: 3px;");
 
@@ -194,7 +196,7 @@ void DisplayInfoWidget::buildUIFromParameters(Parameters* params)
 
 	// 5. 创建UI控件
 
-	QFont valueFont("Arial", 12, QFont::Bold);
+	QFont valueFont("Arial", 11);
 	int currentRow = 1;
 	for (const QString& baseName : orderedBaseNames) {
 		const auto& limits = groupedLimits.value(baseName);
