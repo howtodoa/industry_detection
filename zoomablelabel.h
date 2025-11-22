@@ -12,7 +12,7 @@ public:
 
     void setPixmap(const QPixmap& pixmap);          // 设置图片
     void setOriginalPixmap(const QPixmap& pixmap);  // 设置原始图片
-
+    void setImage(const QImage& image) {};        // 设置图片（重载）
     void resetZoom();  // 重置缩放和平移
 
 protected:

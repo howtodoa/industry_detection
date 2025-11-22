@@ -2,8 +2,8 @@
 #define TYPDEF_H
 
 #define ADAPTATEION
-#define QIMAGE
-#define FOURBRADER
+//#define QIMAGE
+//#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -15,6 +15,7 @@
 #include "Api_FlowerPinDetection.h"
 #include "MyStl.h"
 #include <QtGlobal>
+#include <QImage.h>
 
 #include "Api_Welding.h"
 
@@ -39,6 +40,7 @@ struct ImageQueuePack {
 
 struct SaveData {
     std::shared_ptr<cv::Mat> imagePtr;
+	QImage image;
     std::string savePath_OK;
      std::string savePath_NG;
      std::string savePath_Pre;

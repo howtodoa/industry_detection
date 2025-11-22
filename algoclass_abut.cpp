@@ -16,6 +16,15 @@
 AlgoClass_Abut::AlgoClass_Abut(QObject* parent)
     : AlgoClass{ parent }
 {
+
+}
+
+// 带参数构造函数
+AlgoClass_Abut::AlgoClass_Abut(QString algopath, int al_core_param, float* Angle,QObject* parent)
+    : AlgoClass(algopath, parent),
+    al_core(al_core_param),
+	Angle(Angle)
+{
     QVariantMap map = FileOperator::readJsonMap(m_cameralPath);  // JSON 文件路径
 
     if (map.contains("p_pin_range_min"))
@@ -107,14 +116,6 @@ AlgoClass_Abut::AlgoClass_Abut(QObject* parent)
         ParamDetail detail(map.value("pln_Mc_height").toMap());
         LearnPara::inParam6.pln_Mc_height = detail.value.toFloat();
     }
-}
-
-// 带参数构造函数
-AlgoClass_Abut::AlgoClass_Abut(QString algopath, int al_core_param, float* Angle,QObject* parent)
-    : AlgoClass(algopath, parent),
-    al_core(al_core_param),
-	Angle(Angle)
-{
 }
 
 // 创建左侧控制面板

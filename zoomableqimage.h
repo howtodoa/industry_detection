@@ -15,7 +15,7 @@ public:
 
     // 设置原始图像（线程安全：QImage 自动引用计数）
     void setImage(const QImage& image);
-
+    void setPixmap(const QPixmap&) {}  // 空实现，不会做任何操作
     // 重置缩放和偏移
     void resetView();
 

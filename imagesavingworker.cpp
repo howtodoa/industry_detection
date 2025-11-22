@@ -28,6 +28,73 @@ ImageSaverWorker::~ImageSaverWorker()
 }
 
 
+void ImageSaverWorker::saveLoop_QImage()
+{
+    GlobalLog::logger.Mz_AddLog(L"Image Saver Worker (QImage) started in thread.");
+
+    while (!m_saveQueue.stopFlag.load())
+    {
+        SaveData dataToSave;
+
+        {
+            std::unique_lock<std::mutex> lock(m_saveQueue.mutex);
+
+            // 等待队列非空或者 stopFlag
+            m_saveQueue.cond.wait(lock, [this] {
+                return m_saveQueue.stopFlag.load() || !m_saveQueue.queue.empty();
+                });
+
+            if (m_saveQueue.stopFlag.load() && m_saveQueue.queue.empty()) {
+                GlobalLog::logger.Mz_AddLog(L"Image Saver Worker: stopping gracefully (queue empty & stopFlag).");
+                return;
+            }
+
+            if (!m_saveQueue.queue.empty()) {
+                dataToSave = std::move(m_saveQueue.queue.front());
+                m_saveQueue.queue.pop_front();
+                m_saveQueue.cond.notify_one();
+            }
+            else {
+                // 虽然被唤醒，但队列为空，继续循环等待
+                continue;
+            }
+        }
+
+        // 检查 QImage 是否有效
+        if (dataToSave.image.isNull())
+        {
+            LOG_DEBUG(GlobalLog::logger, L"saveLoop_QImage: image is null");
+            continue;
+        }
+
+        QElapsedTimer timer;
+        timer.start();
+
+        // 确保保存目录存在
+        QString qFullPath = QDir(QString::fromStdString(dataToSave.work_path))
+            .filePath(QString::fromStdString(generateStamp() + ".jpg"));
+        QDir().mkpath(QFileInfo(qFullPath).absolutePath());
+
+        // 深拷贝 QImage（队列中保存的 QImage 保持独立）
+        QImage imageToSave = dataToSave.image.copy();
+
+        // 保存
+        if (imageToSave.save(qFullPath, "JPG"))
+        {
+            GlobalLog::logger.Mz_AddLog(L"QImage saved successfully.");
+        }
+        else
+        {
+            GlobalLog::logger.Mz_AddLog(L"QImage save failed.");
+        }
+
+        qint64 elapsed = timer.elapsed();
+        qDebug() << "存图耗时：" << elapsed << "毫秒";
+    }
+
+    GlobalLog::logger.Mz_AddLog(L"Image Saver Worker (QImage) gracefully stopped.");
+}
+
 
 
 void ImageSaverWorker::saveLoop()

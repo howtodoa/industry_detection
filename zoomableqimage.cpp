@@ -48,23 +48,18 @@ void ZoomableQImage::paintEvent(QPaintEvent* event)
     QPainter p(this);
     p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
+    // 清理背景
+    p.fillRect(rect(), Qt::black); // 或者 Qt::white，或自定义颜色
+
     if (m_image.isNull()) return;
 
-    // 计算缩放后的尺寸
-    QSize scaledSize = m_image.size() * m_scaleFactor;
-
-    // 居中 + 偏移
-    QPointF centerPoint(
-        (width() - scaledSize.width()) / 2.0f,
-        (height() - scaledSize.height()) / 2.0f
-    );
-
+    QSizeF scaledSize = m_image.size() * m_scaleFactor;
+    QPointF centerPoint((width() - scaledSize.width()) / 2.0f,
+        (height() - scaledSize.height()) / 2.0f);
     QPointF drawPos = centerPoint + m_offset;
 
-    // 绘制图像
     p.drawImage(QRectF(drawPos, scaledSize), m_image);
 }
-
 void ZoomableQImage::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);

@@ -24,6 +24,7 @@
 #include "Imageprocess_flower.h"
 #include "Imageprocess_red.h"
 #include "imageprocess_Fourbrader.h"
+#include "imageprocess_image.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -109,11 +110,11 @@ void CameraLabelWidget::onLearn()
 #else
 		for (int j = 0; j < LearnPara::inNum; j++)
 		{
-			cams[i]->RI->m_PaintData[7 + j].check = true;
+			m_cam->RI->m_PaintData[7 + j].check = true;
 		}
-		for (int j = LearnPara::inNum; j < 15; j++)
+		for (int j = para.textNum; j < 15; j++)
 		{
-			cams[i]->RI->m_PaintData[7 + j].check = false;
+			m_cam->RI->m_PaintData[7 + j].check = false;
 		}
 #endif
 		qDebug() << "onLearn end";
@@ -140,12 +141,13 @@ void CameraLabelWidget::onLearn()
 #else
 		for (int j = 0; j < LearnPara::inNum; j++)
 		{
-			cams[i]->RI->m_PaintData[7 + j].check = true;
+			m_cam->RI->m_PaintData[7 + j].check = true;
 		}
-		for (int j = LearnPara::inNum; j < 15; j++)
+		for (int j = para.textNum; j < 15; j++)
 		{
-			cams[i]->RI->m_PaintData[7 + j].check = false;
+			m_cam->RI->m_PaintData[7 + j].check = false;
 		}
+
 #endif
 		qDebug() << "onLearn end";
 
@@ -313,17 +315,18 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 {
 	
 	setStyleSheet("background-color: transparent;");
-
+#ifdef QIMAGE
+	imageLabel = new ZoomableQImage(this);
+#else
 	imageLabel = new ZoomableLabel(this);
+	imageLabel->setAlignment(Qt::AlignCenter);
+#endif
+
 	imageLabel->setObjectName("cameraImageLabel");
 	// 设置 imageLabel 的样式：背景色为 rgb边框为 1px solid black 
 	imageLabel->setStyleSheet("background-color: rgb(24, 26, 32); border: 1px solid #D8D8D8;");
-	imageLabel->setAlignment(Qt::AlignCenter);
 
-	//固定图片区域，防止自动扩大
-	//QVBoxLayout* layout = new QVBoxLayout(this);
-	//layout->setContentsMargins(0, 0, 0, 0);
-	//layout->addWidget(imageLabel);
+
 
 	// 定义统一的顶部背景色 (#ADD8E6)
 	const QString topBarBackgroundColor = "#D8D8D8"; //灰色
@@ -424,9 +427,9 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	connect(m_imageProcessor, &ImageProcess::imageProcessed,
 		this, &CameraLabelWidget::onImageProcessed_plate);
 #else
-	this->m_imageProcessor = new ImageProcess(cam, m_saveQueue, this);
-	connect(m_imageProcessor, &ImageProcess::imageProcessed,
-		this, &CameraLabelWidget::onImageProcessed);
+	this->m_imageProcessor = new Imageprocess_Image(cam, m_saveQueue, this);
+	connect(m_imageProcessor, &ImageProcess::imageProcessed_QImage,
+		this, &CameraLabelWidget::onImageProcessed_QImage);
 #endif
 
 #elif USE_MAIN_WINDOW_BRADER
@@ -1857,6 +1860,104 @@ void CameraLabelWidget::onStartGetIn()
 		});
 
 }
+
+void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
+{
+	m_cam->ui_signal.store(true);
+	qDebug() << "onImageProcessed info.ret=:" << info.ret;
+
+	// 检查输入
+	if (image.isNull()) {
+		LOG_DEBUG(GlobalLog::logger, L"onImageProcessed: input QImage is null");
+		m_cam->ui_signal.store(false);
+		return;
+	}
+
+	// 计数与保存路径
+	if (!m_cam->video)
+	{
+		if (info.ret != 0) {
+			dataToSave.work_path = dataToSave.savePath_NG;
+			this->ngcount->fetch_add(1);
+		}
+		else {
+			dataToSave.work_path = dataToSave.savePath_OK;
+		}
+		this->sumcount->fetch_add(1);
+	}
+
+	LOG_DEBUG(GlobalLog::logger, QString("camra:%1 sumcount: %2")
+		.arg(m_cam->indentify.c_str())
+		.arg(this->sumcount->load())
+		.toStdWString().c_str());
+
+	LOG_DEBUG(GlobalLog::logger, QString("camra:%1 ngcount: %2")
+		.arg(m_cam->indentify.c_str())
+		.arg(this->ngcount->load())
+		.toStdWString().c_str());
+
+	QElapsedTimer timer;
+	timer.start();
+
+	// 深拷贝 QImage 用于显示和存储
+	QImage displayImage = image.copy();
+
+	// 绘制 PaintData
+	if (!m_cam->RI->m_PaintData.isEmpty())
+	{
+		if (info.ret == 0) // VI 情况
+			ImagePaint::drawPaintDataEx_VI_QImage(displayImage, m_cam->RI->m_PaintData, imageLabel->size());
+		else
+			ImagePaint::drawPaintDataEx_QImage(displayImage, m_cam->RI->m_PaintData, imageLabel->size());
+	}
+
+	// 绘制检测结果
+	ImagePaint::drawDetectionResultExQImage(displayImage, info);
+
+	// 存储到队列
+	if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && info.ret == -1)))
+	{
+		SaveData saveItem;
+		saveItem.savePath_Pre = dataToSave.savePath_Pre;
+		saveItem.work_path = dataToSave.work_path;
+		saveItem.savePath_OK = dataToSave.savePath_OK;
+		saveItem.savePath_NG = dataToSave.savePath_NG;
+		saveItem.info = dataToSave.info;
+
+		saveItem.image = displayImage.copy(); // 深拷贝，队列使用
+
+		{
+			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
+			if (saveToQueue->queue.size() > 100) {
+				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
+			}
+			else {
+				saveToQueue->queue.push_back(saveItem);
+				LOG_DEBUG(GlobalLog::logger, QString("图像推入保存队列。当前队列大小：%1")
+					.arg(saveToQueue->queue.size()).toStdWString().c_str());
+			}
+		}
+		saveToQueue->cond.notify_one();
+	}
+
+	// 显示
+	if (check_flag.load()) {
+		QPixmap displayPixmap = QPixmap::fromImage(image);
+		parawidget->imageViewer->setPixmap(displayPixmap);
+		check_flag.store(false);
+	}
+	else if (!FullScreen.load()) {
+		imageLabel->setImage(displayImage);
+	}
+	else {
+		QPixmap displayPixmap = QPixmap::fromImage(image);
+		emit FullShow(displayPixmap);
+	}
+
+	qDebug() << "显示耗时：" << timer.elapsed() << "毫秒";
+	m_cam->ui_signal.store(false);
+}
+
 
 void CameraLabelWidget::triggerCameraStart(Cameral* cam)
 {

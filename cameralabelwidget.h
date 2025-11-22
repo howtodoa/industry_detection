@@ -17,6 +17,7 @@
 #include "tcp_client.h"
 #include "typdef.h"
 #include "localfiledetector.h"
+#include "zoomableqimage.h"
 
 class CameraLabelWidget : public QWidget
 {
@@ -43,7 +44,7 @@ public:
     void stopLocalFileDetectorThread();
    
 
-    QLabel* getImageLabel() const { return imageLabel; }
+ //   QLabel* getImageLabel() const { return imageLabel; }
 
 protected:
 
@@ -57,6 +58,7 @@ public slots:
     void onImageProcessed_plate(std::shared_ptr<cv::Mat> processedImagePtr,DetectInfo info);
     void onImageProcessed_flower(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
     void onImageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
+	void onImageProcessed_QImage(QImage image, DetectInfo info);
     void onSaveDebugInfo(DebugInfo *DI);
     void onImageLoaded(std::shared_ptr<cv::Mat> image);
     void onLearn();
@@ -70,7 +72,13 @@ public slots:
 private:
     cv::Mat image;
     QPixmap currentPixmap;
+
+#ifdef QIMAGE
+	ZoomableQImage* imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
+#else
     ZoomableLabel *imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
+#endif
+
     QLabel        *fixedText;  // 固定文本标签
     CameraMenu    *cameraMenu; // 操作菜单
     QPushButton* runButton;

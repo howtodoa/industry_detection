@@ -74,7 +74,17 @@ void Imageprocess_FourBrader::run()
 
 		if (cam_instance->video == false) // 非推流的情况
 		{
-	
+
+			if (GlobalPara::envirment == GlobalPara::IPCEn) // 非本地运行的情况
+			{
+				// 先给复位信号false
+				bool outputSignalInvert = false;
+				int durationMs = 100; // 脉冲持续时间
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+
+				QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			}
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
@@ -224,7 +234,9 @@ void Imageprocess_FourBrader::run()
 			{
 				bool outputSignalInvert = true;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false);
+				
 				QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
@@ -257,8 +269,9 @@ void Imageprocess_FourBrader::run()
 			{
 				bool outputSignalInvert = false;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
-
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() , outputSignalInvert ? true : false);
+				
 				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
@@ -287,6 +300,8 @@ void Imageprocess_FourBrader::run()
 			cam_instance->learn.store(false);
 		}
 
+
+
 		//存图
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
 		{
@@ -297,7 +312,7 @@ void Imageprocess_FourBrader::run()
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
 			{
-				dataToSave.imagePtr = currentImagePtr;
+				dataToSave.imagePtr=backupImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				//GlobalLog::logger.Mz_AddLog(L"pre Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
@@ -308,7 +323,7 @@ void Imageprocess_FourBrader::run()
 			}
 			else
 			{
-				dataToSave.imagePtr = currentImagePtr;
+				dataToSave.imagePtr = backupImagePtr;
 				saveToQueue->queue.push_back(dataToSave);
 				GlobalLog::logger.Mz_AddLog(L"all Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();

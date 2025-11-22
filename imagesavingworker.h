@@ -14,6 +14,7 @@ public:
     ~ImageSaverWorker();
 
     void saveLoop();
+    void saveLoop_QImage();
 
 
 private:

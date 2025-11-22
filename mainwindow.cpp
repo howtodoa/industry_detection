@@ -1104,8 +1104,11 @@ void MainWindow::setupImageSaverThread()
 
     m_imageSaverWorker->moveToThread(m_workerThread);
 
+#ifdef QIMAGE
+    QObject::connect(m_workerThread, &QThread::started, m_imageSaverWorker, &ImageSaverWorker::saveLoop_QImage);
+#else 
     QObject::connect(m_workerThread, &QThread::started, m_imageSaverWorker, &ImageSaverWorker::saveLoop);
-
+#endif
     //概率二次释放
     //     当 m_workerThread 完成时，安全地清理 m_imageSaverWorker 对象。
     QObject::connect(m_workerThread, &QThread::finished, m_imageSaverWorker, &QObject::deleteLater);
@@ -2751,7 +2754,7 @@ int MainWindow::initPCI_VC3000H()
         std::cout << "[INFO] PNP/NPN 模式设置为：" << AppConfig::GetIoOutputMode() << std::endl;
 
 // 依次设置输出模式
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera1Output, false, 1000)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera1Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera1Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2760,7 +2763,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera2Output, false, 1000)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera2Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera2Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2769,7 +2772,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera3Output, false, 1000)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera3Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera3Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2778,7 +2781,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 #ifdef USE_MAIN_WINDOW_CAPACITY
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera4Output, false, 300)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera4Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera4Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2787,7 +2790,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera5Output, false, 300)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera5Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera5Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2796,7 +2799,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera6Output, false, 300)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera6Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera6Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2805,7 +2808,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera7Output, false, 300)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera7Output, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera7Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2826,7 +2829,7 @@ int MainWindow::initPCI_VC3000H()
 
 #endif // USE_MAIN_WINDOW_CAPACITY
 
-    if ((result = PCI::pci().setOutputMode(AppConfig::runningOutput, false, 300)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::runningOutput, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 runningOutput 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -2915,6 +2918,7 @@ int MainWindow::initPCI_VC3000H()
         LOG_DEBUG(GlobalLog::logger, warningMsg.toStdWString().c_str());
     }
 
+   // PCI::pci().SaveParam();
     std::cout << "[INFO] 所有初始化和设置流程完成。" << std::endl;
     return 0;
 }
