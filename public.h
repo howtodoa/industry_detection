@@ -53,6 +53,8 @@ bool generateDir(const std::string& dirPath);
 
 cv::Mat QPixmapToMat(const QPixmap& pixmap);
 
+QString FirstFailedParamLabel(const AllUnifyParams& allParams);
+
 cv::Mat convertQImageToMat(const QImage& image);
 
 std::string generateStamp();

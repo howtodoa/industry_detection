@@ -179,7 +179,7 @@ void ImageSaverWorker::saveLoop()
              std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 
              // 2. 将 std::string (UTF-8) 转换为 std::wstring
-             std::wstring wstr = converter.from_bytes(dataToSave.info);
+//             std::wstring wstr = converter.from_bytes(dataToSave.info);
 
              // 3. 传入宏，使用 std::wstring 的 c_str()
            //  LOG_DEBUG(GlobalLog::logger, wstr.c_str());

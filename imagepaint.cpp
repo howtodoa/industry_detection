@@ -4,6 +4,15 @@
 #include <QFontMetrics>
 #include "typdef.h"
 
+void ImagePaint::prepareImageForDrawing(QImage& src)
+{
+    // 不创建 dst，直接检查 src
+    if (src.format() != QImage::Format_RGB32 && src.format() != QImage::Format_ARGB32) {
+        // 直接将转换后的结果赋值回 src
+        src = src.convertToFormat(QImage::Format_RGB32);
+    }
+}
+
 void ImagePaint::drawResultOnPixmap(QPixmap& sourcePixmap, int result)
 
 {
@@ -408,6 +417,7 @@ void ImagePaint::drawPaintDataEx_QImage(QImage& image,
     // QPainter 可以在 QImage 上安全工作，即使在非 GUI 线程中调用 QImage::bits() 也是安全的。
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::TextAntialiasing);
 
     // 3. 如果传入的UI控件尺寸无效，则将其视为与原图等大（此时无缩放）。
     // QImage::size() 和 QPixmap::size() 返回 QSize，逻辑一致。
@@ -420,7 +430,7 @@ void ImagePaint::drawPaintDataEx_QImage(QImage& image,
     const QSize canvasSize = image.size();
 
     // 5. 定义视觉设计参数
-    constexpr int TARGET_VISUAL_FONT_SIZE = 12;
+    constexpr int TARGET_VISUAL_FONT_SIZE = 16;
     constexpr double ROW_SPACING_VISUAL_PX = 4.0;
     constexpr double X_MARGIN_RATIO = 0.01;
     constexpr double Y_MARGIN_RATIO = 0.05;
@@ -1288,6 +1298,7 @@ void ImagePaint::drawDetectionResultExQImage(QImage& image, const DetectInfo& in
     // 1. 安全检查：检查 QImage 是否为空
     if (image.isNull()) return;
 
+	prepareImageForDrawing(image);
 
     // 2. 在 QImage 上创建 QPainter
     QPainter painter(&image); // QPainter 可以在 QImage 上安全绘制
@@ -1386,6 +1397,8 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
         qWarning() << "传入的 paintDataList 为空，无法绘制。";
         return;
     }
+
+    prepareImageForDrawing(image);
 
     // 2. 直接在源 QImage 上创建 QPainter 进行绘制
     QPainter painter(&image); // QPainter 可以在 QImage 上安全工作

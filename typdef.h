@@ -45,7 +45,7 @@ struct SaveData {
      std::string savePath_NG;
      std::string savePath_Pre;
     std::string work_path;
-    std::string info="";
+    QString info="";
 };
 
 struct SaveQueue {
@@ -460,39 +460,46 @@ struct UnifyParam
     }
 };
 
-//QDebug operator<<(QDebug dbg, const UnifyParam& param)
-//{
-//    // 启用紧凑模式，让输出更整洁
-//    dbg.nospace() << "UnifyParam(\"" << param.label << "\") {\n";
-//
-//    // 1. 模式/状态
-//    dbg.nospace() << "  Mode: " << (param.need_value ? "BOOL" : "RANGE")
-//        << ", Check Enabled: " << (param.check ? "Yes" : "No")
-//        << ", Visible: " << (param.visible ? "Yes" : "No") << "\n";
-//
-//    // 2. 核心值/结果
-//    dbg.nospace() << "  Value: " << param.value
-//        << " " << param.unit
-//        << ", Result: " << (param.result == 1 ? "PASS" : (param.result == 0 ? "NG" : "N/A"))
-//        << "\n";
-//
-//    // 3. 范围和补偿
-//    dbg.nospace() << "  Range: [" << param.lowerLimit << " - " << param.lowfix
-//        << ", " << param.upperLimit << " + " << param.upfix << "]\n";
-//
-//    // 4. 统计
-//    dbg.nospace() << "  Stats: Total=" << (qint64)param.count
-//        << ", NG=" << (qint64)param.ng_count
-//        << ", ScaleFactor=" << param.scaleFactor << "\n";
-//
-//    // 5. 其他
-//    dbg.nospace() << "  Extra: Learn=" << param.leranValue
-//        << ", ExtraDataType=" << param.extraData.typeName()
-//        << "}\n";
-//
-//    return dbg;
-//}
+// 必须在结构体外部实现
+inline QDebug operator<<(QDebug dbg, const UnifyParam& param)
+{
+    // 最佳实践：保存并恢复 QDebug 的状态
+    QDebugStateSaver saver(dbg);
 
+    // 启用紧凑模式，让输出更整洁
+    dbg.nospace() << "UnifyParam(\"" << param.label << "\") {\n";
+
+    // 1. 模式/状态
+    dbg.nospace() << "  Mode: " << (param.need_value ? "BOOL" : "RANGE")
+        << ", Check Enabled: " << (param.check ? "Yes" : "No")
+        << ", Visible: " << (param.visible ? "Yes" : "No") << "\n";
+
+    // 2. 核心值/结果
+    dbg.nospace() << "  Value: " << param.value
+        << " " << param.unit
+        << ", Result: " << (param.result == 1 ? "PASS" : (param.result == 0 ? "NG" : "N/A"))
+        << "\n";
+
+    // 3. 范围和补偿
+    dbg.nospace() << "  Range: [" << param.lowerLimit << " - " << param.lowfix
+        << ", " << param.upperLimit << " + " << param.upfix << "]\n";
+
+    // 4. 统计
+    // 注意：qint64 转换是正确的做法
+    dbg.nospace() << "  Stats: Total=" << (qint64)param.count
+        << ", NG=" << (qint64)param.ng_count
+        << ", ScaleFactor=" << param.scaleFactor << "\n";
+
+    // 5. 其他
+    dbg.nospace() << "  Extra: Learn=" << param.leranValue
+        << ", ExtraDataType=" << param.extraData.typeName()
+        // 确保最后的 "}" 也在 nospace() 的作用下
+        << "}\n";
+
+    // saver 析构时会恢复 dbg 的状态
+
+    return dbg;
+}
 
 using AllUnifyParams = QMap<QString, UnifyParam>;
 #endif // TYPDEF_H

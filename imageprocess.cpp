@@ -356,7 +356,8 @@ void ImageProcess::run()
 
 		}
 		else {
-			emit imageProcessed(afterImagePtr, info);
+			auto safeCopy = std::make_shared<cv::Mat>(afterImagePtr->clone());
+			emit imageProcessed(safeCopy, info);
 
 		}
 

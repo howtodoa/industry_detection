@@ -219,10 +219,11 @@ void Imageprocess_Image::run()
 			afterImagePtr = currentImagePtr;
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
-			emit imageProcessed(afterImagePtr, info);
-			currentImagePtr.reset();
+			//emit imageProcessed(afterImagePtr, info);
+			emit imageProcessed_QImage(convertMatToQImage(*afterImagePtr), info);
+		/*	currentImagePtr.reset();
 			backupImagePtr.reset();
-			afterImagePtr.reset();
+			afterImagePtr.reset();*/
 			continue;
 		}
 

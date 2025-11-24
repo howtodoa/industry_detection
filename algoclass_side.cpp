@@ -46,6 +46,9 @@ AlgoClass_Side::AlgoClass_Side(QString algopath, int al_core, float* Angle, QObj
 
     if (map.contains("nms"))
         LearnPara::inParam4.nms = ParamDetail(map.value("nms").toMap()).value.toFloat();
+
+    if (map.contains("isDouble"))
+        LearnPara::inParam4.isDouble = ParamDetail(map.value("isDouble").toMap()).value.toBool();  // 新增参数
 }
 
 QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
@@ -102,6 +105,15 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
     colorLayout->addWidget(chkColor);
     layout->addLayout(colorLayout);
 
+    // 双字符检测
+    QHBoxLayout* doubleLayout = new QHBoxLayout;
+    QLabel* lblDouble = new QLabel("双字符检测:", panel);
+    QCheckBox* chkDouble = new QCheckBox(panel);
+    chkDouble->setChecked(LearnPara::inParam4.isDouble);
+    doubleLayout->addWidget(lblDouble);
+    doubleLayout->addWidget(chkDouble);
+    layout->addLayout(doubleLayout);
+
     // 保存按钮
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
@@ -113,6 +125,7 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
         LearnPara::inParam4.buttonThresh = editButtonThresh->text().toInt();
         LearnPara::inParam4.topThresh = editTopThresh->text().toInt();
         LearnPara::inParam4.isColor = chkColor->isChecked();
+        LearnPara::inParam4.isDouble = chkDouble->isChecked();  // 保存双字符检测
         LearnPara::inParam4.conf = editConf->text().toFloat();
         LearnPara::inParam4.nms = editNms->text().toFloat();
         saveParamAsync();
@@ -124,11 +137,12 @@ QWidget* AlgoClass_Side::createLeftPanel(QWidget* parent)
 void AlgoClass_Side::saveParamAsync()
 {
     QVariantMap mapToSave;
-    
+
     mapToSave["charAngleNum"] = QVariantMap{ {"值", LearnPara::inParam4.charAngleNum} };
     mapToSave["buttonThresh"] = QVariantMap{ {"值", LearnPara::inParam4.buttonThresh} };
     mapToSave["topThresh"] = QVariantMap{ {"值", LearnPara::inParam4.topThresh} };
     mapToSave["isColor"] = QVariantMap{ {"值", LearnPara::inParam4.isColor} };
+    mapToSave["isDouble"] = QVariantMap{ {"值", LearnPara::inParam4.isDouble} };  // 保存新参数
     mapToSave["conf"] = QVariantMap{ {"值", LearnPara::inParam4.conf} };
     mapToSave["nms"] = QVariantMap{ {"值", LearnPara::inParam4.nms} };
 

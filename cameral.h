@@ -50,6 +50,7 @@ public:
     QVector<SimpleParam> ScaleArray;
     int rounte = 0;
 	AllUnifyParams unifyParams;
+    QString errmsg="";
     double scaleFactor=0.01;
     DebugInfo DI;
     Mz_CameraConn::COperation *camOp=nullptr;

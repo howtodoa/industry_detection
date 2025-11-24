@@ -8,56 +8,102 @@
 #include <dbghelp.h>
 #include <QProcess>
 #include "initsystem.h"
+#include "MZ_VC3000H.h"
 //#include <openvino/openvino.hpp>
 
 
-LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS *pExceptionPointers)
+int StopAllVC3000HDevices()
 {
-    // 获取当前时间作为文件名一部分
-    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-    QString exePath = QCoreApplication::applicationDirPath();
-    QString dumpFilePath = exePath + QString("/crash_%1.dmp").arg(timestamp);
+    int result = 0;
 
-    // 创建转储文件
-    HANDLE hDumpFile = CreateFileW(
-        (LPCWSTR)dumpFilePath.utf16(),
-        GENERIC_WRITE,
-        0,
-        nullptr,
-        CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr
-        );
-
-    if (hDumpFile != INVALID_HANDLE_VALUE)
+    result = PCI::pci().InitialSystem();
+    if (result != 0)
     {
-        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
-        dumpInfo.ThreadId = GetCurrentThreadId();
-        dumpInfo.ExceptionPointers = pExceptionPointers;
-        dumpInfo.ClientPointers = FALSE;
+        std::cout << "[ERROR] 系统初始化失败，错误码：" << result << std::endl;
+        return -1;
+    }
+    std::cout << "[INFO] 系统初始化成功。" << std::endl;
 
-        // 写入 dump 文件
+    result = PCI::pci().openseral("Com3");
+    if (result != 0)
+    {
+        std::cout << "[ERROR] 打开串口 Com3 失败，错误码：" << result << std::endl;
+        return -1;
+    }
+    std::cout << "[INFO] 串口 Com3 打开成功。PLC连接状态：已连接" << std::endl;
+
+    for (int cameraID = 1; cameraID <= 8; ++cameraID) {
+        int result = 0; // 错误码变量
+
+        if ((result = PCI::pci().setOutputMode(cameraID, false, 200)) != 0) {
+
+            //QString errorMsg = QString("[ERROR] 设置 camera%1Output 模式失败，错误码：%2")
+            //    .arg(cameraID)
+            //    .arg(result);
+
+            //// 打印错误日志
+            //LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
+        }
+    }
+
+    // PCI::pci().SaveParam();
+    std::cout << "[INFO] 所有初始化和设置流程完成。" << std::endl;
+    PCI::pci().Destroy();
+    return 0;
+}
+
+LONG WINAPI MyCrashHandler(_EXCEPTION_POINTERS* pExPtrs)
+{
+    // 获取当前工作目录
+    wchar_t currentDir[MAX_PATH];
+    GetCurrentDirectoryW(MAX_PATH, currentDir);
+
+    // 构建 dump 文件名
+    wchar_t dumpFilePath[MAX_PATH];
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    wsprintfW(dumpFilePath, L"%s\\crash_%04d%02d%02d_%02d%02d%02d.dmp",
+        currentDir,
+        st.wYear, st.wMonth, st.wDay,
+        st.wHour, st.wMinute, st.wSecond);
+
+    // 创建 dump 文件
+    HANDLE hFile = CreateFileW(dumpFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile != INVALID_HANDLE_VALUE)
+    {
+        MINIDUMP_EXCEPTION_INFORMATION info;
+        info.ThreadId = GetCurrentThreadId();
+        info.ExceptionPointers = pExPtrs;
+        info.ClientPointers = FALSE;
+
         MiniDumpWriteDump(
             GetCurrentProcess(),
             GetCurrentProcessId(),
-            hDumpFile,
-            (MINIDUMP_TYPE)(
-                MiniDumpWithFullMemory |
-                MiniDumpWithFullMemoryInfo |
-                MiniDumpWithHandleData |
-                MiniDumpWithThreadInfo
-                ),
-            &dumpInfo,
+            hFile,
+            static_cast<MINIDUMP_TYPE>(MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo),
+            &info,
             nullptr,
             nullptr
-            );
-        CloseHandle(hDumpFile);
+        );
+
+        FlushFileBuffers(hFile);
+        CloseHandle(hFile);
     }
 
+    // 打印到 stderr（可选）
+    fprintf(stderr, "Application crashed! Dump written to %ws\n", dumpFilePath);
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
+void InstallCrashHandler()
+{
+    // VEH 优先级高于 SEH
+   // AddVectoredExceptionHandler(1, MyCrashHandler);
+
+    // 防止其他 DLL 覆盖你的 SetUnhandledExceptionFilter
+    SetUnhandledExceptionFilter(MyCrashHandler);
+}
 
 void redirectToFile()
 {
@@ -129,7 +175,8 @@ int runBusiness(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-
+    InstallCrashHandler();
+	//redirectToFile();
     if (argc > 1 && strcmp(argv[1], "--child") == 0) {
         // 子进程需要 QApplication 来运行 GUI
         return runBusiness(argc, argv);
@@ -173,7 +220,7 @@ int main(int argc, char* argv[])
 
         DWORD exitCode = 0;
         while (true) {
-            DWORD result = WaitForSingleObject(pi.hProcess, 3000);
+            DWORD result = WaitForSingleObject(pi.hProcess, INFINITE);
             if (result == WAIT_TIMEOUT) {
                 continue;
             }
@@ -190,6 +237,9 @@ int main(int argc, char* argv[])
         }
         else {
             // fprintf(stderr, "子进程异常退出，重启\n");
+#ifdef USE_MAIN_WINDOW_CAPACITY
+            StopAllVC3000HDevices();
+#endif // USE_MAIN_WINDOW_CAPACITY
             Sleep(1000);
         }
     }
@@ -202,6 +252,7 @@ int main(int argc, char* argv[])
 #else // USE_MAIN_WINDOW_CAPACITY
 int main(int argc, char* argv[])
 {
+    InstallCrashHandler();
     redirectToFile();
 
 
@@ -211,7 +262,7 @@ int main(int argc, char* argv[])
         return 0;  // 退出
     }
 
-    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
+   // SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     QApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
 

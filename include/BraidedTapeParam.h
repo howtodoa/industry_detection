@@ -11,6 +11,7 @@ struct InSideParam
 	bool isColor = false;                  //套管颜色是否判定，true为判定
 	float conf = 0.0;                      //置信度
 	float nms = 0.0;                       //非极大值抑制
+	bool isDouble = false;                 //双字符检测
 };
 
 struct OutSideParam

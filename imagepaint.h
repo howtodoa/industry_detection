@@ -6,7 +6,7 @@
 class ImagePaint
 {
 public:
-
+    static void prepareImageForDrawing(QImage& src);
     static void drawResultOnPixmap(QPixmap& sourcePixmap, int result);  
     static void drawResultOnPixmap(QPixmap& sourcePixmap, int result, const QVector<PaintDataItem>& paintDataList, QSize displaySize);
     static void drawDetectionResult(cv::Mat& image, const DetectInfo& info);
@@ -26,7 +26,7 @@ public:
     static void drawDetectionResultExQImage(QImage& image, const DetectInfo& info);
     static void drawPaintDataOnImage(QImage& canvas,const QVector<PaintDataItem>& paintDataList);
     static void drawDetectionResultExQt(QPixmap& pixmap, const DetectInfo& info);
-    static  void drawPaintData(QPixmap& pixmap,
+    static void drawPaintData(QPixmap& pixmap,
          QVector<PaintDataItem>& paintDataList,
          QSize displaySize);
     static  void drawPaintDataEx(QPixmap& pixmap,

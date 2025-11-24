@@ -3441,7 +3441,7 @@ void MainWindow::AllCameraConnect()
             unsigned short durationMs = 100;
             PCI::pci().setOutputMode(AppConfig::runningOutput, outputSignalInvert ? true : false, durationMs);
  
-
+            PCI::pci().setOutputMode(cams[i]->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 
                 if (cams[i]->m_cameraWarningShown==false)
                 {

@@ -49,7 +49,7 @@ InTopParam LearnPara::inParam3 = {
 };
 
 InSideParam LearnPara::inParam4 = {
- false,-90,90,40,100,false,0.5,0.3
+ false,-90,90,40,100,false,0.5,0.3,false
 };
 
 InPinParam LearnPara::inParam5 = {
@@ -356,6 +356,30 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 
 		return defaultValue;
 	}
+}
+
+
+QString FirstFailedParamLabel(const AllUnifyParams& allParams)
+{
+	// 遍历 QMap 中的所有元素
+	// QMap 的迭代器按键（QString）排序
+	for (auto it = allParams.constBegin(); it != allParams.constEnd(); ++it)
+	{
+		// it.value() 返回 UnifyParam 结构体
+		// it.key()   返回 QString 键（即参数的标识符）
+
+		const UnifyParam& param = it.value();
+
+		// 检查 result 是否不等于 1 (1 代表通过 PASS)
+		if (param.result != 1)
+		{
+			// 找到第一个不通过的参数，返回其 QMap 的键
+			return it.value().label;
+		}
+	}
+
+	// 如果遍历完所有参数，result 都为 1 (PASS)，则返回空字符串
+	return QString();
 }
 
 qint64 getAvailableSystemMemoryMB()
