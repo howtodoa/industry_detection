@@ -23,9 +23,6 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
-    void showEvent(QShowEvent* event) override;
-
-    QSize sizeHint() const override;
 
 private:
     void updateScaledPixmap();  // 更新缩放后的图片

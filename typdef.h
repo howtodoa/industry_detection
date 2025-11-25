@@ -174,6 +174,7 @@ struct GlobalPara {
     static int Light2;
     static int Light3;
     static int Light4;
+	static int FontSize;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

@@ -695,10 +695,10 @@ void ImagePaint::drawPaintDataEx_V(QPixmap& pixmap,
         // 新的标签显示逻辑：根据条件修改 text
         QString text = "";
         if (item.label.contains("容积字符信息")) {
-            text = QString("容积: %1").arg(item.value);
+            text = QString("容积: %1").arg(item.value.left(4));
         }
         else if (item.label.contains("电压字符信息")) {
-            text = QString("电压: %1").arg(item.value);
+            text = QString("电压: %1").arg(item.value.left(4));
         }
 
         // 确保 text 不为空，如果前面的 if/else if 都未匹配
@@ -751,7 +751,7 @@ void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
     const QSize canvasSize = pixmap.size();
 
     // 5. 定义视觉设计参数
-    constexpr int TARGET_VISUAL_FONT_SIZE = 16;
+    int TARGET_VISUAL_FONT_SIZE = GlobalPara::FontSize;
     constexpr double ROW_SPACING_VISUAL_PX = 4.0;
     constexpr double X_MARGIN_RATIO = 0.01;
     constexpr double Y_MARGIN_RATIO = 0.05;

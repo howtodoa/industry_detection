@@ -42,6 +42,7 @@
 #include "rezultinfo_Xs.h"
 #include "rezultinfo_ny.h"
 #include "rezultinfo_bottom.h"
+#include "debugtool.h"
 
 namespace AppConfig
 {
@@ -350,6 +351,14 @@ void MainWindow::loadjson_layer(const QString& filePath)
         qWarning() << "JSON file missing 'Light4' entry.";
     }
 
+    if (configMap.contains("FontSize")) {
+        ParamDetail detail(configMap.value("FontSize").toMap());
+        GlobalPara::FontSize = detail.value.toInt();
+        qDebug() << "Parsed FontSize" << GlobalPara::FontSize;
+    }
+    else {
+        qWarning() << "JSON file missing 'FontSize' entry.";
+    }
 
     if (configMap.contains("ROOT_DIR")) {
         ParamDetail detail(configMap.value("ROOT_DIR").toMap());
@@ -816,9 +825,6 @@ MainWindow::MainWindow(QWidget *parent) :
             "}"
         );
 
-        // ------------------------------------------------------------------
-        // 【核心修改区域】：使用 availableGeometry 设置窗口尺寸和最大限制
-        // ------------------------------------------------------------------
         QScreen* screen = QGuiApplication::primaryScreen();
         if (screen) {
             // 获取屏幕的可用几何尺寸（排除了任务栏/Dock栏等）
@@ -1902,6 +1908,8 @@ void MainWindow::CreateMenu()
     QAction* DataAction = menuRecord->addAction("数据");
     QAction* SystemParaAction = menuTools->addAction("存图路径");
     QAction* CameralSetAction = menuTools->addAction("相机配置");
+    QAction* DevToolAction = menuTools->addAction("开发者工具");
+
 
     // --- 5. 连接所有信号和槽 ---
     QTimer* timer = new QTimer(this);
@@ -1986,6 +1994,13 @@ void MainWindow::CreateMenu()
     connect(SystemParaAction, &QAction::triggered, this, [this]() {
         SysPara* syspara = new SysPara(this);
         syspara->show();
+        });
+
+    connect(DevToolAction, &QAction::triggered, this, [this]() {
+        if (Role::GetCurrentRole() == "操作员") return;
+        DebugTool* dbg = new DebugTool(nullptr);
+        dbg->setAttribute(Qt::WA_DeleteOnClose);
+        dbg->show();
         });
 }
 

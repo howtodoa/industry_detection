@@ -8,9 +8,7 @@
 #include <dbghelp.h>
 #include <QProcess>
 #include "initsystem.h"
-#include "MZ_VC3000H.h"
 //#include <openvino/openvino.hpp>
-
 
 int StopAllVC3000HDevices()
 {
@@ -52,58 +50,53 @@ int StopAllVC3000HDevices()
     return 0;
 }
 
-LONG WINAPI MyCrashHandler(_EXCEPTION_POINTERS* pExPtrs)
+LONG WINAPI MyUnhandledExceptionFilter(_EXCEPTION_POINTERS* pExceptionPointers)
 {
-    // 获取当前工作目录
-    wchar_t currentDir[MAX_PATH];
-    GetCurrentDirectoryW(MAX_PATH, currentDir);
+    // 获取当前时间作为文件名一部分
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+    QString exePath = QCoreApplication::applicationDirPath();
+    QString dumpFilePath = exePath + QString("/crash_%1.dmp").arg(timestamp);
 
-    // 构建 dump 文件名
-    wchar_t dumpFilePath[MAX_PATH];
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    wsprintfW(dumpFilePath, L"%s\\crash_%04d%02d%02d_%02d%02d%02d.dmp",
-        currentDir,
-        st.wYear, st.wMonth, st.wDay,
-        st.wHour, st.wMinute, st.wSecond);
+    // 创建转储文件
+    HANDLE hDumpFile = CreateFileW(
+        (LPCWSTR)dumpFilePath.utf16(),
+        GENERIC_WRITE,
+        0,
+        nullptr,
+        CREATE_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
 
-    // 创建 dump 文件
-    HANDLE hFile = CreateFileW(dumpFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile != INVALID_HANDLE_VALUE)
+    if (hDumpFile != INVALID_HANDLE_VALUE)
     {
-        MINIDUMP_EXCEPTION_INFORMATION info;
-        info.ThreadId = GetCurrentThreadId();
-        info.ExceptionPointers = pExPtrs;
-        info.ClientPointers = FALSE;
+        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+        dumpInfo.ThreadId = GetCurrentThreadId();
+        dumpInfo.ExceptionPointers = pExceptionPointers;
+        dumpInfo.ClientPointers = FALSE;
 
+        // 写入 dump 文件
         MiniDumpWriteDump(
             GetCurrentProcess(),
             GetCurrentProcessId(),
-            hFile,
-            static_cast<MINIDUMP_TYPE>(MiniDumpWithFullMemory | MiniDumpWithHandleData | MiniDumpWithThreadInfo),
-            &info,
+            hDumpFile,
+            (MINIDUMP_TYPE)(
+                MiniDumpWithFullMemory |
+                MiniDumpWithFullMemoryInfo |
+                MiniDumpWithHandleData |
+                MiniDumpWithThreadInfo
+                ),
+            &dumpInfo,
             nullptr,
             nullptr
         );
-
-        FlushFileBuffers(hFile);
-        CloseHandle(hFile);
+        CloseHandle(hDumpFile);
     }
 
-    // 打印到 stderr（可选）
-    fprintf(stderr, "Application crashed! Dump written to %ws\n", dumpFilePath);
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
 
-void InstallCrashHandler()
-{
-    // VEH 优先级高于 SEH
-   // AddVectoredExceptionHandler(1, MyCrashHandler);
-
-    // 防止其他 DLL 覆盖你的 SetUnhandledExceptionFilter
-    SetUnhandledExceptionFilter(MyCrashHandler);
-}
 
 void redirectToFile()
 {
@@ -175,15 +168,14 @@ int runBusiness(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    InstallCrashHandler();
-	//redirectToFile();
+
     if (argc > 1 && strcmp(argv[1], "--child") == 0) {
         // 子进程需要 QApplication 来运行 GUI
         return runBusiness(argc, argv);
     }
-  
+
     // 父进程不使用 QCoreApplication,可能会造成界面ui使用不了的情况，因为资源文件被父进程初始化了
-   
+
     HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
         return 0;
@@ -197,7 +189,7 @@ int main(int argc, char* argv[])
 
     while (true) {
 
-        QString program = currentExePathQ; 
+        QString program = currentExePathQ;
         QString argumentsStr = " --child";
 
         STARTUPINFO si = { sizeof(si) };
@@ -220,7 +212,7 @@ int main(int argc, char* argv[])
 
         DWORD exitCode = 0;
         while (true) {
-            DWORD result = WaitForSingleObject(pi.hProcess, INFINITE);
+            DWORD result = WaitForSingleObject(pi.hProcess, 3000);
             if (result == WAIT_TIMEOUT) {
                 continue;
             }
@@ -238,7 +230,7 @@ int main(int argc, char* argv[])
         else {
             // fprintf(stderr, "子进程异常退出，重启\n");
 #ifdef USE_MAIN_WINDOW_CAPACITY
-            StopAllVC3000HDevices();
+            //StopAllVC3000HDevices();
 #endif // USE_MAIN_WINDOW_CAPACITY
             Sleep(1000);
         }
@@ -248,11 +240,10 @@ int main(int argc, char* argv[])
     CloseHandle(hMutex);
 
     return 0;
-} 
+}
 #else // USE_MAIN_WINDOW_CAPACITY
 int main(int argc, char* argv[])
 {
-    InstallCrashHandler();
     redirectToFile();
 
 
@@ -262,7 +253,7 @@ int main(int argc, char* argv[])
         return 0;  // 退出
     }
 
-   // SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
+    SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
     QApplication app(argc, argv);
     QApplication::setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents);
 

@@ -1517,9 +1517,10 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 	}
 	if (info.ret != 0)
 	{
-		//dataToSave.work_path = dataToSave.savePath_NG;
-		QString errstr=FirstFailedParamLabel(m_cam->RI->unifyParams);
-		dataToSave.work_path = dataToSave.savePath_NG + "/" + errstr.toStdString()+"/";
+		//QString errstr=FirstFailedParamLabel(m_cam->RI->unifyParams);
+		//if (errstr == "") dataToSave.work_path = dataToSave.savePath_NG;
+		//dataToSave.work_path = dataToSave.savePath_NG + "/" + errstr.toStdString()+"/";
+		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
 	}
 	else dataToSave.work_path = dataToSave.savePath_OK;

@@ -96,4 +96,3 @@ private:
 	ALLResult result;
 	bool m_initalized;
 };
-

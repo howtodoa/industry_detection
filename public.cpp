@@ -27,6 +27,7 @@ int GlobalPara::Light1 = 100;
 int GlobalPara::Light2 = 100;
 int GlobalPara::Light3 = 100;
 int GlobalPara::Light4 = 100;
+int GlobalPara::FontSize = 16;
 
 QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;

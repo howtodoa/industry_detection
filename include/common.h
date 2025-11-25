@@ -47,7 +47,7 @@ enum class Crop_Bottom_NGReults//电容底部
 //    TBDIS_Err,
 //};
 
-struct Params 
+struct Params
 {
     bool cuda;
     //线扫相机参数
@@ -56,7 +56,8 @@ struct Params
     float XS_conf_thresh;
     float XS_nms_thresh;
     int XS_timeout;
-    int JM_Threshold;
+    int JM_Thresholdup;
+    int JM_Thresholddown;
     //捺印字符相关参数
     std::string NY_SegModel;
     std::string NY_StampPositionModel;
@@ -105,7 +106,7 @@ struct InThresholdParam
     //瑕疵检测(不开放到界面)
     float ZW_NGThreshold = 10;
     //捺印相关输入控制参数
-	float CQ_AreaMin = 20;
+    float CQ_AreaMin = 20;
     float GS_AreaMin = 20;
     float HS_AreaMin = 5;
     float QP_AreaMin = 20;
@@ -165,7 +166,8 @@ struct CameraSw {
     int m_nOK;
     int m_nNG;
     CameraSw(int ng = 0, int ok = 0, int composite = 0, int source = 0)
-        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {}
+        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {
+    }
 };
 
 struct SaveSw
@@ -173,7 +175,7 @@ struct SaveSw
     CameraSw m_cSave1, m_cSave2, m_cSave3, m_cSave4, m_cSave5, m_cSave6;
 
     CameraSw& getCameraSw(int index) {
-        switch(index) {
+        switch (index) {
         case 1: return m_cSave1;
         case 2: return m_cSave2;
         case 3: return m_cSave3;
