@@ -78,7 +78,7 @@ private:
 #else
     ZoomableLabel *imageLabel; // 显示图像（支持鼠标滚轮缩放和平移）
 #endif
-
+public:
     QLabel        *fixedText;  // 固定文本标签
     CameraMenu    *cameraMenu; // 操作菜单
     QPushButton* runButton;
@@ -86,6 +86,7 @@ private:
     QPushButton* captureButton;
     QPushButton* paramButton;
     QPushButton* tenButton;
+    QPushButton* onlineLearnButton;
     QToolButton* textMenuButton;
     QPushButton* shieldButton;
     LocalFileDetector *m_localfilethread=nullptr;

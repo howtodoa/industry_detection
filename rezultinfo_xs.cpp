@@ -56,6 +56,7 @@ int RezultInfo_Xs::judge_xs(const XSResult& ret)
             paramKey == "ZW_ALLArea" ||      // 脏污总面积
             paramKey == "ZW_MaxArea" ||      // 脏污最大面积
             paramKey == "AX_MaxArea" ||      // 凹陷最大面积
+            paramKey == "CMAX_MaxArea" ||   //凹陷面积
             paramKey == "HS_MaxArea")        // 划伤最大面积
         {
             qDebug() << "  -> Executing: checkRange()";

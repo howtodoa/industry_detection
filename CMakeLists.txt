@@ -8,6 +8,9 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(QT_FEATURE_vulkan OFF)
+set(QT_FEATURE_vulkan_headers OFF)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets VirtualKeyboard)
 
 set(CMAKE_AUTOUIC ON)
@@ -166,7 +169,7 @@ set(RC_FILE
     application.rc
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
+add_executable(${PROJECT_NAME}  ${SOURCES} ${HEADERS} ${UI_FILES} ${RC_FILE} ${QRC_FILE})
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     #target_compile_definitions(${PROJECT_NAME} PRIVATE QT_NO_DEBUG_OUTPUT)

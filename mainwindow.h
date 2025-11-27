@@ -32,6 +32,7 @@ public:
 	//void closeEvent(QCloseEvent* event) override;
     ~MainWindow();
     void init_log(); 
+    void BackupDir();
     void prospect(int code,std::string temppath);
     void loadjson_layer(const QString& filePath);
     void loadjson_layer2(const QString& filePath);
@@ -57,12 +58,14 @@ public:
     void init_cap();
     void initSqlite3Db_Brader();
     void initSqlite3Db_Plater();
+	void initSqlite3Db_Unify();
     void showAboutWidget();
     int initPCI_VC3000H();
     int initPCI_VC3000();
     void initCameralPara();
     void updateDB_Brader();
     void updateDB_Plater();
+	void updateDB_Unify();
     bool updateDeviceId();
     Role role;
 public slots:
@@ -72,6 +75,7 @@ public slots:
     void onClearAllCameraClicked();
     void onParamClicked(int buttonIndex);
     void onAllSheild(bool check);
+	void onAllLearn();
 private:
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单

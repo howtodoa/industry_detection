@@ -31,6 +31,7 @@ signals:
     void stopAllClicked();
     void clearAllClicked();
     void parameterButtonClicked(int buttonIndex); // 0:顶面, 1:侧面, 2:引脚
+    void AllLearn();
 
 private:
     void setupUi(const QVector<Camerinfo>& caminfo);

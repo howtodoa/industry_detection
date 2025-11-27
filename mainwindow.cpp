@@ -43,6 +43,7 @@
 #include "rezultinfo_ny.h"
 #include "rezultinfo_bottom.h"
 #include "debugtool.h"
+#include <QProcess> 
 
 namespace AppConfig
 {
@@ -890,6 +891,23 @@ void MainWindow::init_algo_FourBrader()
 	//g_detector->m_params = g_params;
 }
 
+void MainWindow::onAllLearn()
+{
+    for (int i = 0; i < cams.size(); i++)
+    {
+        if (cams[i]->indentify == "Side")
+        {
+            cams[i]->photo.store(true);
+            cams[i]->learn.store(true);
+            cameraLabels[i]->triggerCameraPhoto(cams[i]);
+        }
+        else
+        {
+            cams[i]->ten.store(10);
+        }
+    }
+}
+
 MainWindow::MainWindow(int mode,QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -1251,6 +1269,8 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
     connect(m_rightControlPanel, &RightControlPanel::parameterButtonClicked, this, &MainWindow::onParamClicked);
    
     connect(m_rightControlPanel, &RightControlPanel::AllSheild, this, &MainWindow::onAllSheild);
+
+    connect(m_rightControlPanel, &RightControlPanel::AllLearn, this, &MainWindow::onAllLearn);
     mainHorizontalLayout->addWidget(m_rightControlPanel);
 
     mainHorizontalLayout->setStretchFactor(leftPanelWidget, 3);
@@ -3240,6 +3260,15 @@ void MainWindow::updateDB_Brader()
     }
 }
 
+void MainWindow::initSqlite3Db_Unify()
+{
+
+}
+
+void MainWindow::updateDB_Unify()
+{
+
+}
 
 void MainWindow::initSqlite3Db_Plater()
 {
@@ -3385,8 +3414,65 @@ void MainWindow::setupUpdateTimer()
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
 
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::RefreshDir);
+
+	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::BackupDir);
     m_updateTimer->start(1000);
    
+}
+
+void MainWindow::BackupDir()
+{
+    // 假设 SystemPara::ROOT_DIR 是一个可访问的 QString
+    QString rootDir = SystemPara::ROOT_DIR;
+
+    // 1. 定义源目录和目标目录
+    // 使用 toNativeSeparators 确保路径对于 Windows CMD/robocopy 是正确的
+    const QString sourceDir = QDir::toNativeSeparators(rootDir + QDir::separator() + "ini");
+    const QString destinationDir = QDir::toNativeSeparators(rootDir + QDir::separator() + "ini-backup");
+
+    qDebug() << "--- Starting Configuration Backup using ROBOCOPY ---";
+    qDebug() << "Source:" << sourceDir;
+    qDebug() << "Destination:" << destinationDir;
+
+    // 2. 构造 robocopy 命令及参数
+    // robocopy <Source> <Destination> /E /PURGE /R:1 /W:1
+    // /E: 包含空子目录 (递归复制所有内容)
+    // /PURGE: 删除目标目录中源目录没有的文件/目录 (确保目标与源完全同步，实现干净覆盖)
+    // /R:1 /W:1: 失败时只重试一次，等待 1 秒，避免长时间卡死
+    QString command = "robocopy";
+    QStringList arguments;
+    arguments << sourceDir << destinationDir << "/E" << "/PURGE" << "/R:1" << "/W:1";
+
+    // 3. 检查源目录是否存在
+    if (!QDir(sourceDir).exists()) {
+        qDebug() << "Error: Source directory does not exist or is inaccessible:" << sourceDir;
+        return;
+    }
+
+    // 4. 执行命令
+    QProcess process;
+    process.start(command, arguments);
+
+    // 等待进程完成 (设置超时时间，例如 30 秒)
+    if (!process.waitForFinished(30000)) {
+        process.close();
+        qDebug() << "Error: robocopy process timed out or failed to start.";
+        return;
+    }
+
+    int exitCode = process.exitCode();
+
+    // robocopy 的返回码 0-7 表示成功
+    // 8 及以上表示严重错误或失败
+    if (exitCode >= 0 && exitCode <= 7) {
+        qDebug() << "Backup successful! robocopy Exit code:" << exitCode;
+        qDebug() << "Configuration backup successfully saved to:" << destinationDir;
+    }
+    else {
+        QString errorOutput = process.readAllStandardError() + "\n" + process.readAllStandardOutput();
+        qDebug() << "Backup failed! robocopy Exit code:" << exitCode;
+        qDebug() << "robocopy Output (Error or detailed log):\n" << errorOutput;
+    }
 }
 
 void MainWindow::RefreshDir()

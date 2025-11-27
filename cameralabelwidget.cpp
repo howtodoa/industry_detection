@@ -713,7 +713,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	// 在线学习按钮
 	if (cam->indentify == "Carrier_NaYin" || cam->indentify == "NaYin"||cam->indentify=="Top"  ||cam->indentify=="Pin")
 	{
-		QPushButton* onlineLearnButton = new QPushButton(QIcon(iconPath_onlinelearn), "", this);
+		onlineLearnButton = new QPushButton(QIcon(iconPath_onlinelearn), "", this);
 		//onlineLearnButton->setFixedSize(40, 40);
 		onlineLearnButton->setToolTip("在线学习");
 		onlineLearnButton->setStyleSheet(buttonStyle);
@@ -1523,7 +1523,15 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 		dataToSave.work_path = dataToSave.savePath_NG;
 		this->ngcount->fetch_add(1);
 	}
-	else dataToSave.work_path = dataToSave.savePath_OK;
+	else
+	{
+		QTime currentTime = QTime::currentTime();
+		int hour = currentTime.hour();  // 0~23
+		std::string hourStr = std::to_string(hour);
+		dataToSave.work_path = dataToSave.savePath_OK + "/" + hourStr + "/";
+		//dataToSave.work_path = dataToSave.savePath_OK;
+
+	}
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger,QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
 
@@ -1791,7 +1799,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 
 
 		// 存图
-		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && (info.ret == -1 || info.ret==3))))
+		if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && (info.ret == -1 || info.ret==3 || info.ret==4))))
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex); // 获取互斥锁，保护保存队列
 

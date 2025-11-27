@@ -1262,6 +1262,10 @@ void RezultInfo::updateActualValues(const XSResult& ret)
             actualValue = ret.HS_MaxArea;
             config.value = ret.HS_MaxArea;
         }
+        else if (paramKey == "CMAX_MaxArea") {
+            actualValue = ret.CMAX_MaxArea;
+            config.value = ret.CMAX_MaxArea;
+        }
 
         // --- 未匹配 ---
         else

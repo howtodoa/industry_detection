@@ -11,6 +11,7 @@ enum class XS_NGReults//线扫相机NG输出
 {
     OK,
     AX_Err,
+    CMAX_Err,
     HS_Err,
     ZW_Err,
     FK_Err,
@@ -47,7 +48,7 @@ enum class Crop_Bottom_NGReults//电容底部
 //    TBDIS_Err,
 //};
 
-struct Params
+struct Params 
 {
     bool cuda;
     //线扫相机参数
@@ -106,7 +107,7 @@ struct InThresholdParam
     //瑕疵检测(不开放到界面)
     float ZW_NGThreshold = 10;
     //捺印相关输入控制参数
-    float CQ_AreaMin = 20;
+	float CQ_AreaMin = 20;
     float GS_AreaMin = 20;
     float HS_AreaMin = 5;
     float QP_AreaMin = 20;
@@ -124,6 +125,7 @@ struct XSResult
     float ZW_ALLArea = 0.0f;//脏污所有面积
     float ZW_MaxArea = 0.0f;//脏污所有面积
     float AX_MaxArea = 0.0f;//凹陷面积
+    float CMAX_MaxArea = 0.0f;//凹陷面积
     float HS_MaxArea = 0.0f;//划伤面积
 };
 struct NYResult
@@ -166,8 +168,7 @@ struct CameraSw {
     int m_nOK;
     int m_nNG;
     CameraSw(int ng = 0, int ok = 0, int composite = 0, int source = 0)
-        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {
-    }
+        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {}
 };
 
 struct SaveSw
@@ -175,7 +176,7 @@ struct SaveSw
     CameraSw m_cSave1, m_cSave2, m_cSave3, m_cSave4, m_cSave5, m_cSave6;
 
     CameraSw& getCameraSw(int index) {
-        switch (index) {
+        switch(index) {
         case 1: return m_cSave1;
         case 2: return m_cSave2;
         case 3: return m_cSave3;

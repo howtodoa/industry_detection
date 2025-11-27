@@ -48,7 +48,7 @@ void RightControlPanel::setupUi(const QVector<Camerinfo>& caminfo)
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(2, 10, 10, 10);
     //增大主模块之间的垂直间距
-    mainLayout->setSpacing(8);
+    mainLayout->setSpacing(6);
 
     mainLayout->addWidget(createMachineParamsArea());
     mainLayout->addWidget(createAllShieldButtonArea());
@@ -103,7 +103,7 @@ QGroupBox* RightControlPanel::createMachineParamsArea() {
     m_machineIdEdit->setFrame(false);         
     m_machineIdEdit->setReadOnly(false);      
     m_machineIdEdit->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    m_machineIdEdit->setFixedHeight(25);      
+    m_machineIdEdit->setFixedHeight(20);      
     m_machineIdEdit->setStyleSheet(
         "QLineEdit { background: transparent; border: none; }"
         "QLineEdit:focus { outline: none; }"
@@ -116,7 +116,7 @@ QGroupBox* RightControlPanel::createMachineParamsArea() {
 
 
     QFormLayout* layout = new QFormLayout(groupBox);
-    layout->setSpacing(10);                   
+    layout->setSpacing(6);                   
     layout->setContentsMargins(0, 0, 0, 0);   
     layout->addRow("机台编号:", m_machineIdEdit);
 
@@ -128,7 +128,7 @@ QGroupBox* RightControlPanel::createParameterButtonsArea(const QVector<Camerinfo
     QGroupBox* groupBox = new QGroupBox("参数设定");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->setSpacing(2); // 按钮间距
-    layout->setContentsMargins(0, 20, 0, 0);
+    layout->setContentsMargins(10, 15, 10, 0);
     QString buttonStyle = "QPushButton { text-align: center; background-color: #007BFF; border-radius: 4px; padding: 8px; font-size: 16px; } QPushButton:hover { background-color: #0056b3; }";
 
     int numCameras = caminfo.size();
@@ -153,7 +153,7 @@ QGroupBox* RightControlPanel::createStatisticsArea(const QVector<Camerinfo>& cam
     QGroupBox* groupBox = new QGroupBox("检测数据");
     QVBoxLayout* mainVLayout = new QVBoxLayout(groupBox);
     // 增加统计模块之间的间距 
-    mainVLayout->setSpacing(10);
+    mainVLayout->setSpacing(6);
 
     const QStringList groupTitles = { "良品率", "不良数", "检测总数" };
     QVector<QFormLayout*> layouts;
@@ -217,7 +217,7 @@ QWidget* RightControlPanel::createBottomButtonsArea() {
     QWidget* container = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(container);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(10);
+    layout->setSpacing(6);
 
 
     QString buttonStyle = "QPushButton { background-color: #6C757D; color: white; border: none; padding: 10px; font-size: 16px; font-weight: bold; border-radius: 4px; } QPushButton:hover { background-color: #5a6268; }";
@@ -251,7 +251,7 @@ QWidget* RightControlPanel::createBottomButtonsArea() {
 QGroupBox* RightControlPanel::createAllShieldButtonArea() {
     QGroupBox* groupBox = new QGroupBox("机台参数");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    layout->setContentsMargins(10, 20, 10, 10);
+    layout->setContentsMargins(10, 10, 10, 10);
 
     // 将按钮声明为可切换状态
     QPushButton* allShieldBtn = new QPushButton("调机模式");
@@ -283,8 +283,27 @@ QGroupBox* RightControlPanel::createAllShieldButtonArea() {
         });
 
     layout->addWidget(allShieldBtn);
+
+    QPushButton* learnBtn = new QPushButton("一键学习");
+    learnBtn->setCheckable(false); // 一键学习通常不需要 Check 状态
+
+    // 复用 baseStyle，只给它一个绿色背景风格
+    QString learnStyle = "QPushButton { background-color: #007BFF; }";
+    learnBtn->setStyleSheet(learnStyle + baseStyle);
+
+    // 连接信号
+    connect(learnBtn, &QPushButton::clicked, this, [this]() {
+        emit AllLearn();
+        qDebug() << "一键学习按钮被点击 （逻辑待添加）";
+        });
+
+    learnBtn->hide();
+
+    layout->addWidget(learnBtn);
+
     return groupBox;
 }
+
 void RightControlPanel::startDBChart()
 {
     QProcess::startDetached("DBChart.exe");

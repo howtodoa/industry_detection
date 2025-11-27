@@ -3,7 +3,7 @@
 
 #define ADAPTATEION
 //#define QIMAGE
-//#define FOURBRADER
+#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>

@@ -30,7 +30,7 @@ DebugTool::DebugTool(QWidget* parent)
 
     fontSizeSlider = new QSlider(Qt::Horizontal, this);
     fontSizeSlider->setRange(10, 30);
-    fontSizeSlider->setValue(16);    // 默认值
+    fontSizeSlider->setValue(GlobalPara::FontSize);    // 默认值
 
 
     fontSizeValueLabel = new QLabel(QString::number(fontSizeSlider->value()), this);

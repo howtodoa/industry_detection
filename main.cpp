@@ -13,7 +13,8 @@
 int StopAllVC3000HDevices()
 {
     int result = 0;
-
+    PCI::pci().Destroy();
+    Sleep(30);
     result = PCI::pci().InitialSystem();
     if (result != 0)
     {
@@ -107,29 +108,33 @@ void redirectToFile()
     QString stdoutPath = QDir(exeDir).filePath("stdout.txt");
     QString stderrPath = QDir(exeDir).filePath("stderr.txt");
 
-    // 删除已存在的旧文件
+    // ===== 1. 删除旧文件（保持你之前逻辑）=====
     QFile::remove(stdoutPath);
     QFile::remove(stderrPath);
 
-    // 转换为本地编码的文件路径（Windows需要）
+    // ===== 2. 转换为本地路径 =====
     QByteArray stdoutPathLocal = stdoutPath.toLocal8Bit();
     QByteArray stderrPathLocal = stderrPath.toLocal8Bit();
 
-    // 重定向标准输出
-    if (freopen(stdoutPathLocal.constData(), "w", stdout) == nullptr) {
+    // ===== 3. 重定向 stdout =====
+    FILE* fOut = freopen(stdoutPathLocal.constData(), "w", stdout);
+    if (!fOut) {
         qWarning() << "Failed to redirect stdout to" << stdoutPath;
+        return;
     }
 
-    // 重定向标准错误
-    if (freopen(stderrPathLocal.constData(), "w", stderr) == nullptr) {
+    // ===== 4. 重定向 stderr =====
+    FILE* fErr = freopen(stderrPathLocal.constData(), "w", stderr);
+    if (!fErr) {
         qWarning() << "Failed to redirect stderr to" << stderrPath;
+        return;
     }
 
-    // 设置缓冲区立即刷新
+    // ===== 5. 设置为无缓冲（立即写入）=====
     setvbuf(stdout, nullptr, _IONBF, 0);
     setvbuf(stderr, nullptr, _IONBF, 0);
 
-    // 写入初始信息
+    // ===== 6. 写入初始头 =====
     fprintf(stdout, "=== Application Standard Output ===\n");
     fprintf(stderr, "=== Application Error Output ===\n");
 
@@ -137,7 +142,8 @@ void redirectToFile()
     qDebug() << "Error output redirected to:" << stderrPath;
 }
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+
+#ifdef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {
@@ -168,7 +174,7 @@ int runBusiness(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-
+    redirectToFile();
     if (argc > 1 && strcmp(argv[1], "--child") == 0) {
         // 子进程需要 QApplication 来运行 GUI
         return runBusiness(argc, argv);
@@ -185,7 +191,7 @@ int main(int argc, char* argv[])
     wchar_t currentExePath[MAX_PATH];
     GetModuleFileNameW(NULL, currentExePath, MAX_PATH);
     QString currentExePathQ = QString::fromWCharArray(currentExePath);
-
+    int ReStartCount = 0;
 
     while (true) {
 
@@ -228,9 +234,14 @@ int main(int argc, char* argv[])
             break;
         }
         else {
+			ReStartCount++;
+            if (ReStartCount > 5) {
+                //大于五次，父进程也退出不重启
+                break;
+            }
             // fprintf(stderr, "子进程异常退出，重启\n");
 #ifdef USE_MAIN_WINDOW_CAPACITY
-            //StopAllVC3000HDevices();
+            StopAllVC3000HDevices();
 #endif // USE_MAIN_WINDOW_CAPACITY
             Sleep(1000);
         }

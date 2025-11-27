@@ -70,6 +70,17 @@ void Imageprocess_Plate::run()
 		cv::Mat image;
 		int ret = -1;
 
+		//复位
+		if (GlobalPara::MergePointNum == 0)
+		{
+			bool outputSignalInvert = false;
+			int durationMs = 100; // 脉冲持续时间
+			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+
+			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+		}
+
 		long long birthtime = QDateTime::currentMSecsSinceEpoch();
 		if (cam_instance->video == false) // 非推流的情况
 		{
@@ -149,8 +160,6 @@ void Imageprocess_Plate::run()
 					return innerResult;
 					}, 170, -1); 
 
-				// 3. 将结果赋给外部 ret (注意：这里使用外部定义的 int ret)
-				// 由于您的 Plate 分支内定义了局部 int ret，这里改为赋值给外部的 ret (假设外部已定义)
 				ret = ret_from_call;
 				OutPlateResParam para;
 				ExportSpace::ResultOutPlate(*afterImagePtr, para, 0);
@@ -402,7 +411,7 @@ void Imageprocess_Plate::run()
 
 		qDebug() << "cam_instance->photo.load() :" << cam_instance->photo.load();
 		qDebug() << "ret :" << ret;
-		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 &&cam_instance->photo.load()==false)//非本地运行的情况
+		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
 			QString camId =QString::fromStdString(cam_instance->indentify);
 			if (MergePointVec.contains(camId)==false)
@@ -413,7 +422,7 @@ void Imageprocess_Plate::run()
 				QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
-			else
+			else if(cam_instance->photo.load() == false)
 			{
 				QElapsedTimer timer;
 				timer.start();  // 开始计时
@@ -478,14 +487,19 @@ void Imageprocess_Plate::run()
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
 		{
 			std::unique_lock<std::mutex> lock(saveToQueue->mutex);
+			SaveData FinalToSave;
 			if (saveToQueue->queue.size() > 100)
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret == 2 || info.ret == 3 || ret == 1))
 			{
-				dataToSave.imagePtr = currentImagePtr;
-				saveToQueue->queue.push_back(dataToSave);
+				QTime currentTime = QTime::currentTime();
+				int hour = currentTime.hour();  // 0~23
+				std::string hourStr = std::to_string(hour);
+				FinalToSave.work_path = dataToSave.savePath_Pre + "/"+ hourStr + "/";
+				FinalToSave.imagePtr = currentImagePtr;
+				saveToQueue->queue.push_back(FinalToSave);
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == 0)
@@ -494,8 +508,12 @@ void Imageprocess_Plate::run()
 			}
 			else
 			{
-				dataToSave.imagePtr = currentImagePtr;
-				saveToQueue->queue.push_back(dataToSave);
+				QTime currentTime = QTime::currentTime();
+				int hour = currentTime.hour();  // 0~23
+				std::string hourStr = std::to_string(hour);
+				FinalToSave.work_path = dataToSave.savePath_Pre + "/" + hourStr + "/";
+				FinalToSave.imagePtr = currentImagePtr;
+				saveToQueue->queue.push_back(FinalToSave);
 				GlobalLog::logger.Mz_AddLog(L"all Save");
 				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
 			}
