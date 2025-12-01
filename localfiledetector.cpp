@@ -25,7 +25,7 @@ void LocalFileDetector::run() {
     QDir monitorDir(m_monitorPath);
 
     QStringList nameFilters;
-    nameFilters << "*.jpg" << "*.jpeg";
+    nameFilters << "*.jpg" << "*.jpeg"<<"*.bmp";
 
     // 在线程启动时，只读取一次文件列表
     QFileInfoList initialFileList = monitorDir.entryInfoList(nameFilters, QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
@@ -84,7 +84,7 @@ void LocalFileDetector::run() {
 
         currentFileIndex++; // 移动到下一个文件
 
-        QThread::msleep(300); // 暂停
+        QThread::msleep(800); // 暂停
     }
 
     qDebug() << "LocalFileDetector thread finished processing files (stop requested).";

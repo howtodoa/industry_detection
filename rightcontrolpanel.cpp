@@ -267,7 +267,7 @@ QGroupBox* RightControlPanel::createAllShieldButtonArea() {
 
     // 使用 connect 连接 toggled 信号
     connect(allShieldBtn, &QPushButton::toggled, this, [this, allShieldBtn, checkedStyle, uncheckedStyle, baseStyle](bool checked) {
-		if (Role::GetCurrentRole() == "操作员") return; // 操作员无权限切换调机模式
+	//	if (Role::GetCurrentRole() == "操作员") return; // 操作员无权限切换调机模式
         if (checked) {
             // 如果按钮被选中，设置为红色样式，并发射 true 信号
             allShieldBtn->setStyleSheet(checkedStyle + baseStyle);
@@ -297,7 +297,7 @@ QGroupBox* RightControlPanel::createAllShieldButtonArea() {
         qDebug() << "一键学习按钮被点击 （逻辑待添加）";
         });
 
-    learnBtn->hide();
+  //  learnBtn->hide();
 
     layout->addWidget(learnBtn);
 

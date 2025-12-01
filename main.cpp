@@ -18,7 +18,8 @@ int StopAllVC3000HDevices()
     result = PCI::pci().InitialSystem();
     if (result != 0)
     {
-        std::cout << "[ERROR] 系统初始化失败，错误码：" << result << std::endl;
+		LOG_DEBUG(GlobalLog::logger, L"[ERROR] 重新初始化 VC3000H 设备失败");
+		std::cout << "[ERROR] 重新初始化 VC3000H 设备失败，错误码：" << result << std::endl;
         return -1;
     }
     std::cout << "[INFO] 系统初始化成功。" << std::endl;
@@ -26,7 +27,7 @@ int StopAllVC3000HDevices()
     result = PCI::pci().openseral("Com3");
     if (result != 0)
     {
-        std::cout << "[ERROR] 打开串口 Com3 失败，错误码：" << result << std::endl;
+        LOG_DEBUG(GlobalLog::logger, L"[ERROR] 重新打开串口设备失败");
         return -1;
     }
     std::cout << "[INFO] 串口 Com3 打开成功。PLC连接状态：已连接" << std::endl;
@@ -143,7 +144,7 @@ void redirectToFile()
 }
 
 
-#ifdef USE_MAIN_WINDOW_CAPACITY
+#ifndef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {
@@ -240,9 +241,9 @@ int main(int argc, char* argv[])
                 break;
             }
             // fprintf(stderr, "子进程异常退出，重启\n");
-#ifdef USE_MAIN_WINDOW_CAPACITY
-            StopAllVC3000HDevices();
-#endif // USE_MAIN_WINDOW_CAPACITY
+//#ifdef USE_MAIN_WINDOW_CAPACITY
+           // StopAllVC3000HDevices();
+//#endif // USE_MAIN_WINDOW_CAPACITY
             Sleep(1000);
         }
     }

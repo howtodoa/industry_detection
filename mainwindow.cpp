@@ -843,7 +843,7 @@ MainWindow::MainWindow(QWidget *parent) :
             // 这确保窗口占据整个可用空间
             move(availableGeometry.topLeft());
         }
-        // ------------------------------------------------------------------
+        
 
 
         SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Flower.json";

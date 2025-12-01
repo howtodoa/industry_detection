@@ -185,6 +185,9 @@ public:
 	void ExternInfer(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
 	void Infer(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
 	void Infer1(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
+	void Infer2(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
+	void Infer3(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
+	void Infer4(cv::Mat& image, std::vector<Instance>& bbox, float& conf_threshold, float& nms_threshold, int timeout = 60);
 	void ExternInfer1(cv::Mat& image, OutputMask& outputmask, const wchar_t* outputnode, int timeou = 60);
 	void Infer32(cv::Mat& image, OutputMask& outputmask, int timeout = 60);
 private:

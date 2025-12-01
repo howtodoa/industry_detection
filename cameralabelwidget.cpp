@@ -721,7 +721,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		connect(onlineLearnButton, &QPushButton::clicked, [this, index, cam]() mutable {
 			cam->photo.store(true);
 			cam->learn.store(true);
-			triggerCameraPhoto(cam);
+			triggerCameraPhoto(cam);	
 			});
 #ifdef USE_MAIN_WINDOW_CAPACITY
 		onlineLearnButton->hide();
