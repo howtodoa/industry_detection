@@ -183,62 +183,72 @@ void MainWindow::setupOutPutThread()
 
 void MainWindow::loadjson_layer(const QString& filePath)
 {
-    // 使用 FileOperator 读取 JSON 文件为 QVariantMap
+    // 读取 JSON 文件为 QVariantMap
     QVariantMap configMap = FileOperator::readJsonMap(filePath);
-
 
     if (configMap.isEmpty()) {
         qWarning() << "Failed to load configuration from" << filePath;
         return;
     }
 
-    // 从 configMap 中解析每个 ParamDetail，并将其 '值' 赋给 SystemPara 的静态成员
-    // 检查每个键是否存在，以避免潜在的崩溃并提供更好的错误提示
-
+    // CameraType
     if (configMap.contains("CameraType")) {
         ParamDetail detail(configMap.value("CameraType").toMap());
         QString strValue = detail.value.toString().trimmed();
         if (strValue == "HIKVISION") {
             GlobalPara::cameraType = GlobalPara::HIKVISION;
-        } else if (strValue == "DHUA") {
+        }
+        else if (strValue == "DHUA") {
             GlobalPara::cameraType = GlobalPara::DHUA;
-        } else {
+        }
+        else {
             qWarning() << "Unknown CameraType:" << strValue;
         }
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'CameraType' entry.";
     }
 
+    // IoType
     if (configMap.contains("IoType")) {
         ParamDetail detail(configMap.value("IoType").toMap());
         QString strValue = detail.value.toString().trimmed();
         if (strValue == "VC3000") {
             GlobalPara::ioType = GlobalPara::VC3000;
-        } else if (strValue == "VC3000H") {
+        }
+        else if (strValue == "VC3000H") {
             GlobalPara::ioType = GlobalPara::VC3000H;
-        } else if (strValue == "PCI1230") {
+        }
+        else if (strValue == "PCI1230") {
             GlobalPara::ioType = GlobalPara::PCI1230;
-        } else {
+        }
+        else {
             qWarning() << "Unknown IoType:" << strValue;
         }
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'IoType' entry.";
     }
 
+    // Envirment
     if (configMap.contains("Envirment")) {
         ParamDetail detail(configMap.value("Envirment").toMap());
         QString strValue = detail.value.toString().trimmed();
         if (strValue == "LocationEn") {
             GlobalPara::envirment = GlobalPara::LocationEn;
-        } else if (strValue == "IPCEn") {
+        }
+        else if (strValue == "IPCEn") {
             GlobalPara::envirment = GlobalPara::IPCEn;
-        } else {
+        }
+        else {
             qWarning() << "Unknown Envirment:" << strValue;
         }
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'Envirment' entry.";
     }
 
+    // VERSION
     if (configMap.contains("VERSION")) {
         ParamDetail detail(configMap.value("VERSION").toMap());
         SystemPara::VERSION = detail.value.toString().trimmed();
@@ -247,128 +257,88 @@ void MainWindow::loadjson_layer(const QString& filePath)
         qWarning() << "JSON file missing 'VERSION' entry.";
     }
 
-    if (configMap.contains("RunPoint")) {
-        ParamDetail detail(configMap.value("RunPoint").toMap());
-        GlobalPara::RunPoint = detail.value.toInt();
-        qDebug() << "Parsed RunPoint:" << GlobalPara::RunPoint;
-    }
-    else {
-        qWarning() << "JSON file missing 'RunPoint' entry.";
-    }
-
+    // PULSE
     if (configMap.contains("PULSE")) {
         ParamDetail detail(configMap.value("PULSE").toMap());
         GlobalPara::pulse = detail.value.toBool();
         qDebug() << "Parsed pulse:" << GlobalPara::pulse;
     }
     else {
-        qWarning() << "JSON file missing 'pulse' entry.";
+        qWarning() << "JSON file missing 'PULSE' entry.";
     }
 
+    // OK_DIR
     if (configMap.contains("OK_DIR")) {
         ParamDetail detail(configMap.value("OK_DIR").toMap());
         SystemPara::OK_DIR = detail.value.toString();
         qDebug() << "Parsed OK_DIR:" << SystemPara::OK_DIR;
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'OK_DIR' entry.";
     }
 
+    // NG_DIR
     if (configMap.contains("NG_DIR")) {
         ParamDetail detail(configMap.value("NG_DIR").toMap());
         SystemPara::NG_DIR = detail.value.toString();
         qDebug() << "Parsed NG_DIR:" << SystemPara::NG_DIR;
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'NG_DIR' entry.";
     }
 
+    // LOG_DIR
     if (configMap.contains("LOG_DIR")) {
         ParamDetail detail(configMap.value("LOG_DIR").toMap());
         SystemPara::LOG_DIR = detail.value.toString();
         qDebug() << "Parsed LOG_DIR:" << SystemPara::LOG_DIR;
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'LOG_DIR' entry.";
     }
 
+    // DATA_DIR
     if (configMap.contains("DATA_DIR")) {
         ParamDetail detail(configMap.value("DATA_DIR").toMap());
         SystemPara::DATA_DIR = detail.value.toString();
         qDebug() << "Parsed DATA_DIR:" << SystemPara::DATA_DIR;
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'DATA_DIR' entry.";
     }
 
+    // DeviceId
     if (configMap.contains("DeviceId")) {
         ParamDetail detail(configMap.value("DeviceId").toMap());
         GlobalPara::DeviceId = detail.value.toString();
-        qDebug() << "Parsed DATA_DIR:" << GlobalPara::DeviceId;
+        qDebug() << "Parsed DeviceId:" << GlobalPara::DeviceId;
     }
     else {
-        qWarning() << "JSON file missing 'DATA_DIR' entry.";
+        qWarning() << "JSON file missing 'DeviceId' entry.";
     }
 
-    
+    // MERGENUM
     if (configMap.contains("MERGENUM")) {
         ParamDetail detail(configMap.value("MERGENUM").toMap());
         GlobalPara::MergePointNum = detail.value.toInt();
-        qDebug() << "Parsed MergePointNum" << GlobalPara::MergePointNum;
+        qDebug() << "Parsed MergePointNum:" << GlobalPara::MergePointNum;
     }
     else {
-        qWarning() << "JSON file missing 'DATA_DIR' entry.";
+        qWarning() << "JSON file missing 'MERGENUM' entry.";
     }
 
-    if (configMap.contains("LIGHT1")) {
-        ParamDetail detail(configMap.value("LIGHT1").toMap());
-        GlobalPara::Light1 = detail.value.toInt();
-        qDebug() << "Parsed Light1" << GlobalPara::Light1;
-    }
-    else {
-        qWarning() << "JSON file missing 'LIGHT1' entry.";
-    }
-
-    if (configMap.contains("LIGHT2")) {
-        ParamDetail detail(configMap.value("LIGHT2").toMap());
-        GlobalPara::Light2 = detail.value.toInt();
-        qDebug() << "Parsed Light2" << GlobalPara::Light2;
-    }
-    else {
-        qWarning() << "JSON file missing 'Light2' entry.";
-    }
-
-    if (configMap.contains("LIGHT3")) {
-        ParamDetail detail(configMap.value("LIGHT3").toMap());
-        GlobalPara::Light3 = detail.value.toInt();
-        qDebug() << "Parsed Light3" << GlobalPara::Light3;
-    }
-    else {
-        qWarning() << "JSON file missing 'LIGHT3' entry.";
-    }
-
-    if (configMap.contains("LIGHT4")) {
-        ParamDetail detail(configMap.value("LIGHT4").toMap());
-        GlobalPara::Light4 = detail.value.toInt();
-        qDebug() << "Parsed Light3" << GlobalPara::Light4;
-    }
-    else {
-        qWarning() << "JSON file missing 'Light4' entry.";
-    }
-
-    if (configMap.contains("FontSize")) {
-        ParamDetail detail(configMap.value("FontSize").toMap());
-        GlobalPara::FontSize = detail.value.toInt();
-        qDebug() << "Parsed FontSize" << GlobalPara::FontSize;
-    }
-    else {
-        qWarning() << "JSON file missing 'FontSize' entry.";
-    }
-
+    // ROOT_DIR
     if (configMap.contains("ROOT_DIR")) {
         ParamDetail detail(configMap.value("ROOT_DIR").toMap());
         SystemPara::ROOT_DIR = detail.value.toString();
         qDebug() << "Parsed ROOT_DIR:" << SystemPara::ROOT_DIR;
-    } else {
+    }
+    else {
         qWarning() << "JSON file missing 'ROOT_DIR' entry.";
     }
-    qDebug() << "JSON parsing complete and SystemPara members populated.";
+
+    qDebug() << "loadjson_layer parsing complete (FontSize/LIGHT/RunPoint excluded).";
+
 }
 
 void MainWindow::loadjson_layer2(const QString& filePath)
@@ -514,6 +484,59 @@ void MainWindow::loadjson_layer2(const QString& filePath)
     }
     qDebug() << "Camera configuration parsing complete.";
 }
+
+void MainWindow::loadjson_layer3(const QString& filePath)
+{
+    // 读取 JSON 文件为 QVariantMap
+    QVariantMap configMap = FileOperator::readJsonMap(filePath);
+
+    if (configMap.isEmpty()) {
+        qWarning() << "Failed to load configuration from" << filePath;
+        return;
+    }
+
+    // LIGHT1 ~ LIGHT4
+    for (int i = 1; i <= 4; ++i) {
+        QString key = QString("LIGHT%1").arg(i);
+        if (configMap.contains(key)) {
+            ParamDetail detail(configMap.value(key).toMap());
+            int value = detail.value.toInt();
+            switch (i) {
+            case 1: GlobalPara::Light1 = value; break;
+            case 2: GlobalPara::Light2 = value; break;
+            case 3: GlobalPara::Light3 = value; break;
+            case 4: GlobalPara::Light4 = value; break;
+            }
+            qDebug() << "Parsed" << key << ":" << value;
+        }
+        else {
+            qWarning() << "JSON file missing" << key << "entry.";
+        }
+    }
+
+    // FontSize
+    if (configMap.contains("FontSize")) {
+        ParamDetail detail(configMap.value("FontSize").toMap());
+        GlobalPara::FontSize = detail.value.toInt();
+        qDebug() << "Parsed FontSize:" << GlobalPara::FontSize;
+    }
+    else {
+        qWarning() << "JSON file missing 'FontSize' entry.";
+    }
+
+    // RunPoint
+    if (configMap.contains("RunPoint")) {
+        ParamDetail detail(configMap.value("RunPoint").toMap());
+        GlobalPara::RunPoint = detail.value.toInt();
+        qDebug() << "Parsed RunPoint:" << GlobalPara::RunPoint;
+    }
+    else {
+        qWarning() << "JSON file missing 'RunPoint' entry.";
+    }
+
+    qDebug() << "loadjson_layer3 parsing complete.";
+}
+
 
 void MainWindow::init_algo()
 {
@@ -741,6 +764,7 @@ MainWindow::MainWindow(QWidget *parent) :
     move(x, y);
     loadjson_layer(SystemPara::GLOBAL_DIR);
     loadjson_layer2(SystemPara::CAMERAL_DIR);
+    loadjson_layer3(SystemPara::OTHER_DIR);
     if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
     else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000) initPCI_VC3000();
     init_log();
@@ -849,6 +873,7 @@ MainWindow::MainWindow(QWidget *parent) :
         SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Flower.json";
         loadjson_layer(SystemPara::GLOBAL_DIR);
         loadjson_layer2(SystemPara::CAMERAL_DIR);
+        loadjson_layer3(SystemPara::OTHER_DIR);
         if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
         init_log();
         init_cap();
@@ -868,13 +893,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
                 std::wstring wstrCamId = camId.toStdWString();
 
-                // 2. 将格式化后的日志消息也用 std::wstring 构造
                 std::wstring logMsg = L"Cam ID is: " + wstrCamId;
 
-                // 3. 使用您的 LOG_DEBUG 宏
                 LOG_DEBUG(GlobalLog::logger, logMsg.c_str());
-
-                int maxSize = 4;
+				int maxSize = 1;
+                if (camId == "FlowerPinNeg") maxSize = GlobalPara::FLOWER_NEG_LENGTH;
+                else if (camId == "FlowerPin") maxSize = GlobalPara::FLOWER_POS_LENGTH;
                 MyDeque<int> temp_deque(maxSize);
                 MergePointVec.insert(camId, std::move(temp_deque));
             }
@@ -971,6 +995,7 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral_Braide.json";
     loadjson_layer(SystemPara::GLOBAL_DIR);
     loadjson_layer2(SystemPara::CAMERAL_DIR);
+    loadjson_layer3(SystemPara::OTHER_DIR);
     if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
     init_log();
     init_cap();
@@ -2019,6 +2044,7 @@ void MainWindow::CreateMenu()
     connect(DevToolAction, &QAction::triggered, this, [this]() {
         if (Role::GetCurrentRole() == "操作员") return;
         DebugTool* dbg = new DebugTool(nullptr);
+        connect(dbg, &DebugTool::disconnectAllCameras, this, &MainWindow::onDisconnectAllCameras);
         dbg->setAttribute(Qt::WA_DeleteOnClose);
         dbg->show();
         });
@@ -3778,4 +3804,14 @@ void MainWindow::onClearAllCameraClicked()
 void MainWindow::onParamClicked(int buttonIndex)
 {
     this->cameraLabels[buttonIndex]->onParam();
+}
+
+void MainWindow::onDisconnectAllCameras()
+{
+    for (auto cam : cams)
+    {
+		cam->running.store(false);
+		cam->camOp->MsvStopImageCapture();
+		cam->camOp->MsvCloseDevice();
+    }
 }

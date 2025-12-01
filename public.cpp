@@ -12,6 +12,7 @@ QString SystemPara::NG_DIR = "F:/Industry_Detection/log";
 QString SystemPara::ROOT_DIR = "../../../";
 QString SystemPara::CAMERAL_DIR = "../../../ini/globe/cameral.json";
 QString SystemPara::GLOBAL_DIR = "../../../ini/globe/Global.json"; 
+QString SystemPara::OTHER_DIR = "../../../ini/globe/Other.json";
 
 GlobalPara::IoType GlobalPara::ioType = GlobalPara::IoType::VC3000H;
 GlobalPara::CameraType GlobalPara::cameraType = GlobalPara::CameraType::DHUA;
@@ -28,6 +29,8 @@ int GlobalPara::Light2 = 100;
 int GlobalPara::Light3 = 100;
 int GlobalPara::Light4 = 100;
 int GlobalPara::FontSize = 16;
+int GlobalPara::FLOWER_POS_LENGTH = 4;
+int GlobalPara::FLOWER_NEG_LENGTH = 3;
 
 QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;

@@ -120,6 +120,7 @@ public:
     static QString ROOT_DIR;
     static QString CAMERAL_DIR;
     static QString GLOBAL_DIR;
+	static QString OTHER_DIR;
 };
 
 struct Camerinfo
@@ -175,6 +176,8 @@ struct GlobalPara {
     static int Light3;
     static int Light4;
 	static int FontSize;
+	static int FLOWER_POS_LENGTH;
+    static int FLOWER_NEG_LENGTH;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

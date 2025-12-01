@@ -47,7 +47,13 @@ public:
 	void Report(std::function<void(ALLResult)> callback);
 	void ProducerFunc();
 	void ConsumerFunc(int id);
-	cv::Mat resize_with_padding(const cv::Mat& input, int target_width, int target_height,
+	cv::Mat resize_with_padding1(const cv::Mat& input, int target_width, int target_height,
+		const cv::Scalar& padding_color);
+	cv::Mat resize_with_padding2(const cv::Mat& input, int target_width, int target_height,
+		const cv::Scalar& padding_color);
+	cv::Mat resize_with_padding3(const cv::Mat& input, int target_width, int target_height,
+		const cv::Scalar& padding_color);
+	cv::Mat resize_with_padding4(const cv::Mat& input, int target_width, int target_height,
 		const cv::Scalar& padding_color);
 	cv::Mat resize_with_paddingPlus(const cv::Mat& input, int target_width, int target_height,
 		const cv::Scalar& padding_color);
@@ -72,7 +78,7 @@ public:
 	//对目标检测框（BBox）进行多级排序，先垂直方向（列）分组，再对每列内的检测框按水平方向（行）排序，最终输出一个结构化的检测框列表
 	void SortBBoxs(const std::vector<BBox>& bboxs, std::vector<BBox>& sortbboxs, std::vector<std::vector<BBox>>& sortcolsbboxs, int cols);
 	//绘制轮廓函数
-	void DrawContoursOnImage(const cv::Mat& showimg, const std::vector<cv::Point>& contour, cv::Point2i Original_start, const cv::Scalar& color);
+	void DrawContoursOnImage(const cv::Mat& showimg, const std::vector<cv::Point>& contour, cv::Point2i Original_start, const cv::Scalar& color, float scale_num);
 
 	std::queue<std::pair<cv::Mat, int>> m_Images;
 	std::queue<std::pair<cv::Mat, int>> m_ImageTeams;

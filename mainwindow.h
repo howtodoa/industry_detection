@@ -36,6 +36,7 @@ public:
     void prospect(int code,std::string temppath);
     void loadjson_layer(const QString& filePath);
     void loadjson_layer2(const QString& filePath);
+    void loadjson_layer3(const QString& filePath);
     void initcams(int camnumber);
     void CreateMenu();
     void CreateImageGrid(int camnumber);
@@ -76,6 +77,7 @@ public slots:
     void onParamClicked(int buttonIndex);
     void onAllSheild(bool check);
 	void onAllLearn();
+    void onDisconnectAllCameras();
 private:
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单
