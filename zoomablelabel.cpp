@@ -44,6 +44,10 @@ void ZoomableLabel::updateScaledPixmap()
         QSize labelSize = size();  // 获取控件的大小
         QSize imageSize = originalPixmap.size();  // 获取图片的原始大小
 
+        if (labelSize.width() <= 1 || labelSize.height() <= 1) {
+            return;
+        }
+
         qDebug() << "ZoomableLabel size:" << labelSize;  // 输出控件大小
         qDebug() << "Original Image size:" << imageSize;  // 输出图片的原始大小
 

@@ -86,6 +86,7 @@ struct PaintDataItem {
 struct DetectInfo {
     int ret;                // 检测结果，0 表示 OK，其他表示 NG
     std::string timeStr;    // 算法耗时字符串， "32ms"
+	QVector<PaintDataItem> paintDataSnapshot; // 检测数据快照
 };
 
 namespace GlobalLog {
@@ -178,6 +179,7 @@ struct GlobalPara {
 	static int FontSize;
 	static int FLOWER_POS_LENGTH;
     static int FLOWER_NEG_LENGTH;
+    static int TimeOut;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

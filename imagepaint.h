@@ -47,6 +47,9 @@ public:
     static void drawPaintDataEx_flower(QPixmap& pixmap,
         const AllUnifyParams unifyParams,
         QSize displaySize);
+    static void drawPaintDataEx_Ultra(QPixmap& pixmap,
+        QSize displaySize,
+        const QString& str);
 private:
 
     ImagePaint() = delete;

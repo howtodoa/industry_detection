@@ -9,7 +9,7 @@ template <typename T>
 class MyDeque
 {
 public:
-    explicit MyDeque(size_t maxSize = 10)
+    explicit MyDeque(size_t maxSize = 20)
         : m_maxSize(maxSize)
     {
         if constexpr (std::is_same_v<T, int>)

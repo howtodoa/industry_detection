@@ -158,7 +158,7 @@ void Imageprocess_Plate::run()
 						.c_str());
 
 					return innerResult;
-					}, 170, -1); 
+					}, 200, -1); 
 
 				ret = ret_from_call;
 				OutPlateResParam para;
@@ -280,7 +280,7 @@ void Imageprocess_Plate::run()
 						.c_str());
 
 					return innerResult;
-					}, 170, -1);
+					}, 200, -1);
 
 				// 3. 将结果赋给外部 ret
 				ret = ret_from_call;

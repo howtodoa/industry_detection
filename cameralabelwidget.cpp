@@ -1555,7 +1555,8 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 			if (m_cam->noneDisplay.load() == false && (info.ret == -1 || info.ret == 1))
 			{
 				//ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-				ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
+				if(m_cam->errmsg=="")ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
+				else ImagePaint::drawPaintDataEx_Ultra(currentPixmap, imageLabel->size(), m_cam->errmsg);
 			}
 			//else if(info.ret==0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 			else if(info.ret==0)  ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
@@ -1563,6 +1564,7 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 			
 		}
+		m_cam->errmsg = "";
 		std::shared_ptr<cv::Mat> afterImagePtr;
 		try
 		{
@@ -1874,7 +1876,7 @@ void CameraLabelWidget::onStartGetIn()
 
 void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 {
-	m_cam->ui_signal.store(true);
+	//m_cam->ui_signal.store(true);
 	qDebug() << "onImageProcessed info.ret=:" << info.ret;
 
 	// 检查输入
@@ -1914,16 +1916,18 @@ void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 	QImage displayImage = image.copy();
 
 	// 绘制 PaintData
-	if (!m_cam->RI->m_PaintData.isEmpty())
+	if (!info.paintDataSnapshot.isEmpty())
 	{
 		if (info.ret == 0) // VI 情况
-			ImagePaint::drawPaintDataEx_VI_QImage(displayImage, m_cam->RI->m_PaintData, imageLabel->size());
+			ImagePaint::drawPaintDataEx_VI_QImage(displayImage, info.paintDataSnapshot, imageLabel->size());
 		else
-			ImagePaint::drawPaintDataEx_QImage(displayImage, m_cam->RI->m_PaintData, imageLabel->size());
+			ImagePaint::drawPaintDataEx_QImage(displayImage, info.paintDataSnapshot, imageLabel->size());
 	}
 
 	// 绘制检测结果
 	ImagePaint::drawDetectionResultExQImage(displayImage, info);
+
+	this->currentPixmap = QPixmap::fromImage(displayImage);
 
 	// 存储到队列
 	if (!m_cam->video && (m_cam->DI.saveflag == 3 || (m_cam->DI.saveflag <= 2 && info.ret == -1)))
@@ -1966,7 +1970,7 @@ void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 	}
 
 	qDebug() << "显示耗时：" << timer.elapsed() << "毫秒";
-	m_cam->ui_signal.store(false);
+	//m_cam->ui_signal.store(false);
 }
 
 

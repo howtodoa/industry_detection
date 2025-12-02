@@ -304,17 +304,17 @@ void Imageprocess_Image::run()
 			}
 			saveToQueue->cond.notify_one();
 		}
-		int num = 5;
-		while (cam_instance->ui_signal.load() != false)
-		{
-			Sleep(5);
-			num += 5;
-			if (num > 60) {
-				cam_instance->ui_signal.store(false);
-				break;
-			}
-		}
-
+		//int num = 5;
+		//while (cam_instance->ui_signal.load() != false)
+		//{
+		//	Sleep(5);
+		//	num += 5;
+		//	if (num > 60) {
+		//		cam_instance->ui_signal.store(false);
+		//		break;
+		//	}
+		//}
+		info.paintDataSnapshot = cam_instance->RI->m_PaintData;
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"Imageprocess_Image::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed_QImage(imgToSave, info);

@@ -3288,7 +3288,117 @@ void MainWindow::updateDB_Brader()
 
 void MainWindow::initSqlite3Db_Unify()
 {
+    // 1. 初始化数据库连接
+    QString dbFileName = SystemPara::ROOT_DIR + "resources/file/SQliteDB/" + GlobalPara::DeviceId + ".db";
 
+    int initResult = SqliteDB::DBOperation::Initialize(dbFileName.toUtf8().constData());
+    if (initResult != 0) {
+        QMessageBox::critical(this, "数据库错误", "无法初始化数据库实例。");
+        return;
+    }
+
+    // --- 2. 计算当前班次的表名 ---
+    QDateTime now = QDateTime::currentDateTime();
+    int currentHour = now.time().hour();
+    QDate logicalDate = now.date();
+    QString suffix = "";
+
+    if (currentHour >= 8 && currentHour < 20) {
+        suffix = "_daytime";
+    }
+    else {
+        suffix = "_night";
+        if (currentHour < 8) {
+            logicalDate = logicalDate.addDays(-1);
+        }
+    }
+
+    QString datePrefix = logicalDate.toString("yyyyMMdd");
+    QString summaryTableName = datePrefix + "_All_summary" + suffix;
+    QString detailTableName = datePrefix + "_NG_details" + suffix;
+
+    // 3. 确保当前班次的表都存在
+    QString summaryCols = QStringLiteral(
+        "\"相机名称\" TEXT PRIMARY KEY, "
+        "\"总数\" INT, "
+        "\"NG数\" INT, "
+        "\"良率\" REAL"
+    );
+    SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
+
+    QString detailCols = QStringLiteral(
+        "\"相机名称\" TEXT, "
+        "\"缺陷类型\" TEXT, "
+        "\"数量\" INT, "
+        "PRIMARY KEY(\"相机名称\", \"缺陷类型\")"
+    );
+    SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
+
+    // --- 4. 为每个相机加载或创建初始数据 ---
+    for (const auto& camera : cams) {
+        if (!camera) continue;
+
+        const QString& cameraName = camera->cameral_name;
+
+        // --- PART A: 加载总览表 (sum_count, error_count) ---
+        QString summaryCondition = QString("\"相机名称\" = '%1'").arg(cameraName);
+        std::map<std::string, std::variant<int, double, std::string>> dbRecord;
+        SqliteDB::DBOperation::GetFullRecord(
+            summaryTableName.toUtf8().constData(),
+            summaryCondition.toUtf8().constData(),
+            dbRecord
+        );
+
+        if (!dbRecord.empty()) {
+            // 记录存在：继承
+            long long totalFromDb = 0;
+            long long ngFromDb = 0;
+            if (dbRecord.count("总数")) totalFromDb = std::get<int>(dbRecord.at("总数"));
+            if (dbRecord.count("NG数")) ngFromDb = std::get<int>(dbRecord.at("NG数"));
+
+            camera->sum_count.store(totalFromDb);
+            camera->error_count.store(ngFromDb);
+        }
+        else {
+            // 记录不存在：插入 0
+            std::vector<std::variant<int, double, std::string>> valuesToInsert;
+            valuesToInsert.push_back(cameraName.toUtf8().toStdString());
+            valuesToInsert.push_back(0);
+            valuesToInsert.push_back(0);
+            valuesToInsert.push_back(1.0);
+            SqliteDB::DBOperation::InsertRecord(summaryTableName.toUtf8().constData(), valuesToInsert);
+        }
+
+        // --- PART B: 加载 NG 细分表 (unifyParams) ---
+        // 使用迭代器遍历 QMap，以便我们可以修改 value (UnifyParam)
+        for (auto it = camera->unifyParams.begin(); it != camera->unifyParams.end(); ++it) {
+            UnifyParam& param = it.value(); // 获取引用
+            const QString& defectType = param.label; // 对应 "缺陷类型"
+
+            QString detailCondition = QString("\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(defectType);
+            std::variant<int, double, std::string> dbDefectCount = "";
+
+            SqliteDB::DBOperation::GetRecordValue(
+                detailTableName.toUtf8().constData(), "数量", detailCondition.toUtf8().constData(), dbDefectCount
+            );
+
+            if (std::holds_alternative<int>(dbDefectCount)) {
+                // 继承数据库的值到 ng_count
+                param.ng_count = static_cast<int64_t>(std::get<int>(dbDefectCount));
+            }
+            else {
+                // 插入新记录
+                std::vector<std::variant<int, double, std::string>> defectValuesToInsert;
+                defectValuesToInsert.push_back(cameraName.toUtf8().toStdString());
+                defectValuesToInsert.push_back(defectType.toUtf8().toStdString());
+                defectValuesToInsert.push_back(0);
+                SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), defectValuesToInsert);
+
+                param.ng_count = 0; // 重置内存
+            }
+        }
+
+    }
 }
 
 void MainWindow::updateDB_Unify()

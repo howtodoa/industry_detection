@@ -78,7 +78,7 @@ public slots:
     void onAllSheild(bool check);
 	void onAllLearn();
     void onDisconnectAllCameras();
-private:
+private:    
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单
     QMenu *menuRecord;  // "记录"菜单
