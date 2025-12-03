@@ -302,6 +302,7 @@ void Imageprocess_Plate::run()
 					cam_instance->RI->updateActualValues(OutResParam);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_abut(OutResParam);
+					if (ret == 1) ret = -1;
 				}
 				else if (ret == 3)
 				{

@@ -1777,7 +1777,7 @@ void ImagePaint::drawPaintDataEx_III(QPixmap& pixmap,
 
 void ImagePaint::drawPaintDataEx_Ultra(QPixmap& pixmap,
     QSize displaySize,
-    const QString& str)
+    const QStringList& str)
 {
     // 1. 安全检查
     if (pixmap.isNull()) {
@@ -1785,7 +1785,7 @@ void ImagePaint::drawPaintDataEx_Ultra(QPixmap& pixmap,
         return;
     }
 
-    // 如果传入的字符串为空，也可以直接返回（可选）
+    // 如果传入的字符串列表为空，直接返回
     if (str.isEmpty()) return;
 
     // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制
@@ -1819,12 +1819,19 @@ void ImagePaint::drawPaintDataEx_Ultra(QPixmap& pixmap,
     font.setPixelSize(fontSizeOnCanvas);
     painter.setFont(font);
 
-    // 8. 直接绘制 (逻辑变更：不再遍历列表，直接画)
+    // 8. 绘制逻辑修改
     painter.setPen(Qt::red); // 颜色固定红色
 
     int x = qRound(canvasSize.width() * X_MARGIN_RATIO);
     int y = qRound(canvasSize.height() * Y_MARGIN_RATIO);
 
+    // --- 核心修改开始 ---
+    // 将 QStringList 转换为一个字符串，中间用换行符连接
+    // 这样 drawText 会自动把它画成多行
+    QString textToDraw = str.join("\n");
+    // --- 核心修改结束 ---
+
     painter.drawText(QRect(x, y, canvasSize.width() - 2 * x, canvasSize.height() - 2 * y),
-        Qt::AlignLeft | Qt::AlignTop, str);
+        Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, // 建议加上 TextWordWrap 防止单行过长
+        textToDraw);
 }

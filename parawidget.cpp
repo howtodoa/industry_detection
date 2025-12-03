@@ -277,7 +277,6 @@ void ParaWidget::saveRangePara()
 
 void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
 {
-    // 1. 初始化和安全检查
     if (m_cam == nullptr) {
         return;
     }
@@ -288,13 +287,14 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
 
     // 2. UI 结构设置
     QWidget* scaleTab = new QWidget(this);
-    // 【重要】确保选项卡标题是正确的
     tabWidget->addTab(scaleTab, "标定参数配置");
     QVBoxLayout* mainLayout = new QVBoxLayout(scaleTab);
 
-    // --- 【关键】确保这里清除的是 m_scale... Map ---
-    m_scaleCheckboxes.clear();    // 清除 scale 的 CheckBox Map
-    m_scaleLineEditMap.clear(); // 清除 scale 的 LineEdit Map
+    // --- 【关键】Map 清除部分保持不变 ---
+    m_scaleCheckboxes.clear();
+    m_scaleLineEditMap.clear();
+    m_scaleEnableCheckboxes.clear();
+    m_selfLearnLineEditMap.clear();
     // ---
 
     QScrollArea* scrollArea = new QScrollArea(this);
@@ -312,9 +312,11 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
     gridLayout->setVerticalSpacing(8);
     gridLayout->setHorizontalSpacing(10);
 
+    // 【修改点 3：调整 QDoubleValidator 精度】
     QDoubleValidator* validator = new QDoubleValidator(this);
     validator->setLocale(QLocale::C);
-    validator->setDecimals(8);
+    validator->setDecimals(4); // 减小到 4 位小数
+    // ------------------------------------
 
     // 3. 遍历参数并创建 UI 控件
     int row = 0;
@@ -323,6 +325,7 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
         const QString& paramName = it.key();
         const UnifyParam& config = it.value();
 
+        // **原有控件**
         QLabel* nameLabel = new QLabel(config.label, this);
         nameLabel->setWordWrap(true);
 
@@ -330,28 +333,63 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
         checkCheckBox->setChecked(config.check);
 
         QLabel* scaleLabel = new QLabel("标定参数:", this);
-        QLineEdit* scaleEdit = new QLineEdit(QString::number(config.scaleFactor, 'f', 6), this);
+        // 【修改点 2：调整 scaleFactor 显示精度】
+        QLineEdit* scaleEdit = new QLineEdit(QString::number(config.scaleFactor, 'f', 4), this);
         scaleEdit->setValidator(validator);
 
-        // 存入专属 Map
+        // **新增控件 (ExpandParam)**
+
+        // 1. 标定生效 (QCheckBox)
+        QCheckBox* scaleEnableCheckBox = new QCheckBox("标定生效", this);
+        scaleEnableCheckBox->setChecked(config.expandParam.scale_enable);
+
+        // 【修改点 1：新增学习补偿的标签】
+        QLabel* selfLearnLabel = new QLabel("学习补偿:", this);
+
+        // 2. 学习补偿 (QLineEdit)
+        // 【修改点 2：调整 self_learn 显示精度】
+        QLineEdit* selfLearnEdit = new QLineEdit(QString::number(config.expandParam.self_learn, 'f', 4), this);
+        selfLearnEdit->setValidator(validator);
+        // ------------------------------------
+
+        // 存入专属 Map (保持不变)
         m_scaleCheckboxes.insert(paramName, checkCheckBox);
         m_scaleLineEditMap.insert(paramName, scaleEdit);
+        m_scaleEnableCheckboxes.insert(paramName, scaleEnableCheckBox);
+        m_selfLearnLineEditMap.insert(paramName, selfLearnEdit);
 
-        // 布局
+        // 布局 (总共 7 列：0, 1, 2, 3, 4, 5, 6)
+        // ------------------------------------------------------------------------------------
+        // 列 0：参数名 (Label)
         gridLayout->addWidget(nameLabel, row, 0, Qt::AlignRight | Qt::AlignVCenter);
+        // 列 1：启用检测 (CheckBox)
         gridLayout->addWidget(checkCheckBox, row, 1, Qt::AlignLeft | Qt::AlignVCenter);
+        // 列 2：标定参数 Label
         gridLayout->addWidget(scaleLabel, row, 2, Qt::AlignRight | Qt::AlignVCenter);
+        // 列 3：标定参数 Edit
         gridLayout->addWidget(scaleEdit, row, 3, Qt::AlignLeft | Qt::AlignVCenter);
+        // 列 4：标定生效 (CheckBox)
+        gridLayout->addWidget(scaleEnableCheckBox, row, 4, Qt::AlignLeft | Qt::AlignVCenter);
+        // 列 5：学习补偿 Label <-- 新增标签
+        gridLayout->addWidget(selfLearnLabel, row, 5, Qt::AlignRight | Qt::AlignVCenter);
+        // 列 6：学习补偿 值 (LineEdit) <-- 移动到第 6 列
+        gridLayout->addWidget(selfLearnEdit, row, 6, Qt::AlignLeft | Qt::AlignVCenter);
+        // ------------------------------------------------------------------------------------
 
         row++;
     }
 
-    // 4. 调整列拉伸比例
-    gridLayout->setColumnStretch(0, 3); gridLayout->setColumnStretch(1, 1);
-    gridLayout->setColumnStretch(2, 1); gridLayout->setColumnStretch(3, 2);
-    gridLayout->setColumnStretch(4, 3);
+    // 现在有 7 列 (0-6)
+    gridLayout->setColumnStretch(0, 3); // 映射变量
+    gridLayout->setColumnStretch(1, 1); // 启用检测
+    gridLayout->setColumnStretch(2, 1); // 标定参数 Label
+    gridLayout->setColumnStretch(3, 1); // 标定参数 Edit 
+    gridLayout->setColumnStretch(4, 1); // 标定生效
+    gridLayout->setColumnStretch(5, 1); // 学习补偿 Label
+    gridLayout->setColumnStretch(6, 1); // 学习补偿 Edit 
+    // ------------------------------------------
 
-    // 5. 添加保存按钮
+    // ... (保存按钮和连接部分保持不变) ...
     QPushButton* saveButton = new QPushButton("保存标定配置", this);
     saveButton->setMinimumHeight(30);
     QHBoxLayout* buttonLayout = new QHBoxLayout;
@@ -359,7 +397,6 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
     buttonLayout->addWidget(saveButton);
     mainLayout->addLayout(buttonLayout);
 
-    // 连接到专属的槽函数
     connect(saveButton, &QPushButton::clicked, this, &ParaWidget::onScaleSaveClicked);
 }
 
@@ -1231,6 +1268,8 @@ void ParaWidget::saveScaleParamsToFile(const AllUnifyParams& paramsToSave)
             paramJson["下限"] = item.lowerLimit;
             paramJson["上限补偿值"] = item.upfix;
             paramJson["下限补偿值"] = item.lowfix;
+            paramJson["标定生效"] = item.expandParam.scale_enable;
+            paramJson["学习补偿"] = item.expandParam.self_learn;
         }
 
         mapToSave[it.key()] = paramJson;
@@ -1285,15 +1324,12 @@ void ParaWidget::onScaleSaveClicked()
     // --- 【新增】检查“可见” CheckBox Map 状态 ---
     if (!m_rangeCheckboxes.contains("Visible")) {
         qWarning() << "onScaleSaveClicked: FATAL: m_rangeCheckboxes does not contain 'Visible' key! Cannot preserve visibility state.";
-        // 即使没有Visible Map，仍然尝试保存 Check 和 ScaleFactor
-        // return; // 或者根据业务逻辑决定是否中断
     }
     QMap<QString, QCheckBox*>& visibleCheckboxesMap = m_rangeCheckboxes["Visible"];
-    // 不检查 visibleCheckboxesMap 是否为空，因为即使为空也应尝试保存 scale 数据
     // --- 检查结束 ---
 
 
-    qDebug() << "onScaleSaveClicked: Using m_scaleLineEditMap and m_scaleCheckboxes.";
+    qDebug() << "onScaleSaveClicked: Using m_scaleLineEditMap and m_scaleCheckboxes, plus new ExpandParam maps.";
 
     // 3. 遍历副本，从UI控件中读取数据进行更新
     for (auto it = updatedParams.begin(); it != updatedParams.end(); ++it)
@@ -1326,7 +1362,6 @@ void ParaWidget::onScaleSaveClicked()
         }
         else {
             qWarning() << "onScaleSaveClicked: CheckBox for" << paramName << "is NULL!";
-            // 根据业务逻辑决定是否中断或跳过
         }
 
         // B. 读取 "标定参数" (scaleFactor)
@@ -1345,8 +1380,42 @@ void ParaWidget::onScaleSaveClicked()
         }
         else {
             qWarning() << "onScaleSaveClicked: LineEdit for" << paramName << "is NULL!";
-            // 根据业务逻辑决定是否中断或跳过
         }
+
+        // =========================================================================
+        // === 新增：读取 ExpandParam 字段 ===
+        // =========================================================================
+
+        // C. 读取 "标定生效" (expandParam.scale_enable)
+        QCheckBox* scaleEnableCheckBox = m_scaleEnableCheckboxes.value(paramName);
+        if (scaleEnableCheckBox) {
+            config.expandParam.scale_enable = scaleEnableCheckBox->isChecked();
+            qDebug() << "  -> Reading ScaleEnable state for '" << paramName << "' : " << config.expandParam.scale_enable;
+        }
+        else {
+            qWarning() << "onScaleSaveClicked: ScaleEnable CheckBox for" << paramName << "is NULL!";
+        }
+
+        // D. 读取 "学习补偿" (expandParam.self_learn)
+        QLineEdit* selfLearnEdit = m_selfLearnLineEditMap.value(paramName);
+        if (selfLearnEdit) {
+            if (selfLearnEdit->hasAcceptableInput()) {
+                config.expandParam.self_learn = selfLearnEdit->text().toDouble();
+                qDebug() << "  -> Reading SelfLearn for '" << paramName << "' : " << config.expandParam.self_learn;
+            }
+            else {
+                qWarning() << "onScaleSaveClicked: Invalid self-learn input for" << config.label;
+                selfLearnEdit->setFocus();
+                hasInvalidInput = true;
+                break; // 中断循环
+            }
+        }
+        else {
+            qWarning() << "onScaleSaveClicked: SelfLearn LineEdit for" << paramName << "is NULL!";
+        }
+
+        // =========================================================================
+
     }
 
     qDebug() << "\n============ onScaleSaveClicked: END LOOP ============";
@@ -1364,6 +1433,7 @@ void ParaWidget::onScaleSaveClicked()
     qDebug() << "onScaleSaveClicked: Calling asynchronous save function (saveScaleParamsToFile)...";
     saveScaleParamsToFile(updatedParams); // 使用专属保存函数
 }
+
 
 void ParaWidget::setupAlgorithmTab(QTabWidget* tabWidget)
 {

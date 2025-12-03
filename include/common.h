@@ -19,18 +19,20 @@ enum class XS_NGReults//线扫相机NG输出
     JM_Err,
     NG,
 };
-enum class NY_NGReults//捺印字符
-{
-    OK,
-    NULL_Err,
-    CQ_Err,
-    GS_Err,
-    HS_Err,
-    QP_Err,
-    YH_Err,
-    ZW_Err,
-    NG,
-};
+//enum class NY_NGReults//捺印字符
+//{
+//    OK,
+//    NULL_Err,
+//    CQ_Err,
+//    GS_Err,
+//    HS_Err,
+//    QP_Err,
+//    YH_Err,
+//    ZW_Err,
+//    XT_ZF_Err,
+//    XT_Color_Err,
+//    NG,
+//};
 enum class Crop_Bottom_NGReults//电容底部
 {
     OK,
@@ -51,6 +53,7 @@ enum class Crop_Bottom_NGReults//电容底部
 struct Params 
 {
     bool cuda;
+	bool LearnFlag = true;
     //线扫相机参数
     std::string XS_PositionModel;
     std::string SegModel;
@@ -76,6 +79,10 @@ struct Params
     int AngleNum;
     bool isOCR;
     int logolabelindex;
+    float SeCha_Ratio;
+    //型替学习相关
+    int ColorNum = 0;
+	std::vector<std::string> OCR_str;
     //电容底部检测
     std::string LB_SegModel;
     std::string RB_SegModel;
@@ -113,6 +120,8 @@ struct InThresholdParam
     float QP_AreaMin = 20;
     float YH_AreaMin = 20;
     float ZW_AreaMin = 10;
+    //色差参数
+    float SC_Ratio = 0.3;
 };
 struct XSResult
 {
@@ -130,7 +139,7 @@ struct XSResult
 };
 struct NYResult
 {
-    NY_NGReults NGResult;
+    unsigned char NGResult = 0x00;
     cv::Mat dstImg;
 };
 struct Crop_BottomResult

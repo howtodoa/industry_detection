@@ -37,8 +37,8 @@ private:
     void validateInputType(QLineEdit* lineEdit, const QString& type);
     void saveScaleArrayAsync(const QString& filePath, const QVector<SimpleParam>& scaleArray);
     void saveScaleParamsToFile(const AllUnifyParams& paramsToSave);
-
     void setupScaleTabEX(QTabWidget* tabWidget);
+
 private slots:
 
     void closeWindow();
@@ -78,6 +78,8 @@ private:
      QMap<QString, QMap<QString, QCheckBox*>> m_rangeCheckboxes;
      QMap<QString, QCheckBox*> m_scaleCheckboxes;   
      QMap<QString, QLineEdit*> m_scaleLineEditMap;
+     QMap<QString, QCheckBox*> m_scaleEnableCheckboxes;
+     QMap<QString, QLineEdit*> m_selfLearnLineEditMap;
 
      DebugInfo *DI;
      Cameral *m_cam=nullptr;

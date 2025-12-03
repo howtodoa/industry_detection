@@ -161,7 +161,7 @@ void Imageprocess_FourBrader::run()
 				}
 				else
 				{
-					cam_instance->errmsg = "算法判定NG";
+					info.errmsg << "算法判定NG";
 					ret = -1;
 				}
 
@@ -176,7 +176,7 @@ void Imageprocess_FourBrader::run()
 				ALLResult result;
 				g_detector->Process(algo_id, imgCopy, result);
 
-				ret = result.nyResult.NGResult == NY_NGReults::OK ? 0 : -1;
+				ret = result.nyResult.NGResult == 0x00 ? 0 : -1;
 				
 				if(ret==0)
 				{
@@ -186,7 +186,7 @@ void Imageprocess_FourBrader::run()
 				}
 				else 
 				{
-					cam_instance->errmsg = "算法判定NG";
+					info.errmsg << "算法判定NG";
 					ret = -1;
 				}
 
@@ -215,7 +215,7 @@ void Imageprocess_FourBrader::run()
 		}
 		else
 		{
-			cam_instance->errmsg = "算法判定NG";
+			info.errmsg << "算法判定NG";
 			ret = -1;
 		}
 		
@@ -249,7 +249,7 @@ void Imageprocess_FourBrader::run()
 				}
 				else
 				{
-					cam_instance->errmsg = "算法判定NG";
+					info.errmsg << "算法判定NG";
 					ret = -1;
 				}
 
@@ -356,6 +356,7 @@ void Imageprocess_FourBrader::run()
 		}
 
 
+
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed(backupImagePtr, info);
@@ -365,6 +366,7 @@ void Imageprocess_FourBrader::run()
 			emit imageProcessed(afterImagePtr, info);
 
 		}
+		info.errmsg.clear();
 
 	} // while 循环结束
 

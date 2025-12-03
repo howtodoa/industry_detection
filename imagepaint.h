@@ -49,7 +49,7 @@ public:
         QSize displaySize);
     static void drawPaintDataEx_Ultra(QPixmap& pixmap,
         QSize displaySize,
-        const QString& str);
+        const QStringList& str);
 private:
 
     ImagePaint() = delete;

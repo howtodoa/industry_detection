@@ -3,7 +3,7 @@
 
 #define ADAPTATEION
 //#define QIMAGE
-//#define FOURBRADER
+#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -87,6 +87,7 @@ struct DetectInfo {
     int ret;                // 检测结果，0 表示 OK，其他表示 NG
     std::string timeStr;    // 算法耗时字符串， "32ms"
 	QVector<PaintDataItem> paintDataSnapshot; // 检测数据快照
+	QStringList errmsg;   // 错误信息列表
 };
 
 namespace GlobalLog {
@@ -180,6 +181,7 @@ struct GlobalPara {
 	static int FLOWER_POS_LENGTH;
     static int FLOWER_NEG_LENGTH;
     static int TimeOut;
+	static int LearnCount;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;
@@ -232,8 +234,7 @@ struct UnifyParam
     double scaleFactor; // 缩放因子
     double leranValue;  // 学习值
     QVariant extraData; // 额外数据字段，灵活存储其他信息  
-    ExpandParam
-        expandParam; // 扩展参数结构体
+    ExpandParam  expandParam; // 扩展参数结构体
 
     UnifyParam()
         : upperLimit(UNIFY_UNSET_VALUE),

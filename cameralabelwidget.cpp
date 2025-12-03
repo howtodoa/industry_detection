@@ -25,6 +25,7 @@
 #include "Imageprocess_red.h"
 #include "imageprocess_Fourbrader.h"
 #include "imageprocess_image.h"
+#include "common.h"
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -135,6 +136,8 @@ void CameraLabelWidget::onLearn()
 
 		OutStampResParam para;
 		ExportSpace::ResultOutStamp(afterImagePtr, para, 0);
+		qDebug() << "Ny 原图尺寸:" << this->learnimage->cols << "x" << this->learnimage->rows;
+		qDebug() << "Ny 结果图(afterImagePtr)尺寸:" << afterImagePtr.cols << "x" << afterImagePtr.rows;
 		LearnPara::inNum = para.textNum;
 #ifdef  ADAPTATEION
 
@@ -197,6 +200,17 @@ void CameraLabelWidget::onLearn()
 		std::string path = "../../../resources/images/Pin.jpg";
 		cv::imwrite(path, *this->learnimage);
 
+		this->currentPixmap = convertMatToPixmap(afterImagePtr);
+		this->onViewImageClicked();
+	}
+	else if (m_cam->indentify == "Ny")
+	{
+		g_detector->m_params.LearnFlag = true;
+		ALLResult result;
+		g_detector->Process(1, *this->learnimage, result);
+		afterImagePtr = result.nyResult.dstImg;
+		qDebug() << "Ny 原图尺寸:" << this->learnimage->cols << "x" << this->learnimage->rows;
+		qDebug() << "Ny 结果图(afterImagePtr)尺寸:" << afterImagePtr.cols << "x" << afterImagePtr.rows;
 		this->currentPixmap = convertMatToPixmap(afterImagePtr);
 		this->onViewImageClicked();
 	}
@@ -711,7 +725,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		});
 
 	// 在线学习按钮
-	if (cam->indentify == "Carrier_NaYin" || cam->indentify == "NaYin"||cam->indentify=="Top"  ||cam->indentify=="Pin")
+	if (cam->indentify == "Carrier_NaYin" || cam->indentify == "NaYin"||cam->indentify=="Top"  ||cam->indentify=="Pin"||cam->indentify=="Ny")
 	{
 		onlineLearnButton = new QPushButton(QIcon(iconPath_onlinelearn), "", this);
 		//onlineLearnButton->setFixedSize(40, 40);
@@ -724,7 +738,9 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 			triggerCameraPhoto(cam);	
 			});
 #ifdef USE_MAIN_WINDOW_CAPACITY
-		onlineLearnButton->hide();
+		if (cam->indentify != "Ny") {
+			onlineLearnButton->hide();
+		}
 #endif
 }
 
@@ -1517,10 +1533,17 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 	}
 	if (info.ret != 0)
 	{
-		//QString errstr=FirstFailedParamLabel(m_cam->RI->unifyParams);
-		//if (errstr == "") dataToSave.work_path = dataToSave.savePath_NG;
-		//dataToSave.work_path = dataToSave.savePath_NG + "/" + errstr.toStdString()+"/";
-		dataToSave.work_path = dataToSave.savePath_NG;
+		if(info.errmsg.isEmpty())
+		{
+			QString errstr = FirstFailedParamLabel(m_cam->RI->unifyParams);
+			if (errstr == "") dataToSave.work_path = dataToSave.savePath_NG;
+			dataToSave.work_path = dataToSave.savePath_NG + "/" + errstr.toStdString() + "/";
+		}
+		else
+		{
+			dataToSave.work_path = dataToSave.savePath_NG + "/" + info.errmsg.value(0).toStdString() + "/";
+			//dataToSave.work_path = dataToSave.savePath_NG;
+		}
 		this->ngcount->fetch_add(1);
 	}
 	else
@@ -1555,8 +1578,8 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 			if (m_cam->noneDisplay.load() == false && (info.ret == -1 || info.ret == 1))
 			{
 				//ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
-				if(m_cam->errmsg=="")ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
-				else ImagePaint::drawPaintDataEx_Ultra(currentPixmap, imageLabel->size(), m_cam->errmsg);
+				if (info.errmsg.isEmpty()) ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
+				else ImagePaint::drawPaintDataEx_Ultra(currentPixmap, imageLabel->size(), info.errmsg);
 			}
 			//else if(info.ret==0) ImagePaint::drawPaintDataEx_VI(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
 			else if(info.ret==0)  ImagePaint::drawPaintDataEx(currentPixmap, m_cam->RI->unifyParams, imageLabel->size());
@@ -1564,7 +1587,6 @@ void CameraLabelWidget::onImageProcessed_plate(std::shared_ptr<cv::Mat> processe
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 			
 		}
-		m_cam->errmsg = "";
 		std::shared_ptr<cv::Mat> afterImagePtr;
 		try
 		{

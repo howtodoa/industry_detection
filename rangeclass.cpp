@@ -204,6 +204,19 @@ UnifyParam RangeClass::parseSingleParam(const QJsonObject& paramObject)
         if (paramObject.contains("标定值")) {
             p.scaleFactor = paramObject.value("标定值").toDouble();
         }
+
+        if (paramObject.contains("标定生效")) {
+            // 使用 toBool() 读取布尔值，即使值是 0 或 1，QJsonValue 也会正确处理。
+            // 如果 JSON 中键缺失，p.expandParam.scale_enable 会保持默认构造值 true。
+            p.expandParam.scale_enable = paramObject.value("标定生效").toBool();
+        }
+
+        // 2. 读取 "学习补偿" -> expandParam.self_learn (默认值: 0.0)
+        if (paramObject.contains("学习补偿")) {
+            // 使用 toDouble() 读取浮点数。
+            // 如果 JSON 中键缺失，p.expandParam.self_learn 会保持默认构造值 0.0f。
+            p.expandParam.self_learn = paramObject.value("学习补偿").toDouble();
+        }
     }
 
     return p;

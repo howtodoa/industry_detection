@@ -738,26 +738,36 @@ void RezultInfo::applyScaleFactors(double scale)
 
         // --- 打印基础信息 ---
         qDebug().nospace() << "Checking Param: " << config.label;
-        // ... (省略日志打印，保持与原代码一致) ...
+        qDebug() << "  -> scale_enable:" << config.expandParam.scale_enable; // 打印新增的判断依据
 
         // --- 【核心逻辑】判断是否应该跳过 ---
         bool lowerIsUnset = qFuzzyCompare(config.lowerLimit, UNIFY_UNSET_VALUE);
         bool upperIsUnset = qFuzzyCompare(config.upperLimit, UNIFY_UNSET_VALUE);
-        bool shouldSkip = lowerIsUnset && upperIsUnset;
+        bool limitsUnsetSkip = lowerIsUnset && upperIsUnset; // 边界值未设置的跳过条件
 
-        qDebug() << "  -> Condition (lower == UNSET && upper == UNSET) Result:" << shouldSkip;
+        // 【新增的跳过条件】
+        bool scaleDisabledSkip = !config.expandParam.scale_enable; // 标定生效禁用时的跳过条件
+
+        bool shouldSkip = limitsUnsetSkip || scaleDisabledSkip; // 只要满足其中一个条件就跳过
+
+        qDebug() << "  -> Condition (Limits UNSET) Result:" << limitsUnsetSkip;
+        qDebug() << "  -> Condition (Scale DISABLED) Result:" << scaleDisabledSkip;
+        qDebug() << "  -> Final Skip Decision:" << shouldSkip;
 
         if (shouldSkip)
         {
-            qDebug() << "    -> Condition BOTH UNSET met. Skipping scaling.";
+            // 打印跳过原因
+            QString skipReason = limitsUnsetSkip ? "Limits UNSET" : "Scale DISABLED";
+            qDebug() << "    -> Condition " << skipReason << " met. Skipping scaling.";
             qDebug().nospace() << "    -> LOG: Skipped: " << config.label
                 << " | Value remains: " << originalValue;
         }
         else // 不跳过，需要应用缩放
         {
-            qDebug() << "    -> Condition NOT both UNSET. Applying scaling...";
+            qDebug() << "    -> Condition NOT met. Applying scaling...";
 
             // --- 【核心逻辑】确定因子 ---
+            // 保持原有的逻辑：如果 config.scaleFactor 等于 1.0，则使用传入的 scale；否则使用 config.scaleFactor。
             bool useGlobalScale = qFuzzyCompare(config.scaleFactor, 1.0);
             double factor = useGlobalScale ? scale : config.scaleFactor;
             qDebug() << "      -> Use Global Scale (" << scale << ") ?" << useGlobalScale;
@@ -794,6 +804,7 @@ void RezultInfo::applyScaleFactors(double scale)
 
     qDebug() << "--- END: 缩放因子应用完成 (New Logic Debug) ---";
 }
+
 
 void RezultInfo::updateActualValues(const OutAbutResParam& ret)
 {
