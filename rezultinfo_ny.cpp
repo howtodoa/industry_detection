@@ -41,16 +41,24 @@ int RezultInfo_Ny::judge_ny(const NYResult& ret)
 
         qDebug() << "--- JUDGING (" << config.count << "):" << config.label << " (" << paramKey << ") ---";
 
-        // 2. 匹配和判定
-        if (paramKey == "NGResult")
+        // 2. 匹配和判定 (使用 config.checkRange() 进行范围判定)
+
+        // 判断六个面积变量
+        if (paramKey == "CQ_Area" ||
+            paramKey == "GS_Area" ||
+            paramKey == "HS_Area" ||
+            paramKey == "QP_Area" ||
+            paramKey == "YH_Area" ||
+            paramKey == "ZW_Area")
         {
-            // 判定 config.value (枚举转成的数值) 是否在范围 "0-0" (即 OK) 内
+            // 判定 config.value (实际测量值) 是否在 JSON 配置的 [下限, 上限] 范围内
             checkResult = config.checkRange();
         }
-        // --- 未匹配 ---
+
+        // --- 未匹配 (注意：原有的 "NGResult" 判断已被移除) ---
         else
         {
-            qWarning() << "警告 (NY Judge): 配置项" << paramKey << "未在 NYResult 匹配列表中找到，跳过判定。";
+            qWarning() << "警告 (NY Judge): 配置项" << paramKey << "未在指定面积判定列表中找到，跳过判定。";
             continue;
         }
 
@@ -62,7 +70,8 @@ int RezultInfo_Ny::judge_ny(const NYResult& ret)
         }
         else
         {
-            qCritical() << "  -> !!! FAILED:" << config.label << " (" << paramKey << ") 未通过检测 !!!";
+      //      qCritical().nospace() << "  -> !!! FAILED:" << config.label << " (" << paramKey << ") (实测值: " << config.value.toString()
+         //       << ") 未通过检测 !!!";
             config.result = 0; // 不通过 (NG)
             config.ng_count++;
             allPassed = false;

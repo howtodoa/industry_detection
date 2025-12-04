@@ -152,19 +152,55 @@ void Imageprocess_FourBrader::run()
 				qDebug() << "into XS process";	
 				g_detector->Process(algo_id, imgCopy, result);
 				qDebug() << "out XS process";
-		   		ret = result.xsResult.NGResult == XS_NGReults::OK ? 0 : -1;
-		     	if(ret==0)
+				if (result.xsResult.NGResult != XS_NGReults::OK)
+				{
+					switch (result.xsResult.NGResult)
+					{
+					case XS_NGReults::AX_Err:
+						info.errmsg << "凹陷NG";
+						break;
+
+					case XS_NGReults::CMAX_Err:
+						info.errmsg << "侧面凹陷NG";
+						break;
+
+					case XS_NGReults::HS_Err:
+						info.errmsg << "划伤NG";
+						break;
+
+					case XS_NGReults::ZW_Err:
+						info.errmsg << "脏污NG";
+						break;
+
+					case XS_NGReults::FK_Err:
+						info.errmsg << "未封口";
+						break;
+
+					case XS_NGReults::SJ_Err:
+						info.errmsg << "未束胶";
+						break;
+
+					case XS_NGReults::JM_Err:
+						info.errmsg << "胶帽突出";
+						break;
+
+					case XS_NGReults::NG:
+						info.errmsg << "NG";
+						break;
+
+					default:
+						info.errmsg << "未知错误";
+						break;
+					}
+
+					ret = -1;
+				}
+				else
 				{
 					cam_instance->RI->updateActualValues(result.xsResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_xs(result.xsResult);
 				}
-				else
-				{
-					info.errmsg << "算法判定NG";
-					ret = -1;
-				}
-
 				*afterImagePtr = result.xsResult.dstImg.clone();
 			}
 
@@ -176,19 +212,60 @@ void Imageprocess_FourBrader::run()
 				ALLResult result;
 				g_detector->Process(algo_id, imgCopy, result);
 
-				ret = result.nyResult.NGResult == 0x00 ? 0 : -1;
-				
-				if(ret==0)
+				if (result.nyResult.NGResult_single != NY_NGReults::OK)
+				{
+					switch (result.nyResult.NGResult_single)
+					{
+					case NY_NGReults::NULL_Err:
+						info.errmsg << "空白捺印";
+						break;
+
+					case NY_NGReults::CQ_Err:
+						info.errmsg << "捺印残缺";
+						break;
+
+					case NY_NGReults::GS_Err:
+						info.errmsg << "捺印刮伤";
+						break;
+
+					case NY_NGReults::HS_Err:
+						info.errmsg << "捺印划伤";
+						break;
+
+					case NY_NGReults::QP_Err:
+						info.errmsg << "捺印负极气泡";
+						break;
+
+					case NY_NGReults::YH_Err:
+						info.errmsg << "捺印压痕";
+						break;
+
+					case NY_NGReults::ZW_Err:
+						info.errmsg << "捺印脏污NG";
+						break;
+
+					case NY_NGReults::XT_ZF_Err:
+						info.errmsg << "型替字符";
+						break;
+
+					case NY_NGReults::XT_Color_Err:
+						info.errmsg << "型替颜色";
+						break;
+
+					default:
+						info.errmsg << "未知错误";
+						break;
+					}
+
+					ret = -1;
+				}
+				else
 				{
 					cam_instance->RI->updateActualValues(result.nyResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_ny(result.nyResult);
 				}
-				else 
-				{
-					info.errmsg << "算法判定NG";
-					ret = -1;
-				}
+
 
 				*afterImagePtr = result.nyResult.dstImg.clone();
 			}
@@ -204,21 +281,43 @@ void Imageprocess_FourBrader::run()
 
 				g_detector->Process(algo_id, imgCopy, result);
 
-				ret = result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK ? 0 : -1;
-			
-		if(ret==0)
-		{
-			cam_instance->RI->updateActualValues(result.crop_bootomResult);
-			cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-			// 你可以选择 JM 或 LK 图，或者做 merge
-			ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
-		}
-		else
-		{
-			info.errmsg << "算法判定NG";
-			ret = -1;
-		}
-		
+				ret = (result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK) ? 0 : -1;
+
+				if (ret == 0)
+				{
+					// OK 情况
+					cam_instance->RI->updateActualValues(result.crop_bootomResult);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
+				}
+				else
+				{
+					// NG 情况（匹配错误信息）
+					switch (result.crop_bootomResult.NGResult)
+					{
+					case Crop_Bottom_NGReults::LKPS_Err:
+						info.errmsg << "铝壳破损";   // 漏孔破损
+						break;
+
+					case Crop_Bottom_NGReults::JMPS_Err:
+						info.errmsg << "胶帽破损";   
+						break;
+
+					case Crop_Bottom_NGReults::WBTC_Err:
+						info.errmsg << "丸棒突出";   
+						break;
+
+					case Crop_Bottom_NGReults::NG:
+						info.errmsg << "NG";
+						break;
+
+					default:
+						info.errmsg << "未知错误";
+						break;
+					}
+
+					ret = -1;
+				}
 
 				// 你可以选择 JM 或 LK 图，或者做 merge
 				*afterImagePtr = result.crop_bootomResult.JM_dstImg.clone();
@@ -238,18 +337,41 @@ void Imageprocess_FourBrader::run()
 
 				g_detector->Process(algo_id, imgCopy, result);
 
-				ret = result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK ? 0 : -1;
-		
+				ret = (result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK) ? 0 : -1;
+
 				if (ret == 0)
 				{
+					// OK 情况
 					cam_instance->RI->updateActualValues(result.crop_bootomResult);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					// 你可以选择 JM 或 LK 图，或者做 merge
 					ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
 				}
 				else
 				{
-					info.errmsg << "算法判定NG";
+					// NG 情况（匹配错误信息）
+					switch (result.crop_bootomResult.NGResult)
+					{
+					case Crop_Bottom_NGReults::LKPS_Err:
+						info.errmsg << "LKPS_Err";   // 漏孔破损
+						break;
+
+					case Crop_Bottom_NGReults::JMPS_Err:
+						info.errmsg << "JMPS_Err";   // 筋模破损
+						break;
+
+					case Crop_Bottom_NGReults::WBTC_Err:
+						info.errmsg << "WBTC_Err";   // 尾部突出
+						break;
+
+					case Crop_Bottom_NGReults::NG:
+						info.errmsg << "NG";
+						break;
+
+					default:
+						info.errmsg << "未知错误";
+						break;
+					}
+
 					ret = -1;
 				}
 

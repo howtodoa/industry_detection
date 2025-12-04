@@ -19,20 +19,19 @@ enum class XS_NGReults//线扫相机NG输出
     JM_Err,
     NG,
 };
-//enum class NY_NGReults//捺印字符
-//{
-//    OK,
-//    NULL_Err,
-//    CQ_Err,
-//    GS_Err,
-//    HS_Err,
-//    QP_Err,
-//    YH_Err,
-//    ZW_Err,
-//    XT_ZF_Err,
-//    XT_Color_Err,
-//    NG,
-//};
+enum class NY_NGReults//捺印字符
+{
+    OK,
+    NULL_Err,
+    CQ_Err,
+    GS_Err,
+    HS_Err,
+    QP_Err,
+    YH_Err,
+    ZW_Err,
+    XT_ZF_Err,
+    XT_Color_Err,
+};
 enum class Crop_Bottom_NGReults//电容底部
 {
     OK,
@@ -50,18 +49,16 @@ enum class Crop_Bottom_NGReults//电容底部
 //    TBDIS_Err,
 //};
 
-struct Params 
+struct Params
 {
     bool cuda;
-	bool LearnFlag = true;
+    bool LearnFlag = false;
     //线扫相机参数
     std::string XS_PositionModel;
     std::string SegModel;
     float XS_conf_thresh;
     float XS_nms_thresh;
     int XS_timeout;
-    int JM_Thresholdup;
-    int JM_Thresholddown;
     //捺印字符相关参数
     std::string NY_SegModel;
     std::string NY_StampPositionModel;
@@ -70,7 +67,6 @@ struct Params
     std::string OCR_keyFile;
     float NY_conf_thresh;
     float NY_nms_thresh;
-    float OCR_thresh;
     int NY_timeout;
     int m_FitCirclePointsNum;
     int m_FitCircleMaxIter;
@@ -79,10 +75,9 @@ struct Params
     int AngleNum;
     bool isOCR;
     int logolabelindex;
-    float SeCha_Ratio;
     //型替学习相关
     int ColorNum = 0;
-	std::vector<std::string> OCR_str;
+    std::vector<std::string> OCR_str;
     //电容底部检测
     std::string LB_SegModel;
     std::string RB_SegModel;
@@ -103,25 +98,30 @@ struct Params
 struct InThresholdParam
 {
     //线扫胶帽和束胶检测
-    float SJ_WidthMin = 2;
-    float SJ_WidthMax = 10;
-    float JM_Height = 2;
-    //瑕疵检测(开放到界面)
-    float ZW_min = 1;
-    float LK_min = 1;
-    float JM_min = 1;
-    float WB_min = 1;
-    //瑕疵检测(不开放到界面)
-    float ZW_NGThreshold = 10;
+    float SJ_WidthMin = 6;
+    float SJ_WidthMax = 20;
+    float JM_Height = 7;
+    int JM_Thresholdup = 56;
+    int JM_Thresholddown = 29;
+    //瑕疵检测
+    float AX_max = 10;
+    float CMAX_max = 10;
+    float HS_max = 10;
+    float ZW_max = 10;
     //捺印相关输入控制参数
-	float CQ_AreaMin = 20;
+    float CQ_AreaMin = 20;
     float GS_AreaMin = 20;
-    float HS_AreaMin = 5;
+    float HS_AreaMin = 20;
     float QP_AreaMin = 20;
     float YH_AreaMin = 20;
     float ZW_AreaMin = 10;
-    //色差参数
-    float SC_Ratio = 0.3;
+    float NY_SeCha_Ratio = 0.3;
+    //相似度阈值控制参数
+    float OCR_Control = 0.6;
+    //底面相机
+    float LK_min = 1;
+    float JM_min = 1;
+    float WB_min = 1;
 };
 struct XSResult
 {
@@ -139,8 +139,16 @@ struct XSResult
 };
 struct NYResult
 {
+    NY_NGReults NGResult_single;
     unsigned char NGResult = 0x00;
     cv::Mat dstImg;
+    //捺印缺陷检测框信息
+    float CQ_Area = 0.0f;
+    float GS_Area = 0.0f;
+    float HS_Area = 0.0f;
+    float QP_Area = 0.0f;
+    float YH_Area = 0.0f;
+    float ZW_Area = 0.0f;
 };
 struct Crop_BottomResult
 {
@@ -177,7 +185,8 @@ struct CameraSw {
     int m_nOK;
     int m_nNG;
     CameraSw(int ng = 0, int ok = 0, int composite = 0, int source = 0)
-        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {}
+        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {
+    }
 };
 
 struct SaveSw
@@ -185,7 +194,7 @@ struct SaveSw
     CameraSw m_cSave1, m_cSave2, m_cSave3, m_cSave4, m_cSave5, m_cSave6;
 
     CameraSw& getCameraSw(int index) {
-        switch(index) {
+        switch (index) {
         case 1: return m_cSave1;
         case 2: return m_cSave2;
         case 3: return m_cSave3;

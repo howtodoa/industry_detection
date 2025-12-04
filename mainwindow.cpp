@@ -32,6 +32,9 @@
 #include "algoclass_pin.h"
 #include "algoclass_side.h"
 #include "algoclass_top.h"
+#include "algoclass_xs.h"
+#include "algoclass_ny.h"
+#include "algoclass_bottom.h"
 #include "aboutwidget.h"
 #include "algoclass_abut.h"
 #include "rezultinfo_flowerpin.h"
@@ -803,7 +806,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->onPhotoAllCamerasClicked();
 }
 
-        MainWindow::MainWindow(QString str, QWidget * parent) :
+MainWindow::MainWindow(QString str, QWidget * parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow)
     {
@@ -908,6 +911,24 @@ MainWindow::MainWindow(QWidget *parent) :
         initCameralPara();
         if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     }
+
+    void MainWindow::closeEvent(QCloseEvent* event)
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(
+            this,
+            "确认退出",
+            "是否关闭程序？",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            event->accept();   // 正常关闭
+        }
+        else {
+            event->ignore();   // 阻止关闭
+        }
+    }
+    
 void MainWindow::init_algo_FourBrader()
 {
     g_detector = Obj<WeldingDetector>::GetInstance();
@@ -1617,14 +1638,14 @@ void MainWindow::initcams(int camnumber)
            }
        else if (caminfo[i - 1].mapping == "Xs")
        {
-           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->AC = new AlgoClass_Xs(cam->algopath,nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Xs(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "Ny")
        {
-           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->AC = new AlgoClass_Ny(cam->algopath,nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Ny(cam->unifyParams, nullptr);

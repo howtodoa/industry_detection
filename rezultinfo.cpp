@@ -1194,23 +1194,40 @@ void RezultInfo::updateActualValues(const NYResult& ret)
         const QString paramKey = it.key();
         UnifyParam& config = it.value(); // 使用非 const 引用来修改 config.value
 
-        QVariant actualValue; // 用于日志记录
+        QVariant actualValue; // 用于日志记录和赋值
 
-        // --- 根据 paramKey 匹配 NYResult 的成员 ---
+        // --- 根据 paramKey 匹配 NYResult 的成员（仅匹配六个面积变量） ---
 
-        // 1. 算法处理结果 (枚举类型)
-        if (paramKey == "NGResult") {
-            // 将枚举转换为数值 (假设 0 是 OK)
-            // 判定时，JSON配置范围 "0-0" 即表示要求结果必须为 OK
-            float enumVal = static_cast<float>(ret.NGResult);
-            actualValue = enumVal;
-            config.value = enumVal;
+        if (paramKey == "CQ_Area") {
+            actualValue = ret.CQ_Area;
+            config.value = ret.CQ_Area;
+        }
+        else if (paramKey == "GS_Area") {
+            actualValue = ret.GS_Area;
+            config.value = ret.GS_Area;
+        }
+        else if (paramKey == "HS_Area") {
+            actualValue = ret.HS_Area;
+            config.value = ret.HS_Area;
+        }
+        else if (paramKey == "QP_Area") {
+            actualValue = ret.QP_Area;
+            config.value = ret.QP_Area;
+        }
+        else if (paramKey == "YH_Area") {
+            actualValue = ret.YH_Area;
+            config.value = ret.YH_Area;
+        }
+        else if (paramKey == "ZW_Area") {
+            actualValue = ret.ZW_Area;
+            config.value = ret.ZW_Area;
         }
 
         // --- 未匹配 ---
         else
         {
-            qWarning() << "警告 (NY): 配置项" << paramKey << "未在 NYResult 匹配列表中找到，跳过赋值。";
+            // 如果除了这六个面积变量，配置中还有其他参数，但不需要更新，将输出警告
+            qWarning() << "警告 (NY): 配置项" << paramKey << "未在指定面积匹配列表中找到，跳过赋值。";
             continue;
         }
 

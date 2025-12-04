@@ -29,7 +29,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     explicit MainWindow(int mode,QWidget* parent = 0);
     explicit MainWindow(QString str, QWidget* parent = 0);
-	//void closeEvent(QCloseEvent* event) override;
+	void closeEvent(QCloseEvent* event) override;
     ~MainWindow();
     void init_log(); 
     void BackupDir();

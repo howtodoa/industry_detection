@@ -234,6 +234,7 @@ struct UnifyParam
     double scaleFactor; // 缩放因子
     double leranValue;  // 学习值
     QVariant extraData; // 额外数据字段，灵活存储其他信息  
+    double accumulate;
     ExpandParam  expandParam; // 扩展参数结构体
 
     UnifyParam()
@@ -252,6 +253,7 @@ struct UnifyParam
         ng_count(0),
         scaleFactor(1.0),
         leranValue(0),
+		accumulate(0.0),
         extraData(0.0)
     {
     }
@@ -464,6 +466,11 @@ struct UnifyParam
 
         qDebug() << "  -> QList Check PASS: All elements are within range.";
         return true; // 所有元素都通过
+    }
+
+    void Accumulate()
+    {
+
     }
 };
 

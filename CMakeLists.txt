@@ -79,6 +79,9 @@ set(SOURCES
     rezultinfo_bottom.cpp
     zoomableqimage.cpp
     imageprocess_image.cpp
+    algoclass_xs.cpp
+    algoclass_ny.cpp
+    algoclass_bottom.cpp
 )
 
 set(HEADERS
@@ -155,6 +158,10 @@ set(HEADERS
     rezultinfo_bottom.h
     zoomableqimage.h
     imageprocess_image.h
+    algoclass_xs.h
+    algoclass_ny.h
+    algoclass_bottom.h
+
 )
 
 set(UI_FILES

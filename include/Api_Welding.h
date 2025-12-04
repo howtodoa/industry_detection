@@ -57,6 +57,7 @@ public:
 		const cv::Scalar& padding_color);
 	double getMaskMedianOpenCV(const cv::Mat& image, const cv::Mat& mask);//负极区域颜色
 	double diceCoefficient(const std::string& s1, const std::string& s2);//字符匹配相似度
+	int findFirstSetBitPlatformIndependent(unsigned int num);//寻找整数中第一个置位的位置
 	//线扫相机相关
 	void waveletDecomposition(const cv::Mat& src, std::vector<cv::Mat>& coeffs, int levels);
 	void waveletReconstruction(const std::vector<cv::Mat>& coeffs, cv::Mat& dst);
