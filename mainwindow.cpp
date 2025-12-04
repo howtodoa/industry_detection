@@ -1652,14 +1652,14 @@ void MainWindow::initcams(int camnumber)
            }
        else if (caminfo[i - 1].mapping == "Bottom1")
        {
-           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->AC = new AlgoClass_Bottom(cam->algopath, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
            }
        else if (caminfo[i - 1].mapping == "Bottom2")
        {
-           cam->AC = new AlgoClass_Plate(cam->algopath, 0, &cam->DI.Angle, nullptr);
+           cam->AC = new AlgoClass(cam->algopath, nullptr);
            cam->indentify = caminfo[i - 1].mapping.toStdString();
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);

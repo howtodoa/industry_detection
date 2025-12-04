@@ -4,6 +4,9 @@
 #include <string>
 #include "CapacitanceProgram.h"
 #include "public.h"
+#include "algoclass_xs.h"
+#include "algoclass_ny.h"
+#include "algoclass_bottom.h"
 
 Imageprocess_FourBrader::Imageprocess_FourBrader(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
 	: ImageProcess(cam, m_saveQueue, parent)
@@ -145,6 +148,18 @@ void Imageprocess_FourBrader::run()
 			}
 			// 线扫 Xs
 			else if (cam_instance->indentify == "Xs") {
+				AlgoClass_Xs* xsPtr = static_cast<AlgoClass_Xs*>(cam_instance->AC);
+				g_detector->InParam.SJ_WidthMin = xsPtr->SJ_WidthMin;
+				g_detector->InParam.SJ_WidthMax = xsPtr->SJ_WidthMax;
+				g_detector->InParam.JM_Height = xsPtr->JM_Height;
+				g_detector->InParam.JM_Thresholdup = xsPtr->JM_Thresholdup;
+				g_detector->InParam.JM_Thresholddown = xsPtr->JM_Thresholddown;
+
+				g_detector->InParam.AX_max = xsPtr->AX_max;
+				g_detector->InParam.CMAX_max = xsPtr->CMAX_max;
+				g_detector->InParam.HS_max = xsPtr->HS_max;
+				g_detector->InParam.ZW_max = xsPtr->ZW_max;
+
 				int algo_id = 0;
 				cv::Mat imgCopy = currentImagePtr->clone();
 
@@ -206,6 +221,16 @@ void Imageprocess_FourBrader::run()
 
 			// 捺印 Ny
 			else if (cam_instance->indentify == "Ny") {
+				AlgoClass_Ny* nyPtr = static_cast<AlgoClass_Ny*>(cam_instance->AC);
+				g_detector->InParam.CQ_AreaMin = nyPtr->CQ_AreaMin;
+				g_detector->InParam.GS_AreaMin = nyPtr->GS_AreaMin;
+				g_detector->InParam.HS_AreaMin = nyPtr->HS_AreaMin;
+				g_detector->InParam.QP_AreaMin = nyPtr->QP_AreaMin;
+				g_detector->InParam.YH_AreaMin = nyPtr->YH_AreaMin;
+				g_detector->InParam.ZW_AreaMin = nyPtr->ZW_AreaMin;
+				g_detector->InParam.NY_SeCha_Ratio = nyPtr->NY_SeCha_Ratio; // 相似度阈值控制参数
+				g_detector->InParam.OCR_Control = nyPtr->OCR_Control;
+
 				int algo_id = 1;
 				cv::Mat imgCopy = currentImagePtr->clone();
 
@@ -272,6 +297,10 @@ void Imageprocess_FourBrader::run()
 
 			// 底面 Bottom1
 			else if (cam_instance->indentify == "Bottom1") {
+				AlgoClass_Bottom* bottomPtr = static_cast<AlgoClass_Bottom*>(cam_instance->AC);
+				g_detector->InParam.LK_min = bottomPtr->LK_min;
+				g_detector->InParam.JM_min = bottomPtr->JM_min;
+				g_detector->InParam.WB_min = bottomPtr->WB_min;
 				LOG_DEBUG(GlobalLog::logger, L"into Bottom1 process");
 				int algo_id = 3;//胶帽
 				cv::Mat imgCopy = currentImagePtr->clone();

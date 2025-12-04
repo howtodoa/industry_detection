@@ -4,10 +4,9 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QCheckBox>
 #include <QtConcurrent/QtConcurrentRun>
 #include "typdef.h"
-#include "FileOperator.h"
+#include "fileoperator.h"
 
 AlgoClass_Xs::AlgoClass_Xs(QObject* parent)
     : AlgoClass(parent)
@@ -19,16 +18,32 @@ AlgoClass_Xs::AlgoClass_Xs(QString algopath, QObject* parent)
 {
     QVariantMap map = FileOperator::readJsonMap(algopath);
 
-    if (map.contains("SJ_WidthMin")) SJ_WidthMin = map.value("SJ_WidthMin").toMap().value("值").toFloat();
-    if (map.contains("SJ_WidthMax")) SJ_WidthMax = map.value("SJ_WidthMax").toMap().value("值").toFloat();
-    if (map.contains("JM_Height")) JM_Height = map.value("JM_Height").toMap().value("值").toFloat();
-    if (map.contains("JM_Thresholdup")) JM_Thresholdup = map.value("JM_Thresholdup").toMap().value("值").toInt();
-    if (map.contains("JM_Thresholddown")) JM_Thresholddown = map.value("JM_Thresholddown").toMap().value("值").toInt();
+    if (map.contains("塑胶最小宽度"))
+        SJ_WidthMin = map.value("塑胶最小宽度").toMap().value("值").toFloat();
 
-    if (map.contains("AX_max")) AX_max = map.value("AX_max").toMap().value("值").toFloat();
-    if (map.contains("CMAX_max")) CMAX_max = map.value("CMAX_max").toMap().value("值").toFloat();
-    if (map.contains("HS_max")) HS_max = map.value("HS_max").toMap().value("值").toFloat();
-    if (map.contains("ZW_max")) ZW_max = map.value("ZW_max").toMap().value("值").toFloat();
+    if (map.contains("塑胶最大宽度"))
+        SJ_WidthMax = map.value("塑胶最大宽度").toMap().value("值").toFloat();
+
+    if (map.contains("胶帽高度"))
+        JM_Height = map.value("胶帽高度").toMap().value("值").toFloat();
+
+    if (map.contains("胶帽亮度上阈值"))
+        JM_Thresholdup = map.value("胶帽亮度上阈值").toMap().value("值").toInt();
+
+    if (map.contains("胶帽亮度下阈值"))
+        JM_Thresholddown = map.value("胶帽亮度下阈值").toMap().value("值").toInt();
+
+    if (map.contains("凹陷最大面积"))
+        AX_max = map.value("凹陷最大面积").toMap().value("值").toFloat();
+
+    if (map.contains("凹陷面积"))
+        CMAX_max = map.value("凹陷面积").toMap().value("值").toFloat();
+
+    if (map.contains("划伤最大面积"))
+        HS_max = map.value("划伤最大面积").toMap().value("值").toFloat();
+
+    if (map.contains("脏污最大面积"))
+        ZW_max = map.value("脏污最大面积").toMap().value("值").toFloat();
 }
 
 QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
@@ -36,51 +51,40 @@ QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
     QWidget* panel = new QWidget(parent);
     QVBoxLayout* layout = new QVBoxLayout(panel);
 
-    auto addFloatEdit = [&](const QString& name, float& value) {
-        QHBoxLayout* hLayout = new QHBoxLayout;
-        QLabel* lbl = new QLabel(name, panel);
+    auto addRow = [&](const QString& labelText, auto& value) -> QLineEdit* {
+        QHBoxLayout* row = new QHBoxLayout;
+        QLabel* label = new QLabel(labelText, panel);
         QLineEdit* edit = new QLineEdit(QString::number(value), panel);
-        hLayout->addWidget(lbl);
-        hLayout->addWidget(edit);
-        layout->addLayout(hLayout);
+        row->addWidget(label);
+        row->addWidget(edit);
+        layout->addLayout(row);
         return edit;
         };
 
-    auto addIntEdit = [&](const QString& name, int& value) {
-        QHBoxLayout* hLayout = new QHBoxLayout;
-        QLabel* lbl = new QLabel(name, panel);
-        QLineEdit* edit = new QLineEdit(QString::number(value), panel);
-        hLayout->addWidget(lbl);
-        hLayout->addWidget(edit);
-        layout->addLayout(hLayout);
-        return edit;
-        };
-
-    QLineEdit* editSJ_WidthMin = addFloatEdit("SJ_WidthMin:", SJ_WidthMin);
-    QLineEdit* editSJ_WidthMax = addFloatEdit("SJ_WidthMax:", SJ_WidthMax);
-    QLineEdit* editJM_Height = addFloatEdit("JM_Height:", JM_Height);
-    QLineEdit* editJM_Thresholdup = addIntEdit("JM_Thresholdup:", JM_Thresholdup);
-    QLineEdit* editJM_Thresholddown = addIntEdit("JM_Thresholddown:", JM_Thresholddown);
-
-    QLineEdit* editAX_max = addFloatEdit("AX_max:", AX_max);
-    QLineEdit* editCMAX_max = addFloatEdit("CMAX_max:", CMAX_max);
-    QLineEdit* editHS_max = addFloatEdit("HS_max:", HS_max);
-    QLineEdit* editZW_max = addFloatEdit("ZW_max:", ZW_max);
+    QLineEdit* editSJMin = addRow("塑胶最小宽度:", SJ_WidthMin);
+    QLineEdit* editSJMax = addRow("塑胶最大宽度:", SJ_WidthMax);
+    QLineEdit* editJMHeight = addRow("胶帽高度:", JM_Height);
+    QLineEdit* editJMUp = addRow("胶帽亮度上阈值:", JM_Thresholdup);
+    QLineEdit* editJMDown = addRow("胶帽亮度下阈值:", JM_Thresholddown);
+    QLineEdit* editAXMax = addRow("凹陷最大面积:", AX_max);
+    QLineEdit* editCMAX = addRow("凹陷面积:", CMAX_max);
+    QLineEdit* editHSMax = addRow("划伤最大面积:", HS_max);
+    QLineEdit* editZWMax = addRow("脏污最大面积:", ZW_max);
 
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
 
     connect(btnSave, &QPushButton::clicked, this, [=]() mutable {
-        SJ_WidthMin = editSJ_WidthMin->text().toFloat();
-        SJ_WidthMax = editSJ_WidthMax->text().toFloat();
-        JM_Height = editJM_Height->text().toFloat();
-        JM_Thresholdup = editJM_Thresholdup->text().toInt();
-        JM_Thresholddown = editJM_Thresholddown->text().toInt();
-        AX_max = editAX_max->text().toFloat();
-        CMAX_max = editCMAX_max->text().toFloat();
-        HS_max = editHS_max->text().toFloat();
-        ZW_max = editZW_max->text().toFloat();
+        SJ_WidthMin = editSJMin->text().toFloat();
+        SJ_WidthMax = editSJMax->text().toFloat();
+        JM_Height = editJMHeight->text().toFloat();
+        JM_Thresholdup = editJMUp->text().toInt();
+        JM_Thresholddown = editJMDown->text().toInt();
+        AX_max = editAXMax->text().toFloat();
+        CMAX_max = editCMAX->text().toFloat();
+        HS_max = editHSMax->text().toFloat();
+        ZW_max = editZWMax->text().toFloat();
         saveParamAsync();
         });
 
@@ -90,16 +94,16 @@ QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
 void AlgoClass_Xs::saveParamAsync()
 {
     QVariantMap mapToSave;
-    mapToSave["SJ_WidthMin"] = QVariantMap{ {"值", SJ_WidthMin} };
-    mapToSave["SJ_WidthMax"] = QVariantMap{ {"值", SJ_WidthMax} };
-    mapToSave["JM_Height"] = QVariantMap{ {"值", JM_Height} };
-    mapToSave["JM_Thresholdup"] = QVariantMap{ {"值", JM_Thresholdup} };
-    mapToSave["JM_Thresholddown"] = QVariantMap{ {"值", JM_Thresholddown} };
 
-    mapToSave["AX_max"] = QVariantMap{ {"值", AX_max} };
-    mapToSave["CMAX_max"] = QVariantMap{ {"值", CMAX_max} };
-    mapToSave["HS_max"] = QVariantMap{ {"值", HS_max} };
-    mapToSave["ZW_max"] = QVariantMap{ {"值", ZW_max} };
+    mapToSave["塑胶最小宽度"] = QVariantMap{ {"值", SJ_WidthMin} };
+    mapToSave["塑胶最大宽度"] = QVariantMap{ {"值", SJ_WidthMax} };
+    mapToSave["胶帽高度"] = QVariantMap{ {"值", JM_Height} };
+    mapToSave["胶帽亮度上阈值"] = QVariantMap{ {"值", JM_Thresholdup} };
+    mapToSave["胶帽亮度下阈值"] = QVariantMap{ {"值", JM_Thresholddown} };
+    mapToSave["凹陷最大面积"] = QVariantMap{ {"值", AX_max} };
+    mapToSave["凹陷面积"] = QVariantMap{ {"值", CMAX_max} };
+    mapToSave["划伤最大面积"] = QVariantMap{ {"值", HS_max} };
+    mapToSave["脏污最大面积"] = QVariantMap{ {"值", ZW_max} };
 
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;

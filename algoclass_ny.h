@@ -12,7 +12,7 @@ public:
     virtual QWidget* createLeftPanel(QWidget* parent) override;
     virtual void saveParamAsync() override;
 
-private:
+public:
     // NY 的参数
     float CQ_AreaMin = 20.0f;
     float GS_AreaMin = 20.0f;
@@ -22,7 +22,7 @@ private:
     float ZW_AreaMin = 10.0f;
 
     // 色差参数
-    float SC_Ratio = 0.3f;
+    float NY_SeCha_Ratio = 0.3f;
 
     // 相似度阈值控制参数
     float OCR_Control = 0.6f;

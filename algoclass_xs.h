@@ -12,7 +12,7 @@ public:
     virtual QWidget* createLeftPanel(QWidget* parent) override;
     virtual void saveParamAsync() override;
 
-private:
+public:
     // 基本参数
     float SJ_WidthMin = 6.0f;
     float SJ_WidthMax = 20.0f;
