@@ -1533,6 +1533,9 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     learnButton->setFixedSize(buttonSize);
     checkButton->setFixedSize(buttonSize);
 
+    QPushButton* selfLearnButton = new QPushButton("自学习", debugPage);
+    selfLearnButton->setFixedSize(buttonSize);
+
     QPushButton *shieldButton = new QPushButton(debugPage);
     shieldButton->setCheckable(true);
     shieldButton->setFixedSize(buttonSize);
@@ -1552,6 +1555,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     leftParamsLayout->addWidget(learnButton);
     leftParamsLayout->addWidget(shieldButton);
     leftParamsLayout->addWidget(emptyOKButton);
+    leftParamsLayout->addWidget(selfLearnButton);
 
     roiButton->setVisible(false);
     recipeButton->setVisible(false);
@@ -1597,6 +1601,21 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     connect(learnButton, &QPushButton::clicked, this, [this]() {
         qDebug() << "学习功能触发！";
         emit Learn();
+        });
+
+
+    connect(selfLearnButton, &QPushButton::clicked, this, [this]() {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            "自学习确认",
+            "是否开始自学习？",
+            QMessageBox::Yes | QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            qDebug() << "自学习开始执行";
+            m_cam->LearnOpen.store(true);     
+            m_cam->LearnCount.store(GlobalPara::LearnCount);
+        }
         });
 
     connect(saveButton, &QPushButton::clicked, this, [=]() {

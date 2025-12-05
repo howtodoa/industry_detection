@@ -50,6 +50,9 @@ public:
     static void drawPaintDataEx_Ultra(QPixmap& pixmap,
         QSize displaySize,
         const QStringList& str);
+    static void drawPaintDataEx_PixmapUltra(QPixmap& pixmap,
+        QString text, 
+        QSize displaySize);
 private:
 
     ImagePaint() = delete;

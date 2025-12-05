@@ -39,4 +39,11 @@ private:
     QComboBox* flowerNegCombo = nullptr;
 
     QPushButton* disconnectCameraButton = nullptr;
+
+    QPushButton* learnCountButton = nullptr;
+    QLineEdit* learnCountEdit = nullptr;
+
+    QPushButton* timeoutButton = nullptr;
+    QLineEdit* timeoutEdit = nullptr;
+
 };

@@ -47,6 +47,8 @@ public:
     std::atomic<int> triggerNum = 0;
     bool m_cameraWarningShown = false;
     std::string indentify="";
+	std::atomic<int> LearnCount = 0;
+    std::atomic <bool> LearnOpen = false;//自学习开关
     QVector<SimpleParam> ScaleArray;
     int rounte = 0;
 	AllUnifyParams unifyParams;

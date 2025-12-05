@@ -93,6 +93,7 @@ public:
      void onRecipeClicked();
      void onChooseImageClicked();
      void onTransMat(cv::Mat);
+public slots:
      void onSaveClicked();
 };
 

@@ -1775,6 +1775,67 @@ void ImagePaint::drawPaintDataEx_III(QPixmap& pixmap,
     // 没有NG则不画任何内容
 }
 
+void ImagePaint::drawPaintDataEx_PixmapUltra(QPixmap& pixmap,
+    QString text, // 新增参数：要绘制的文本
+    QSize displaySize)
+{
+    // 1. 安全检查
+    if (pixmap.isNull() || text.isEmpty()) {
+        if (pixmap.isNull()) {
+            qWarning() << "传入的 pixmap 为空，无法绘制。";
+        }
+        // 如果 text 为空，则不绘制任何内容，直接返回
+        return;
+    }
+
+    // 2. 直接在源 Pixmap 上创建 QPainter 进行绘制
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 3. 尺寸处理
+    if (displaySize.isEmpty() || !displaySize.isValid()) {
+        displaySize = pixmap.size();
+    }
+
+    // 4. 计算缩放比例
+    QSize actualOnScreenSize = pixmap.size().scaled(displaySize, Qt::KeepAspectRatio);
+    const QSize canvasSize = pixmap.size();
+
+    // 5. 定义视觉设计参数
+    constexpr int TARGET_VISUAL_FONT_SIZE = 20;
+    constexpr double X_MARGIN_RATIO = 0.01;
+    constexpr double Y_MARGIN_RATIO = 0.05;
+
+    // 6. 字体尺寸计算
+    if (actualOnScreenSize.height() == 0) return;
+
+    double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
+    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
+    if (fontSizeOnCanvas < 1) return;
+
+    // 7. 设置字体
+    QFont font;
+    font.setWeight(QFont::DemiBold);
+    font.setPixelSize(fontSizeOnCanvas);
+    painter.setFont(font);
+
+    // 8. 设置颜色（保留原宏定义逻辑）
+#ifdef USE_MAIN_WINDOW_CAPACITY
+    QColor color = Qt::blue;
+#else
+    QColor color = Qt::red;
+#endif
+    painter.setPen(color);
+
+    // 9. 使用传入的 text 参数进行绘制
+    int x = qRound(canvasSize.width() * X_MARGIN_RATIO);
+    int y = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+
+    painter.drawText(QRect(x, y, canvasSize.width() - 2 * x, canvasSize.height() - 2 * y),
+        Qt::AlignLeft | Qt::AlignTop, text);
+
+}
+
 void ImagePaint::drawPaintDataEx_Ultra(QPixmap& pixmap,
     QSize displaySize,
     const QStringList& str)

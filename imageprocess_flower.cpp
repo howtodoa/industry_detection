@@ -273,6 +273,25 @@ void Imageprocess_Flower::run()
 			g_cv.notify_all();
 		}
 
+         if(cam_instance->LearnCount.load()>0&&cam_instance->LearnOpen.load()==true)
+		 {
+			 for (auto& unify : cam_instance->RI->unifyParams)
+			 {
+				 unify.Accumulate();
+			 }
+			 cam_instance->LearnCount--;
+		 }
+		 else if(cam_instance->LearnCount.load()==0 && cam_instance->LearnOpen.load() == true)
+		 {
+			 cam_instance->LearnOpen.store(false);
+			 for (auto& unify : cam_instance->RI->unifyParams)
+			 {
+				 unify.applyLearningLimits();
+			 }
+			 cam_instance->unifyParams = cam_instance->RI->unifyParams;
+			 emit UpdateLearnLimits(cam_instance->RI->unifyParams);
+		 }
+
 		//存图
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
 		{

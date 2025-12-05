@@ -527,6 +527,43 @@ void MainWindow::loadjson_layer3(const QString& filePath)
         qWarning() << "JSON file missing 'FontSize' entry.";
     }
 
+    if (configMap.contains("FLOWER_NEG_LENGTH")) {
+        ParamDetail detail(configMap.value("FLOWER_NEG_LENGTH").toMap());
+        GlobalPara::FLOWER_NEG_LENGTH = detail.value.toInt();
+        qDebug() << "Parsed FontSize:" << GlobalPara::FLOWER_NEG_LENGTH;
+    }
+    else {
+        qWarning() << "JSON file missing 'FLOWER_NEG_LENGTH' entry.";
+    }
+
+    if (configMap.contains("FLOWER_POS_LENGTH")) {
+        ParamDetail detail(configMap.value("FLOWER_POS_LENGTH").toMap());
+        GlobalPara::FLOWER_POS_LENGTH = detail.value.toInt();
+        qDebug() << "Parsed FLOWER_POS_LENGTH:" << GlobalPara::FLOWER_POS_LENGTH;
+    }
+    else {
+        qWarning() << "JSON file missing 'FLOWER_POS_LENGTH' entry.";
+    }
+
+    if (configMap.contains("Timeout")) {
+        ParamDetail detail(configMap.value("Timeout").toMap());
+        GlobalPara::TimeOut = detail.value.toInt();
+        qDebug() << "Parsed FLOWER_POS_LENGTH:" << GlobalPara::TimeOut;
+    }
+    else {
+        qWarning() << "JSON file missing ‘TimeOut' entry.";
+    }
+
+    if (configMap.contains("LearnCount")) {
+        ParamDetail detail(configMap.value("LearnCount").toMap());
+        GlobalPara::LearnCount = detail.value.toInt();
+        qDebug() << "Parsed FLOWER_POS_LENGTH:" << GlobalPara::LearnCount;
+    }
+    else {
+        qWarning() << "JSON file missing ‘LearnCount' entry.";
+    }
+
+
     // RunPoint
     if (configMap.contains("RunPoint")) {
         ParamDetail detail(configMap.value("RunPoint").toMap());
@@ -1270,7 +1307,7 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         DisplayInfoWidget* infoWidget = nullptr;
      //   DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
       if(cams[idx]->indentify=="FlowerLook") infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
-      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams, 4, displayInfoContainer);
+      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams, 2, displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
         m_displayInfoWidgets.append(infoWidget);
         connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateRealtimeData, infoWidget, &DisplayInfoWidget::onUpdateRealtimeData);
@@ -1282,7 +1319,7 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         displayInfoHLayout->setStretchFactor(infoWidget, 1);
 #endif
         connect(cameraLabel->m_imageProcessor, &ImageProcess::StopDevice, this, &MainWindow::onStopAllCamerasClicked);
-
+		connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateLearnLimits, infoWidget, &DisplayInfoWidget::onBuildUIFromUnifyParameters);
     }
 
     // 保证 3 列布局美观

@@ -1757,7 +1757,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		//return;
 	}
-	if (info.ret == -1||info.ret==1 || info.ret==3 ||info.ret==4)
+	if (info.ret == -1||info.ret==1 || info.ret>=3)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
 		if (this->ngDisplay.load() == false) this->ngcount->fetch_add(1);
@@ -1804,6 +1804,26 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 			else if (info.ret == 4)
 			{
 				ImagePaint::drawPaintDataEx_III(currentPixmap, m_cam->RI->m_PaintData, imageLabel->size());
+				this->ngDisplay.store(true);
+			}
+			else if (info.ret == 5)
+			{
+				ImagePaint::drawPaintDataEx_PixmapUltra(currentPixmap, "套管不良", imageLabel->size());
+				this->ngDisplay.store(true);
+			}
+			else if(info.ret==6)
+			{
+				ImagePaint::drawPaintDataEx_PixmapUltra(currentPixmap, "针脚不良", imageLabel->size());
+				this->ngDisplay.store(true);
+			}
+			else if(info.ret==7)
+			{
+				ImagePaint::drawPaintDataEx_PixmapUltra(currentPixmap, "顶面异常", imageLabel->size());
+				this->ngDisplay.store(true);
+			}
+			else if(info.ret==8)
+			{
+				ImagePaint::drawPaintDataEx_PixmapUltra(currentPixmap, "针数不对", imageLabel->size());
 				this->ngDisplay.store(true);
 			}
 			m_cam->noneDisplay.store(false);

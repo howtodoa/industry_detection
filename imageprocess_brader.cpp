@@ -102,7 +102,7 @@ void Imageprocess_Brader::run()
 					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_top(para);
 				}
-				else if (ret == 1||ret==4)
+				else if (ret == 1||ret==4|| ret==7)
 				{
 					cam_instance->RI->m_PaintData[0].result = -1;
 					cam_instance->RI->m_PaintData[0].count++;
@@ -164,6 +164,11 @@ void Imageprocess_Brader::run()
 					cam_instance->RI->m_PaintData[0].count++;
 					//ret = -1;
 				}
+				else if (ret == 5 || ret==6)
+				{
+					cam_instance->RI->m_PaintData[0].result = -1;
+					cam_instance->RI->m_PaintData[0].count++;
+				}
 				else ret = -1;
 			}
 			else if (cam_instance->indentify == "Pin") {
@@ -201,7 +206,7 @@ void Imageprocess_Brader::run()
 					QString logMsg = QString("Pin ret=%1").arg(ret);
 					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 				}
-				else if (ret == 3)
+				else if (ret == 3 || ret==8)
 				{
 					
 					QString logMsg = QString("Pin ret=%1").arg(ret);
@@ -251,7 +256,7 @@ void Imageprocess_Brader::run()
 			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1 ||ret==3 || ret==4)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1 || ret>=3)//非本地运行的情况
 		{
 
 			if (0)
@@ -302,7 +307,7 @@ void Imageprocess_Brader::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret==3 ||info.ret==4))
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret>=3))
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);

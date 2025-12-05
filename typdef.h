@@ -232,7 +232,7 @@ struct UnifyParam
     int64_t count;      // 总检测次数
     int64_t ng_count;   // NG 次数
     double scaleFactor; // 缩放因子
-    double leranValue;  // 学习值
+    double leranValue;  // 学习补偿值
     QVariant extraData; // 额外数据字段，灵活存储其他信息  
     double accumulate;
     ExpandParam  expandParam; // 扩展参数结构体
@@ -470,7 +470,68 @@ struct UnifyParam
 
     void Accumulate()
     {
+        double valueToAccumulate = 0.0;
 
+        // ----------------------------------------------------
+        // I. 检查 extraData 是否是 QVariantList
+        // ----------------------------------------------------
+        if (this->extraData.isValid() && this->extraData.typeId() == QMetaType::QVariantList)
+        {
+            const QVariantList list = this->extraData.toList();
+            if (!list.empty())
+            {
+                double sum = 0.0;
+                int numericalCount = 0;
+
+                // 遍历列表，计算所有可转换数值的总和和个数
+                for (const QVariant& var : list)
+                {
+                    if (var.canConvert<double>())
+                    {
+                        sum += var.toDouble();
+                        numericalCount++;
+                    }
+                }
+
+                if (numericalCount > 0)
+                {
+                    // 如果是列表，计算平均值作为本次累加的代表值
+                    valueToAccumulate = sum / numericalCount;
+					this->accumulate += valueToAccumulate;
+                    qDebug() << QString("Accumulate for '%1': Used Mean of extraData List (%2 items): %3")
+                        .arg(this->label)
+                        .arg(numericalCount)
+                        .arg(valueToAccumulate);
+                }
+                else {
+                    // 列表不含数值，使用默认值 0.0，但本次运行仍会被统计
+                    qDebug() << QString("Accumulate for '%1': extraData List found, but contains no numerical data. Using 0.0.").arg(this->label);
+                }
+            }
+        }
+        else
+        {
+            // ----------------------------------------------------
+            // II. extraData 不存在或不是列表，使用 this->value
+            // ----------------------------------------------------
+
+            // 假设 this->value 存储的是本次运行的结果值
+            this->accumulate += this->value;
+            qDebug() << QString("Accumulate for '%1': Used current single value: %2").arg(this->label).arg(valueToAccumulate);
+        }
+    }
+    void applyLearningLimits()
+    {
+
+        double mean = this->accumulate / static_cast<double>(GlobalPara::LearnCount);
+
+        // 新的上限 = 基准均值 + 补偿量
+        this->upperLimit = mean + this->leranValue;
+
+        // 新的下限 = 基准均值 - 补偿量
+        this->lowerLimit = mean - this->leranValue;
+
+		this->accumulate = 0.0; // 重置累加值以备下次学习使用
     }
 };
 

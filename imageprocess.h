@@ -22,6 +22,7 @@ signals:
     void StopDevice();
     void PaintSend(QVector<PaintDataItem> paintData);
 	void UpdateRealtimeData(const AllUnifyParams& params);
+    void UpdateLearnLimits(const AllUnifyParams& params);
     void imageProcessed(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);
     void imageProcessed_QImage(QImage image, DetectInfo info);
 	void imageProcessed_Brader(std::shared_ptr<cv::Mat> processedImagePtr, DetectInfo info);

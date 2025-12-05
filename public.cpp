@@ -81,9 +81,9 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
-InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,4 };
+InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,2 };
 
-InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,4 };
+InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,2 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 

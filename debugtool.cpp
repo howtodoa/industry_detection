@@ -11,6 +11,8 @@
 #include "fileoperator.h"
 #include <QtConcurrent/QtConcurrent>
 #include <QThreadPool>
+#include <QPushButton>
+#include <QLineEdit>
 #include <MZ_VC3000H.h>
 
 DebugTool::DebugTool(QWidget* parent)
@@ -126,7 +128,29 @@ DebugTool::DebugTool(QWidget* parent)
 
     mainLayout->addLayout(disconnectLayout);
 
-    mainLayout->addStretch();
+    // === 自学习次数 ===
+    QHBoxLayout* learnLayout = new QHBoxLayout;
+    learnCountButton = new QPushButton("自学习次数", this);
+    learnCountButton->setFixedWidth(100);
+    learnCountEdit = new QLineEdit(this);
+    learnCountEdit->setFixedWidth(50);
+    learnCountEdit->setText(QString::number(GlobalPara::LearnCount));
+    learnLayout->addWidget(learnCountButton);
+    learnLayout->addWidget(learnCountEdit);
+    learnLayout->addStretch();  // 拉伸放在末尾，让控件靠左
+    mainLayout->addLayout(learnLayout);
+
+    // === 超时时间 ===
+    QHBoxLayout* timeoutLayout = new QHBoxLayout;
+    timeoutButton = new QPushButton("超时时间", this);
+    timeoutButton->setFixedWidth(100);
+    timeoutEdit = new QLineEdit(this);
+    timeoutEdit->setFixedWidth(80);
+    timeoutEdit->setText(QString::number(GlobalPara::TimeOut));
+    timeoutLayout->addWidget(timeoutButton);
+    timeoutLayout->addWidget(timeoutEdit);
+    timeoutLayout->addStretch();  // 拉伸放在末尾，让控件靠左
+    mainLayout->addLayout(timeoutLayout);
 
     // --- 信号连接 ---
     connect(fontSizeSlider, &QSlider::valueChanged,
@@ -217,6 +241,8 @@ void DebugTool::saveSettings()
     paramMap["RunPoint"] = runPointCombo->currentText().toInt();
     paramMap["FLOWER_POS_LENGTH"] = flowerPosCombo->currentText().toInt();
     paramMap["FLOWER_NEG_LENGTH"] = flowerNegCombo->currentText().toInt();
+    paramMap["LearnCount"] = learnCountEdit->text().toInt();  
+    paramMap["Timeout"] = timeoutEdit->text().toInt();
 
     // 更新全局变量
     GlobalPara::FontSize = paramMap["FontSize"];
@@ -227,6 +253,8 @@ void DebugTool::saveSettings()
     GlobalPara::RunPoint = paramMap["RunPoint"];
     GlobalPara::FLOWER_POS_LENGTH = paramMap["FLOWER_POS_LENGTH"];
     GlobalPara::FLOWER_NEG_LENGTH = paramMap["FLOWER_NEG_LENGTH"];
+    GlobalPara::LearnCount = paramMap["LearnCount"]; 
+    GlobalPara::TimeOut = paramMap["Timeout"];       
 
 	SetLight();
 
