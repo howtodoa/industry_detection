@@ -286,10 +286,11 @@ void Imageprocess_Flower::run()
 			 cam_instance->LearnOpen.store(false);
 			 for (auto& unify : cam_instance->RI->unifyParams)
 			 {
-				 unify.applyLearningLimits();
+				 if (unify.check == true) unify.applyLearningLimits();
 			 }
 			 cam_instance->unifyParams = cam_instance->RI->unifyParams;
 			 emit UpdateLearnLimits(cam_instance->RI->unifyParams);
+			 SaveParamsJson(cam_instance->rangepath, cam_instance->RI->unifyParams);
 		 }
 
 		//存图

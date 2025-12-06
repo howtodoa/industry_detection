@@ -1382,15 +1382,13 @@ void ImagePaint::drawDetectionResultExQImage(QImage& image, const DetectInfo& in
     }
 }
 
-void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image, 
+void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
     QVector<PaintDataItem> paintDataList,
     QSize displaySize)
 {
     // 1. 安全检查
     if (image.isNull()) {
         qWarning() << "传入的 image 为空，无法绘制。";
-        // 假设 LOG_DEBUG 和 GlobalLog::logger 已定义
-        // LOG_DEBUG(GlobalLog::logger, _T("传入的 QImage 为空"));
         return;
     }
     if (paintDataList.isEmpty()) {
@@ -1401,8 +1399,10 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
     prepareImageForDrawing(image);
 
     // 2. 直接在源 QImage 上创建 QPainter 进行绘制
-    QPainter painter(&image); // QPainter 可以在 QImage 上安全工作
+    QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
+    // 建议加上 TextAntialiasing 以保持和参考代码一致的效果
+    painter.setRenderHint(QPainter::TextAntialiasing);
 
     // 3. 尺寸处理
     if (displaySize.isEmpty() || !displaySize.isValid()) {
@@ -1414,8 +1414,9 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
     const QSize canvasSize = image.size();
 
     // 5. 定义视觉设计参数
+    // 【修改点 1】：字号改为 16，与 NG 绘制函数保持一致
     constexpr int TARGET_VISUAL_FONT_SIZE = 12;
-    constexpr double ROW_SPACING_VISUAL_PX = 4.0;
+    constexpr double ROW_SPACING_VISUAL_PX = 1.2;
     constexpr double X_MARGIN_RATIO = 0.01;
     constexpr double Y_MARGIN_RATIO = 0.05;
 
@@ -1431,19 +1432,37 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
 
     // 7. 设置字体
     QFont font;
-    font.setWeight(QFont::DemiBold);
+    // 【修改点 2】：粗细改为 Medium，与 NG 绘制函数保持一致
+    font.setWeight(QFont::Medium);
     font.setPixelSize(fontSizeOnCanvas);
     painter.setFont(font);
 
-    // 8. **核心改动：预计算需要绘制的总数（只筛选“引线总长度”）**
+    // 8. 统计需要绘制的项目总数
     int itemsToDraw = 0;
     for (const auto& item : paintDataList) {
         if (!item.check) {
             continue;
         }
 
-        // 新的过滤逻辑：只绘制包含“引线总长度”字符的项目
-        if (item.label.contains("引线总长度")) {
+        // 包含之前增加的所有检测项
+        if (item.label.contains("引线总长度") ||
+            item.label.contains("底座宽度") ||
+            item.label.contains("底座高度") ||
+            item.label.contains("左引脚超底座长度") ||
+            item.label.contains("右引脚超底座长度") ||
+            item.label.contains("左引脚高度") ||
+            item.label.contains("右引脚高度") ||
+            item.label.contains("左引脚宽度") ||
+            item.label.contains("右引脚宽度") ||
+            item.label.contains("座板上斜边长度") ||
+            item.label.contains("左引脚弯脚") ||
+            item.label.contains("正极宽度") ||
+            item.label.contains("电容角度") ||
+            item.label.contains("负极宽度") ||
+            item.label.contains("正极瑕疵") ||
+            item.label.contains("负极瑕疵") ||
+            item.label.contains("引脚高度") ||
+            item.label.contains("引脚到底座距离")) {
             itemsToDraw++;
         }
     }
@@ -1468,19 +1487,76 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
 
     if (columnWidth <= 0) return;
 
-    // 10. **循环绘制并修改显示的标签**
+    // 10. 循环绘制
     int drawIndex = 0;
     for (const auto& item : paintDataList) {
         if (!item.check) {
             continue;
         }
 
-        // 过滤逻辑 (必须与计数循环中的逻辑保持一致)
-        if (!item.label.contains("引线总长度")) {
-            continue;
+        // 定义显示的标题前缀
+        QString prefix = "";
+
+        // 判断当前 item 属于哪一种类型 (if-else 链)
+        if (item.label.contains("引线总长度")) {
+            prefix = "引线总长度";
+        }
+        else if (item.label.contains("底座宽度")) {
+            prefix = "底座宽度";
+        }
+        else if (item.label.contains("底座高度")) {
+            prefix = "底座高度";
+        }
+        else if (item.label.contains("左引脚超底座长度")) {
+            prefix = "左引脚超底座长度";
+        }
+        else if (item.label.contains("右引脚超底座长度")) {
+            prefix = "右引脚超底座长度";
+        }
+        else if (item.label.contains("左引脚高度")) {
+            prefix = "左引脚高度";
+        }
+        else if (item.label.contains("右引脚高度")) {
+            prefix = "右引脚高度";
+        }
+        else if (item.label.contains("左引脚宽度")) {
+            prefix = "左引脚宽度";
+        }
+        else if (item.label.contains("右引脚宽度")) {
+            prefix = "右引脚宽度";
+        }
+        else if (item.label.contains("座板上斜边长度")) {
+            prefix = "座板上斜边长度";
+        }
+        else if (item.label.contains("左引脚弯脚")) {
+            prefix = "左引脚弯脚";
+        }
+        else if (item.label.contains("正极宽度")) {
+            prefix = "正极宽度";
+        }
+        else if (item.label.contains("电容角度")) {
+            prefix = "电容角度";
+        }
+        else if (item.label.contains("负极宽度")) {
+            prefix = "负极宽度";
+        }
+        else if (item.label.contains("正极瑕疵")) {
+            prefix = "正极瑕疵";
+        }
+        else if (item.label.contains("负极瑕疵")) {
+            prefix = "负极瑕疵";
+        }
+        else if (item.label.contains("引脚到底座距离")) {
+            prefix = "引脚到底座距离";
+        }
+        else if (item.label.contains("引脚高度")) { // 放在最后
+            prefix = "引脚高度";
+        }
+        else {
+            continue; // 如果都不是，跳过
         }
 
-        // 颜色判断，result = 1 表示合格（绿色）
+        // 颜色判断
 #ifdef USE_MAIN_WINDOW_CAPACITY
         QColor color = (item.result == 1) ? Qt::green : Qt::blue;
 #else
@@ -1488,20 +1564,21 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
 #endif
         painter.setPen(color);
 
-        // 新的标签显示逻辑：固定显示为“引线总长度: [值]”
-        QString text = QString("引线总长度: %1").arg(item.value);
+        // 动态生成文本：前缀 + 数值
+        QString text = QString("%1: %2").arg(prefix).arg(item.value);
 
-        // 布局计算：因为只绘制一个（或少数几个），直接使用 (0, 0) 位置
+        // 布局计算
         int x = xMarginOnCanvas + currentColumn * (columnWidth + columnGapOnCanvas);
         int y = yMarginOnCanvas + currentRow * lineHeightOnCanvas;
 
         painter.drawText(QRect(x, y, columnWidth, lineHeightOnCanvas), Qt::AlignLeft | Qt::AlignVCenter, text);
 
         ++drawIndex;
-        // 如果确定只绘制一个，可以在这里 break;
-        // break;
+        ++currentRow; // 行号增加，防止重叠
     }
 }
+
+
 
 void ImagePaint::drawPaintDataOnImage(QImage& canvas,
     const QVector<PaintDataItem>& paintDataList)

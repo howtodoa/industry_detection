@@ -1036,92 +1036,25 @@ void ParaWidget::onSaveClicked()
 
 
 
-void ParaWidget::saveParamsToJsonFile(const AllUnifyParams& paramsToSave)
+void ParaWidget::saveParamsToJsonFile(const AllUnifyParams& params)
 {
-    qDebug() << "saveParamsToJsonFile: Starting background task...";
-    QtConcurrent::run([this, params = paramsToSave]() {
-        qDebug() << "Background Thread: Task started.";
+    QString relativePath = this->m_cam->rangepath;
+    if (relativePath.isEmpty()) {
+        QMessageBox::critical(this, "保存失败", "路径为空！");
+        return;
+    }
 
-        // 打印传入副本的初始值 
-        qDebug() << "Background Thread: Initial values in captured 'params':";
-        if (params.contains("isHaveBpln")) {
-            const auto& p = params["isHaveBpln"];
-            qDebug() << "  -> isHaveBpln | Unit:" << p.unit << "| ScaleF:" << p.scaleFactor << "| Value:" << p.value << "| Upper:" << p.upperLimit << "| Lower:" << p.lowerLimit;
-        }
-        if (params.contains("Pin_C")) {
-            const auto& p = params["Pin_C"];
-            qDebug() << "  -> Pin_C      | Unit:" << p.unit << "| ScaleF:" << p.scaleFactor << "| Value:" << p.value << "| Upper:" << p.upperLimit << "| Lower:" << p.lowerLimit;
-        }
+    QDir appDir(QCoreApplication::applicationDirPath());
+    QString absPath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
 
-        const QString relativePath = this->m_cam->rangepath;
-        if (relativePath.isEmpty()) {
-            qWarning() << "Background Thread: FAILED. Config file path is empty.";
-            QMetaObject::invokeMethod(this, [this]() {
-                QMessageBox::critical(this, "保存失败", "配置文件路径未设置。");
-                }, Qt::QueuedConnection);
-            return;
-        }
-
-        QDir appDir(QCoreApplication::applicationDirPath());
-        QString absolutePath = QFileInfo(appDir.filePath(relativePath)).canonicalFilePath();
-        QDir fileDir = QFileInfo(absolutePath).dir();
-        if (!fileDir.exists() && !fileDir.mkpath(".")) {
-            qWarning() << "Background Thread: FAILED. Could not create directory" << fileDir.path();
-            QMetaObject::invokeMethod(this, [this]() {
-                QMessageBox::critical(this, "保存失败", "无法创建目标目录。");
-                }, Qt::QueuedConnection);
-            return;
-        }
-
-
-        qDebug() << "Background Thread: Serializing data with detailed mode check...";
-        QJsonObject rootObject;
-        for (auto it = params.constBegin(); it != params.constEnd(); ++it)
-        {
-            const UnifyParam& item = it.value();
-            QJsonObject paramJson;
-            QString paramKey = it.key();
-
-            qDebug().nospace().noquote() << "  -> Processing Param: " << item.label << " (" << paramKey << ")";
-            qDebug() << "       -> Unit Read:" << item.unit;
-            bool isBooleanMode = item.unit.isEmpty();
-            qDebug() << "       -> Mode Determined:" << (isBooleanMode ? "Boolean" : "Range");
-
-            paramJson["映射变量"] = item.label;
-            paramJson["单位"] = item.unit;
-            paramJson["检测"] = item.check;
-            paramJson["可见"] = item.visible;
-            paramJson["标定值"] = item.scaleFactor;
-
-            if (isBooleanMode) {
-                qDebug() << "       -> Adding Boolean specific key: '布尔值'";
-                paramJson["布尔值"] = (item.need_value); // 或者 (item.value > 0.5) 
-            }
-            else {
-                qDebug() << "       -> Adding Range specific keys: '上限', '下限', '上限补偿值', '下限补偿值'";
-                paramJson["上限"] = item.upperLimit;
-                paramJson["下限"] = item.lowerLimit;
-                paramJson["上限补偿值"] = item.upfix;
-                paramJson["下限补偿值"] = item.lowfix;
-            }
-
-            qDebug() << "       -> Final keys added to JSON:" << paramJson.keys();
-            rootObject[paramKey] = paramJson;
-        }
-        qDebug() << "Background Thread: Serialization complete.";
-
-
-        qDebug() << "Background Thread: Calling FileOperator::writeJsonObject for" << absolutePath;
-        bool success = FileOperator::writeJsonObject(absolutePath, rootObject);
-
+    QtConcurrent::run([this, params, absPath]() {
+        bool success = SaveParamsJson(absPath, params);
 
         QMetaObject::invokeMethod(this, [this, success]() {
-            if (success) {
-                QMessageBox::information(this, "保存成功", "统一参数已成功写入配置文件。");
-            }
-            else {
-                QMessageBox::critical(this, "保存失败", "写入配置文件时发生错误。");
-            }
+            if (success)
+                QMessageBox::information(this, "成功", "保存成功");
+            else
+                QMessageBox::critical(this, "失败", "保存失败");
             }, Qt::QueuedConnection);
         });
 }

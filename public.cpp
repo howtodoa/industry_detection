@@ -81,9 +81,9 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
-InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,2 };
+InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,4 };
 
-InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,2 };
+InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,4 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 
@@ -204,6 +204,39 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 	// 释放智能指针
 	currentImageForQueue.reset();
 	redImageForQueue.reset();
+}
+
+bool SaveParamsJson(const QString& absPath, const AllUnifyParams& params)
+{
+	QJsonObject rootObject;
+
+	for (auto it = params.constBegin(); it != params.constEnd(); ++it)
+	{
+		const UnifyParam& item = it.value();
+		QJsonObject obj;
+
+		obj["映射变量"] = item.label;
+		obj["单位"] = item.unit;
+		obj["检测"] = item.check;
+		obj["可见"] = item.visible;
+		obj["标定值"] = item.scaleFactor;
+
+		if (item.unit.isEmpty()) {
+			obj["布尔值"] = item.need_value;
+		}
+		else {
+			obj["上限"] = item.upperLimit;
+			obj["下限"] = item.lowerLimit;
+			obj["上限补偿值"] = item.upfix;
+			obj["下限补偿值"] = item.lowfix;
+			obj["学习补偿"] = item.expandParam.self_learn;
+			obj["标定生效"] = item.expandParam.scale_enable;
+		}
+
+		rootObject[it.key()] = obj;
+	}
+
+	return FileOperator::writeJsonObject(absPath, rootObject);
 }
 
 

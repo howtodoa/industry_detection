@@ -3,7 +3,7 @@
 
 #define ADAPTATEION
 //#define QIMAGE
-#define FOURBRADER
+//#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -232,7 +232,6 @@ struct UnifyParam
     int64_t count;      // 总检测次数
     int64_t ng_count;   // NG 次数
     double scaleFactor; // 缩放因子
-    double leranValue;  // 学习补偿值
     QVariant extraData; // 额外数据字段，灵活存储其他信息  
     double accumulate;
     ExpandParam  expandParam; // 扩展参数结构体
@@ -252,7 +251,7 @@ struct UnifyParam
         count(0),
         ng_count(0),
         scaleFactor(1.0),
-        leranValue(0),
+		expandParam{ 0.0,true },
 		accumulate(0.0),
         extraData(0.0)
     {
@@ -310,7 +309,7 @@ struct UnifyParam
 
         logMsg += QString("  [Value] Current: %1, Learn: %2, Scale: %3\n")
             .arg(value)
-            .arg(leranValue)
+            .arg(expandParam.self_learn)
             .arg(scaleFactor);
 
         // 注意这里使用了 %lld 打印 64 位整数
@@ -526,10 +525,10 @@ struct UnifyParam
         double mean = this->accumulate / static_cast<double>(GlobalPara::LearnCount);
 
         // 新的上限 = 基准均值 + 补偿量
-        this->upperLimit = mean + this->leranValue;
+        this->upperLimit = mean + this->expandParam.self_learn;
 
         // 新的下限 = 基准均值 - 补偿量
-        this->lowerLimit = mean - this->leranValue;
+        this->lowerLimit = mean - this->expandParam.self_learn;
 
 		this->accumulate = 0.0; // 重置累加值以备下次学习使用
     }
@@ -566,7 +565,7 @@ inline QDebug operator<<(QDebug dbg, const UnifyParam& param)
         << ", ScaleFactor=" << param.scaleFactor << "\n";
 
     // 5. 其他
-    dbg.nospace() << "  Extra: Learn=" << param.leranValue
+    dbg.nospace() << "  Extra: Learn=" << param.expandParam.self_learn
         << ", ExtraDataType=" << param.extraData.typeName()
         // 确保最后的 "}" 也在 nospace() 的作用下
         << "}\n";

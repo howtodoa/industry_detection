@@ -31,6 +31,7 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include <QFuture>
 #include <QFutureWatcher>
+#include "fileoperator.h"
 
 
 void renameJpgFiles(const QString& directoryPath);
@@ -74,5 +75,7 @@ int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue =
 int CheckRAM();
 
 int CheckPixmap(const QPixmap& pixmap);
+
+bool SaveParamsJson(const QString& absPath, const AllUnifyParams& params);
 
 #endif // PUBLIC_H

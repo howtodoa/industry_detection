@@ -1307,7 +1307,7 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         DisplayInfoWidget* infoWidget = nullptr;
      //   DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
       if(cams[idx]->indentify=="FlowerLook") infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
-      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams, 2, displayInfoContainer);
+      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams,4 , displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
         m_displayInfoWidgets.append(infoWidget);
         connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateRealtimeData, infoWidget, &DisplayInfoWidget::onUpdateRealtimeData);
