@@ -27,6 +27,8 @@ public:
     // 相似度阈值控制参数
     float OCR_Control = 0.6f;
 
+    float NY_BDparam = 5;
+
 private slots:
 
 };

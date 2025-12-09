@@ -98,11 +98,12 @@ struct Params
 struct InThresholdParam
 {
     //线扫胶帽和束胶检测
-    float SJ_WidthMin = 6;
-    float SJ_WidthMax = 20;
-    float JM_Height = 7;
+    float SJ_WidthMin = 1;
+    float SJ_WidthMax = 3;
+    float JM_Height = 0.4;
     int JM_Thresholdup = 56;
     int JM_Thresholddown = 29;
+    float XS_BDparam = 7;
     //瑕疵检测
     float AX_max = 10;
     float CMAX_max = 10;
@@ -116,12 +117,15 @@ struct InThresholdParam
     float YH_AreaMin = 20;
     float ZW_AreaMin = 10;
     float NY_SeCha_Ratio = 0.3;
+    float NY_BDparam = 5;
     //相似度阈值控制参数
     float OCR_Control = 0.6;
     //底面相机
     float LK_min = 1;
     float JM_min = 1;
     float WB_min = 1;
+    float LK_BOTTOM_BDparam = 5;
+    float JM_BOTTOM_BDparam = 5;
 };
 struct XSResult
 {

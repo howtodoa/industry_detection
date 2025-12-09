@@ -924,7 +924,7 @@ MainWindow::MainWindow(QString str, QWidget * parent) :
         CreateImageGrid_Braider(caminfo.size());
         setupMonitorThread();
         setupUpdateTimer();
-        initSqlite3Db_Brader();
+        initSqlite3Db_Unify();
         if (GlobalPara::MergePointNum > 0)
         {
             for (int i = 0; i < GlobalPara::MergePointNum; i++)
@@ -3355,12 +3355,13 @@ void MainWindow::initSqlite3Db_Unify()
         return;
     }
 
-    // --- 2. 计算当前班次的表名 ---
+    // --- 2. 计算当前班次的表名 (与 update 逻辑保持一致) ---
     QDateTime now = QDateTime::currentDateTime();
     int currentHour = now.time().hour();
     QDate logicalDate = now.date();
     QString suffix = "";
 
+    // 08:00 - 19:59 白班; 20:00 - 07:59 晚班
     if (currentHour >= 8 && currentHour < 20) {
         suffix = "_daytime";
     }
@@ -3375,21 +3376,11 @@ void MainWindow::initSqlite3Db_Unify()
     QString summaryTableName = datePrefix + "_All_summary" + suffix;
     QString detailTableName = datePrefix + "_NG_details" + suffix;
 
-    // 3. 确保当前班次的表都存在
-    QString summaryCols = QStringLiteral(
-        "\"相机名称\" TEXT PRIMARY KEY, "
-        "\"总数\" INT, "
-        "\"NG数\" INT, "
-        "\"良率\" REAL"
-    );
+    // 3. 确保当前班次的表都存在 (【强制 UTF-8】)
+    QString summaryCols = QString::fromUtf8(u8"\"相机名称\" TEXT PRIMARY KEY, \"总数\" INT, \"NG数\" INT, \"良率\" REAL");
     SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
 
-    QString detailCols = QStringLiteral(
-        "\"相机名称\" TEXT, "
-        "\"缺陷类型\" TEXT, "
-        "\"数量\" INT, "
-        "PRIMARY KEY(\"相机名称\", \"缺陷类型\")"
-    );
+    QString detailCols = QString::fromUtf8(u8"\"相机名称\" TEXT, \"缺陷类型\" TEXT, \"数量\" INT, PRIMARY KEY(\"相机名称\", \"缺陷类型\")");
     SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
 
     // --- 4. 为每个相机加载或创建初始数据 ---
@@ -3399,7 +3390,8 @@ void MainWindow::initSqlite3Db_Unify()
         const QString& cameraName = camera->cameral_name;
 
         // --- PART A: 加载总览表 (sum_count, error_count) ---
-        QString summaryCondition = QString("\"相机名称\" = '%1'").arg(cameraName);
+        // 使用 u8 强制 UTF-8
+        QString summaryCondition = QString::fromUtf8(u8"\"相机名称\" = '%1'").arg(cameraName);
         std::map<std::string, std::variant<int, double, std::string>> dbRecord;
         SqliteDB::DBOperation::GetFullRecord(
             summaryTableName.toUtf8().constData(),
@@ -3411,8 +3403,11 @@ void MainWindow::initSqlite3Db_Unify()
             // 记录存在：继承
             long long totalFromDb = 0;
             long long ngFromDb = 0;
-            if (dbRecord.count("总数")) totalFromDb = std::get<int>(dbRecord.at("总数"));
-            if (dbRecord.count("NG数")) ngFromDb = std::get<int>(dbRecord.at("NG数"));
+            // Key 也要转 UTF-8
+            if (dbRecord.count(QString::fromUtf8(u8"总数").toStdString()))
+                totalFromDb = std::get<int>(dbRecord.at(QString::fromUtf8(u8"总数").toStdString()));
+            if (dbRecord.count(QString::fromUtf8(u8"NG数").toStdString()))
+                ngFromDb = std::get<int>(dbRecord.at(QString::fromUtf8(u8"NG数").toStdString()));
 
             camera->sum_count.store(totalFromDb);
             camera->error_count.store(ngFromDb);
@@ -3428,40 +3423,216 @@ void MainWindow::initSqlite3Db_Unify()
         }
 
         // --- PART B: 加载 NG 细分表 (unifyParams) ---
-        // 使用迭代器遍历 QMap，以便我们可以修改 value (UnifyParam)
-        for (auto it = camera->unifyParams.begin(); it != camera->unifyParams.end(); ++it) {
-            UnifyParam& param = it.value(); // 获取引用
-            const QString& defectType = param.label; // 对应 "缺陷类型"
 
-            QString detailCondition = QString("\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(defectType);
+        // 【关键修复 1】必须检查 RI 指针
+        if (!camera->RI) continue;
+
+        // 【关键修复 2】必须遍历 RI->unifyParams (这就是之前数据为0的元凶)
+        // 使用迭代器以便修改 value
+        for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
+            UnifyParam& param = it.value();
+            const QString& defectType = param.label;
+
+            QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'")
+                .arg(cameraName).arg(defectType);
+
+            // 初始化为空，防止 variant 默认 int(0) 导致误判
             std::variant<int, double, std::string> dbDefectCount = "";
 
             SqliteDB::DBOperation::GetRecordValue(
-                detailTableName.toUtf8().constData(), "数量", detailCondition.toUtf8().constData(), dbDefectCount
+                detailTableName.toUtf8().constData(),
+                QString::fromUtf8(u8"数量").toUtf8().constData(),
+                detailCondition.toUtf8().constData(),
+                dbDefectCount
             );
 
             if (std::holds_alternative<int>(dbDefectCount)) {
-                // 继承数据库的值到 ng_count
+                // 继承数据库的值
                 param.ng_count = static_cast<int64_t>(std::get<int>(dbDefectCount));
             }
             else {
-                // 插入新记录
+                // 数据库无记录：插入 0 并重置内存
                 std::vector<std::variant<int, double, std::string>> defectValuesToInsert;
                 defectValuesToInsert.push_back(cameraName.toUtf8().toStdString());
                 defectValuesToInsert.push_back(defectType.toUtf8().toStdString());
                 defectValuesToInsert.push_back(0);
                 SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), defectValuesToInsert);
 
-                param.ng_count = 0; // 重置内存
+                param.ng_count = 0;
             }
         }
 
+        // 最后同样需要刷新下拉框 (可选)
+        // initCameraList();
     }
 }
-
 void MainWindow::updateDB_Unify()
 {
+    qDebug() << "\n=== [DEBUG] 开始执行 updateDB_Unify (RI数据专注版) ===";
 
+    // --- 1. 计算班次和表名 (逻辑保持不变) ---
+    QDateTime now = QDateTime::currentDateTime();
+    int currentHour = now.time().hour();
+    QDate logicalDate = now.date();
+    QString currentSuffix, prevSuffix;
+    QDate prevLogicalDate;
+
+    if (currentHour >= 8 && currentHour < 20) {
+        currentSuffix = "_daytime";
+        prevSuffix = "_night";
+        prevLogicalDate = logicalDate.addDays(-1);
+    }
+    else {
+        currentSuffix = "_night";
+        if (currentHour < 8) logicalDate = logicalDate.addDays(-1);
+        prevSuffix = "_daytime";
+        prevLogicalDate = logicalDate;
+    }
+
+    QString dateStr = logicalDate.toString("yyyyMMdd");
+    QString prevDateStr = prevLogicalDate.toString("yyyyMMdd");
+
+    QString summaryTableName = dateStr + "_All_summary" + currentSuffix;
+    QString detailTableName = dateStr + "_NG_details" + currentSuffix;
+    QString prevSummaryTableName = prevDateStr + "_All_summary" + prevSuffix;
+    QString prevDetailTableName = prevDateStr + "_NG_details" + prevSuffix;
+
+    // --- 2. 确保表存在 (强制 UTF-8) ---
+    QString summaryCols = QString::fromUtf8(u8"\"相机名称\" TEXT PRIMARY KEY, \"总数\" INT, \"NG数\" INT, \"良率\" REAL");
+    SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
+
+    QString detailCols = QString::fromUtf8(u8"\"相机名称\" TEXT, \"缺陷类型\" TEXT, \"数量\" INT, PRIMARY KEY(\"相机名称\", \"缺陷类型\")");
+    SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
+
+    // --- 3. 遍历所有相机 ---
+    for (const auto& camera : cams) {
+        if (!camera) continue;
+        const QString& cameraName = camera->cameral_name;
+
+        // 【修正点 1】必须先检查 RI 指针是否有效
+        if (!camera->RI) {
+            qDebug() << ">>> [DEBUG] 警告: 相机 " << cameraName << " 的 RI 指针为空！跳过详情更新。";
+            continue;
+        }
+
+        // =========================================================
+        // 【调试步骤 0】: 只关注 camera->RI->unifyParams 的状态
+        // =========================================================
+        if (cameraName == QString::fromUtf8(u8"花瓣负极")) {
+            qDebug() << ">>> [DEBUG 目标] 相机: " << cameraName;
+            qDebug() << "    总数:" << camera->sum_count.load() << " NG总数:" << camera->error_count.load();
+
+            auto& targetParams = camera->RI->unifyParams;
+
+            if (targetParams.isEmpty()) {
+                qDebug() << "    !!! 严重警告: camera->RI->unifyParams 为空 !!!";
+                qDebug() << "    (请检查 Init 阶段是否正确加载了参数到这个 RI 对象)";
+            }
+            else {
+                for (auto it = targetParams.begin(); it != targetParams.end(); ++it) {
+                    if (it.value().ng_count > 0) {
+                        qDebug() << "    [内存原始值] 缺陷:" << it.value().label << " NG数:" << it.value().ng_count;
+                    }
+                }
+            }
+        }
+        // =========================================================
+
+        long long currentAbsoluteTotal = camera->sum_count.load();
+        long long currentAbsoluteNg = camera->error_count.load();
+        QString condition = QString::fromUtf8(u8"\"相机名称\" = '%1'").arg(cameraName);
+
+        std::map<std::string, std::variant<int, double, std::string>> existingRecord;
+        SqliteDB::DBOperation::GetFullRecord(summaryTableName.toUtf8().constData(), condition.toUtf8().constData(), existingRecord);
+
+        if (existingRecord.empty()) {
+            // [分支 A] 换班结转
+            std::map<std::string, std::variant<int, double, std::string>> prevRecord;
+            SqliteDB::DBOperation::GetFullRecord(prevSummaryTableName.toUtf8().constData(), condition.toUtf8().constData(), prevRecord);
+
+            long long prevTotal = 0, prevNg = 0;
+            if (!prevRecord.empty()) {
+                if (prevRecord.count(QString::fromUtf8(u8"总数").toStdString())) prevTotal = std::get<int>(prevRecord.at(QString::fromUtf8(u8"总数").toStdString()));
+                if (prevRecord.count(QString::fromUtf8(u8"NG数").toStdString())) prevNg = std::get<int>(prevRecord.at(QString::fromUtf8(u8"NG数").toStdString()));
+            }
+
+            long long currentShiftTotal = currentAbsoluteTotal - prevTotal;
+            long long currentShiftNg = currentAbsoluteNg - prevNg;
+            double yieldRate = (currentShiftTotal > 0) ? (static_cast<double>(currentShiftTotal - currentShiftNg) / currentShiftTotal) : 0.0;
+
+            std::vector<std::variant<int, double, std::string>> summaryValues;
+            summaryValues.push_back(cameraName.toUtf8().toStdString());
+            summaryValues.push_back(static_cast<int>(currentShiftTotal));
+            summaryValues.push_back(static_cast<int>(currentShiftNg));
+            summaryValues.push_back(yieldRate);
+            SqliteDB::DBOperation::InsertRecord(summaryTableName.toUtf8().constData(), summaryValues);
+
+            camera->sum_count.store(currentShiftTotal);
+            camera->error_count.store(currentShiftNg);
+
+            for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
+                UnifyParam& param = it.value();
+                QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
+
+                std::variant<int, double, std::string> prevDefectCountVar = "";
+                SqliteDB::DBOperation::GetRecordValue(prevDetailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), prevDefectCountVar);
+
+                long long prevDefectCount = 0;
+                if (std::holds_alternative<int>(prevDefectCountVar)) prevDefectCount = std::get<int>(prevDefectCountVar);
+
+                long long currentShiftDefect = param.ng_count - prevDefectCount;
+
+                std::vector<std::variant<int, double, std::string>> detailValues;
+                detailValues.push_back(cameraName.toUtf8().toStdString());
+                detailValues.push_back(param.label.toUtf8().toStdString());
+                detailValues.push_back(static_cast<int>(currentShiftDefect));
+                SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
+
+                param.ng_count = currentShiftDefect;
+            }
+
+        }
+        else {
+            // [分支 B] 常规更新
+            double newYieldRate = (currentAbsoluteTotal > 0) ? (static_cast<double>(currentAbsoluteTotal - currentAbsoluteNg) / currentAbsoluteTotal) : 0.0;
+
+            std::map<std::string, std::variant<int, double, std::string>> summaryValues;
+            summaryValues[QString::fromUtf8(u8"总数").toStdString()] = static_cast<int>(currentAbsoluteTotal);
+            summaryValues[QString::fromUtf8(u8"NG数").toStdString()] = static_cast<int>(currentAbsoluteNg);
+            summaryValues[QString::fromUtf8(u8"良率").toStdString()] = newYieldRate;
+            SqliteDB::DBOperation::UpdateFullRecord(summaryTableName.toUtf8().constData(), summaryValues, condition.toUtf8().constData());
+
+            for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
+                UnifyParam& param = it.value();
+                QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
+
+                // 【调试点 2】: 打印写入前的值 (只针对目标相机和有数据的项)
+                if (cameraName == QString::fromUtf8(u8"花瓣负极") && param.ng_count > 0) {
+                    qDebug() << "    [即将更新数据库] " << param.label << " -> " << param.ng_count;
+                }
+
+                std::variant<int, double, std::string> checkVal = "";
+                SqliteDB::DBOperation::GetRecordValue(detailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), checkVal);
+
+                if (std::holds_alternative<int>(checkVal)) {
+                    SqliteDB::DBOperation::UpdateRecordValue(
+                        detailTableName.toUtf8().constData(),
+                        QString::fromUtf8(u8"数量").toUtf8().constData(),
+                        static_cast<int>(param.ng_count),
+                        detailCondition.toUtf8().constData()
+                    );
+                }
+                else {
+                    std::vector<std::variant<int, double, std::string>> detailValues;
+                    detailValues.push_back(cameraName.toUtf8().toStdString());
+                    detailValues.push_back(param.label.toUtf8().toStdString());
+                    detailValues.push_back(static_cast<int>(param.ng_count));
+                    SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
+                }
+            }
+        }
+    }
+    qDebug() << "=== updateDB_Unify 结束 ===\n";
 }
 
 void MainWindow::initSqlite3Db_Plater()
@@ -3598,12 +3769,18 @@ void MainWindow::setupUpdateTimer()
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Plater);
 
     m_databaseTimer->start(10*60*1000);
-#else  
+#elif  USE_MAIN_WINDOW_BRADER
     connect(m_updateTimer, &QTimer::timeout, m_rightControlPanel, &RightControlPanel::updateStatistics);
 
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Brader);
 
     m_databaseTimer->start(60 * 1000);
+
+#else USE_MAIN_WINDOW_FLOWER
+    connect(m_updateTimer, &QTimer::timeout, m_rightControlPanel, &RightControlPanel::updateStatistics);
+    connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Unify);
+	m_databaseTimer->start(60 * 100);
+
 #endif
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
 
@@ -3944,6 +4121,24 @@ void MainWindow::onStopAllCamerasClicked() {
 
 }
 
+void MainWindow::ResetCameraNGCounts(Cameral* cam)
+{
+    if (!cam) return;
+
+    for (auto it = cam->unifyParams.begin(); it != cam->unifyParams.end(); ++it) {
+        it.value().ng_count = 0;
+    }
+    if (cam->RI) {
+        for (auto it = cam->RI->unifyParams.begin();
+            it != cam->RI->unifyParams.end(); ++it)
+        {
+            it.value().ng_count = 0;
+        }
+    }
+
+}
+
+
 void MainWindow::onClearAllCameraClicked()
 {
     for(auto cam :cams)
@@ -3964,6 +4159,7 @@ void MainWindow::onClearAllCameraClicked()
         {
             cam->RI->m_PaintData[i].count = 0;
         }
+        ResetCameraNGCounts(cam);
     }
 #endif // !USE_MAIN_WINDOW_CAPACITY
 

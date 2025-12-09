@@ -44,6 +44,10 @@ AlgoClass_Xs::AlgoClass_Xs(QString algopath, QObject* parent)
 
     if (map.contains("脏污最大面积"))
         ZW_max = map.value("脏污最大面积").toMap().value("值").toFloat();
+
+    // ⭐ 新增：线扫标定值
+    if (map.contains("线扫标定值"))
+        XS_BDparam = map.value("线扫标定值").toMap().value("值").toFloat();
 }
 
 QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
@@ -71,6 +75,9 @@ QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
     QLineEdit* editHSMax = addRow("划伤最大面积:", HS_max);
     QLineEdit* editZWMax = addRow("脏污最大面积:", ZW_max);
 
+    // ⭐ 新增 UI 输入框：线扫标定值
+    QLineEdit* editBDValue = addRow("线扫标定值:", XS_BDparam);
+
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
@@ -85,6 +92,10 @@ QWidget* AlgoClass_Xs::createLeftPanel(QWidget* parent)
         CMAX_max = editCMAX->text().toFloat();
         HS_max = editHSMax->text().toFloat();
         ZW_max = editZWMax->text().toFloat();
+
+        // ⭐ 保存新参数
+        XS_BDparam = editBDValue->text().toFloat();
+
         saveParamAsync();
         });
 
@@ -104,6 +115,9 @@ void AlgoClass_Xs::saveParamAsync()
     mapToSave["凹陷面积"] = QVariantMap{ {"值", CMAX_max} };
     mapToSave["划伤最大面积"] = QVariantMap{ {"值", HS_max} };
     mapToSave["脏污最大面积"] = QVariantMap{ {"值", ZW_max} };
+
+    // ⭐ 新增 JSON 字段：线扫标定值
+    mapToSave["线扫标定值"] = QVariantMap{ {"值", XS_BDparam} };
 
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;

@@ -83,7 +83,7 @@ DebugTool::DebugTool(QWidget* parent)
     QLabel* runPointLabel = new QLabel("运行点位", this);
     runPointLabel->setFixedSize(100, 30);
     runPointCombo = new QComboBox(this);
-    for (int i = 1; i <= 20; ++i) runPointCombo->addItem(QString::number(i));
+    for (int i = 1; i <= 30; ++i) runPointCombo->addItem(QString::number(i));
     runPointCombo->setCurrentIndex(GlobalPara::RunPoint - 1); // 默认值
     runPointLayout->addWidget(runPointLabel);
     runPointLayout->addWidget(runPointCombo);

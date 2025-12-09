@@ -3,7 +3,7 @@
 
 #define ADAPTATEION
 //#define QIMAGE
-//#define FOURBRADER
+#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -384,7 +384,6 @@ struct UnifyParam
 
         // 结果即为两者是否相等
         bool result = (actualBool == expectedBool);
-
         // 打印调试信息
         qDebug().nospace() << "  -> Judge Result: " << (result ? "PASS" : "FAIL")
             << " (Actual: " << actualBool << ", Expected: " << expectedBool << ")";

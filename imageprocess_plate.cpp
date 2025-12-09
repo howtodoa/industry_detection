@@ -176,6 +176,11 @@ void Imageprocess_Plate::run()
 					ret = cam_instance->RI->judge_plate(para);
 					qint64 elapsed = timer1.elapsed();  // 返回毫秒数
 					qDebug() << "执行 updateActualValues + applyScaleFactors 耗时:" << elapsed << "ms";
+					LOG_DEBUG(GlobalLog::logger,
+						QString("Abut into judge, Returned: %1")
+						.arg(ret)
+						.toStdWString()
+						.c_str());
 					if (ret == 1) ret = -1;
 				}
 				else if (ret == 3) {
@@ -302,6 +307,11 @@ void Imageprocess_Plate::run()
 					cam_instance->RI->updateActualValues(OutResParam);
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_abut(OutResParam);
+					LOG_DEBUG(GlobalLog::logger,
+						QString("Abut into judge, Returned: %1")
+						.arg(ret)
+						.toStdWString()
+						.c_str());
 					if (ret == 1) ret = -1;
 				}
 				else if (ret == 3)

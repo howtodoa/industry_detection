@@ -81,11 +81,22 @@ void ImageViewerWindow::resizeEvent(QResizeEvent* event)
 }
 
 // 更新图片显示：将图片等比例缩放到 imageLabel 的尺寸
+// 修复后的 ImageViewerWindow::updateImageDisplay()
 void ImageViewerWindow::updateImageDisplay()
 {
+    if (!imageLabel) {
+        // 如果 imageLabel 是空指针，直接返回，防止访问冲突
+        return;
+    }
+
+    QSize labelSize = imageLabel->size();
+    if (labelSize.width() <= 0 || labelSize.height() <= 0) {
+        return;
+    }
+
     if (!originalPixmap.isNull()) {
         QPixmap scaled = originalPixmap.scaled(
-            imageLabel->size(),
+            labelSize,
             Qt::KeepAspectRatio, // 保持宽高比
             Qt::SmoothTransformation
         );

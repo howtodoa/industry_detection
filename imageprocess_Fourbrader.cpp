@@ -381,15 +381,15 @@ void Imageprocess_FourBrader::run()
 					switch (result.crop_bootomResult.NGResult)
 					{
 					case Crop_Bottom_NGReults::LKPS_Err:
-						info.errmsg << "LKPS_Err";   // 漏孔破损
+						info.errmsg << "铝壳破损";   // 漏孔破损
 						break;
 
 					case Crop_Bottom_NGReults::JMPS_Err:
-						info.errmsg << "JMPS_Err";   // 筋模破损
+						info.errmsg << "胶帽破损";
 						break;
 
 					case Crop_Bottom_NGReults::WBTC_Err:
-						info.errmsg << "WBTC_Err";   // 尾部突出
+						info.errmsg << "丸棒突出";
 						break;
 
 					case Crop_Bottom_NGReults::NG:

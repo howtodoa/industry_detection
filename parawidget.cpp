@@ -315,7 +315,7 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
     // 【修改点 3：调整 QDoubleValidator 精度】
     QDoubleValidator* validator = new QDoubleValidator(this);
     validator->setLocale(QLocale::C);
-    validator->setDecimals(4); // 减小到 4 位小数
+    validator->setDecimals(8); 
     // ------------------------------------
 
     // 3. 遍历参数并创建 UI 控件
@@ -334,7 +334,7 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
 
         QLabel* scaleLabel = new QLabel("标定参数:", this);
         // 【修改点 2：调整 scaleFactor 显示精度】
-        QLineEdit* scaleEdit = new QLineEdit(QString::number(config.scaleFactor, 'f', 4), this);
+        QLineEdit* scaleEdit = new QLineEdit(QString::number(config.scaleFactor, 'f', 8), this);
         scaleEdit->setValidator(validator);
 
         // **新增控件 (ExpandParam)**
@@ -348,7 +348,7 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
 
         // 2. 学习补偿 (QLineEdit)
         // 【修改点 2：调整 self_learn 显示精度】
-        QLineEdit* selfLearnEdit = new QLineEdit(QString::number(config.expandParam.self_learn, 'f', 4), this);
+        QLineEdit* selfLearnEdit = new QLineEdit(QString::number(config.expandParam.self_learn, 'f', 8), this);
         selfLearnEdit->setValidator(validator);
         // ------------------------------------
 
@@ -380,7 +380,7 @@ void ParaWidget::setupScaleTabEX(QTabWidget* tabWidget)
     }
 
     // 现在有 7 列 (0-6)
-    gridLayout->setColumnStretch(0, 3); // 映射变量
+    gridLayout->setColumnStretch(0, 2); // 映射变量
     gridLayout->setColumnStretch(1, 1); // 启用检测
     gridLayout->setColumnStretch(2, 1); // 标定参数 Label
     gridLayout->setColumnStretch(3, 1); // 标定参数 Edit 
@@ -857,7 +857,7 @@ void ParaWidget::setupRangeTab_EX(QTabWidget* tabWidget) // 修改函数定义
     // Col 5: 可见标签, Col 6: 可见Check, Col 7: 额外空间
 
     // 【修改】调整拉伸因子以适应恢复的补偿值列
-    gridLayout->setColumnStretch(0, 4); // 主标签
+    gridLayout->setColumnStretch(0, 2); // 主标签
     gridLayout->setColumnStretch(1, 1); // 值标签
     gridLayout->setColumnStretch(2, 2); // 值输入框
     gridLayout->setColumnStretch(3, 1); // 补偿标签

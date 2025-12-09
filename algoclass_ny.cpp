@@ -41,6 +41,10 @@ AlgoClass_Ny::AlgoClass_Ny(QString algopath, QObject* parent)
 
     if (map.contains("捺印脏污最小面积"))
         ZW_AreaMin = map.value("捺印脏污最小面积").toMap().value("值").toFloat();
+
+    // 新增：捺印标定参数
+    if (map.contains("捺印标定参数"))
+        NY_BDparam = map.value("捺印标定参数").toMap().value("值").toFloat();
 }
 
 QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
@@ -67,6 +71,9 @@ QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
     QLineEdit* editYH = addRow("捺印压痕最小面积:", YH_AreaMin);
     QLineEdit* editZW = addRow("捺印脏污最小面积:", ZW_AreaMin);
 
+    // 新增：捺印标定参数
+    QLineEdit* editBD = addRow("捺印标定参数:", NY_BDparam);
+
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
@@ -80,6 +87,8 @@ QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
         QP_AreaMin = editQP->text().toFloat();
         YH_AreaMin = editYH->text().toFloat();
         ZW_AreaMin = editZW->text().toFloat();
+        NY_BDparam = editBD->text().toFloat();   // 新增保存
+
         saveParamAsync();
         });
 
@@ -98,6 +107,9 @@ void AlgoClass_Ny::saveParamAsync()
     mapToSave["捺印负极气泡最小面积"] = QVariantMap{ {"值", QP_AreaMin} };
     mapToSave["捺印压痕最小面积"] = QVariantMap{ {"值", YH_AreaMin} };
     mapToSave["捺印脏污最小面积"] = QVariantMap{ {"值", ZW_AreaMin} };
+
+    // 新增捺印标定参数
+    mapToSave["捺印标定参数"] = QVariantMap{ {"值", NY_BDparam} };
 
     QString filePath = m_cameralPath;
     QVariantMap dataToSave = mapToSave;

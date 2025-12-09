@@ -17,6 +17,10 @@ public:
     float JM_min = 1.0f;
     float WB_min = 1.0f;
 
+    float LK_BOTTOM_BDparam = 5;   // 胶帽标定
+    float JM_BOTTOM_BDparam = 5;   // 铝壳标定
+
+
 private slots:
 
 };

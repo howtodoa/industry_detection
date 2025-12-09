@@ -14,17 +14,20 @@ public:
 
 public:
     // 基本参数
-    float SJ_WidthMin = 6.0f;
-    float SJ_WidthMax = 20.0f;
-    float JM_Height = 7.0f;
-    int JM_Thresholdup = 56;
-    int JM_Thresholddown = 29;
+    float SJ_WidthMin = 6.0f;      // 塑胶最小宽度
+    float SJ_WidthMax = 20.0f;     // 塑胶最大宽度
+    float JM_Height = 7.0f;        // 胶帽高度
+    int JM_Thresholdup = 56;       // 胶帽亮度上阈值
+    int JM_Thresholddown = 29;     // 胶帽亮度下阈值
 
     // 瑕疵检测
-    float AX_max = 10.0f;
-    float CMAX_max = 10.0f;
-    float HS_max = 10.0f;
-    float ZW_max = 10.0f;
+    float AX_max = 10.0f;          // 凹陷最大面积
+    float CMAX_max = 10.0f;        // 凹陷面积
+    float HS_max = 10.0f;          // 划伤最大面积
+    float ZW_max = 10.0f;          // 脏污最大面积
+
+    // 新增参数
+    float XS_BDparam = 7.0f;       //算法标定
 
 private slots:
 };

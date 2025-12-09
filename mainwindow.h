@@ -68,6 +68,7 @@ public:
     void updateDB_Plater();
 	void updateDB_Unify();
     bool updateDeviceId();
+    void ResetCameraNGCounts(Cameral* cam);
     Role role;
 public slots:
     void onStartAllCamerasClicked();
