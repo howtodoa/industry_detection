@@ -398,6 +398,86 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 }
 
 
+bool isPointerSafe(void* ptr, size_t requiredSize = 1)
+{
+	if (ptr == nullptr) {
+		qDebug() << "[PtrCheck] 指针为空 nullptr";
+		return false;
+	}
+
+	MEMORY_BASIC_INFORMATION mbi;
+	SIZE_T ret = VirtualQuery(ptr, &mbi, sizeof(mbi));
+
+	if (ret == 0) {
+		qDebug() << "[PtrCheck] VirtualQuery 失败：指向无效地址 =" << ptr;
+		return false;
+	}
+
+	DWORD protect = mbi.Protect;
+
+	// Guard / NoAccess
+	if (protect & (PAGE_GUARD | PAGE_NOACCESS)) {
+		qDebug() << "[PtrCheck] 指向不可访问区域 =" << ptr;
+		return false;
+	}
+
+	// Readable?
+	bool canRead =
+		(protect & PAGE_READONLY) ||
+		(protect & PAGE_READWRITE) ||
+		(protect & PAGE_WRITECOPY) ||
+		(protect & PAGE_EXECUTE_READ) ||
+		(protect & PAGE_EXECUTE_READWRITE) ||
+		(protect & PAGE_EXECUTE_WRITECOPY);
+
+	if (!canRead) {
+		qDebug() << "[PtrCheck] 指针不可读 =" << ptr;
+		return false;
+	}
+
+	// 区域大小判断
+	if (requiredSize > mbi.RegionSize) {
+		qDebug() << "[PtrCheck] 区域不足: 需要" << requiredSize
+			<< " 实际区域 =" << mbi.RegionSize
+			<< " ptr =" << ptr;
+		return false;
+	}
+
+	return true;
+}
+
+bool isMatSafe(const cv::Mat& mat, size_t requiredSize = 0)
+{
+	if (mat.empty()) {
+		qDebug() << "[MatCheck] Mat 是空的";
+		return false;
+	}
+
+	if (mat.data == nullptr) {
+		qDebug() << "[MatCheck] Mat.data 是 null";
+		return false;
+	}
+
+	size_t matBytes = mat.total() * mat.elemSize();
+
+	if (requiredSize == 0)
+		requiredSize = matBytes;   // 默认需要全部
+
+	if (requiredSize > matBytes) {
+		qDebug() << "[MatCheck] Mat 大小不足: 需要" << requiredSize
+			<< " 实际" << matBytes;
+		return false;
+	}
+
+	// 再调用前面的指针检查
+	if (!isPointerSafe(mat.data, requiredSize)) {
+		qDebug() << "[MatCheck] Mat.data 指针无效";
+		return false;
+	}
+
+	return true;
+}
+
 QString FirstFailedParamLabel(const AllUnifyParams& allParams)
 {
 	// 遍历 QMap 中的所有元素

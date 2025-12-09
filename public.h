@@ -52,6 +52,10 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 
 bool generateDir(const std::string& dirPath);
 
+bool isPointerSafe(void* ptr, size_t requiredSize = 1);
+
+bool isMatSafe(const cv::Mat& mat, size_t requiredSize = 0);
+
 cv::Mat QPixmapToMat(const QPixmap& pixmap);
 
 QString FirstFailedParamLabel(const AllUnifyParams& allParams);

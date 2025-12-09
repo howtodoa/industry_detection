@@ -40,17 +40,25 @@ void Imageprocess_Image::run()
 
 			currentImagePtr = m_inputQueue->queue.front();
 
-			if (!currentImagePtr || currentImagePtr->empty()) {
-				LOG_DEBUG(GlobalLog::logger, L"ptr null");
+			// 替换对 currentImagePtr 的检查
+			if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
+				// 检查指针是否为空 或 Mat 数据是否安全
+				LOG_DEBUG(GlobalLog::logger, L"ptr null or Mat unsafe");
 				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
 			}
 			else {
-				qDebug() << "currentImagePtr not empty()";
+				qDebug() << "currentImagePtr not empty() and Mat is safe";
 			}
 
 			m_inputQueue->queue.pop_front();
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
+
+		// 如果 Mat 不安全，则跳过本次循环，防止对空 Mat 或无效 Mat 进行处理
+		if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
+			continue;
+		}
+
 		if (GlobalPara::changed.load() == true) continue;
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
@@ -61,7 +69,7 @@ void Imageprocess_Image::run()
 		{
 
 			QElapsedTimer timer;
-			timer.start();  // 开始计时
+			timer.start();  // 开始计时
 			for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
 				cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
 				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
@@ -217,14 +225,10 @@ void Imageprocess_Image::run()
 		else // 推流的情况
 		{
 			afterImagePtr = currentImagePtr;
+			// 推流情况下无需额外的 afterImagePtr 检查
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
-			//emit imageProcessed(afterImagePtr, info);
-			info.ret = ret;
-			emit imageProcessed_QImage(convertMatToQImage(*afterImagePtr), info);
-		/*	currentImagePtr.reset();
-			backupImagePtr.reset();
-			afterImagePtr.reset();*/
+
 			continue;
 		}
 
@@ -266,8 +270,25 @@ void Imageprocess_Image::run()
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
 
-		QImage imgToSave=convertMatToQImage(*backupImagePtr);
-		QImage imgToPlay=convertMatToQImage(*afterImagePtr);
+		// 在使用 backupImagePtr 和 afterImagePtr 之前，再次检查它们的安全性
+		QImage imgToSave;
+		if (backupImagePtr && isMatSafe(*backupImagePtr)) {
+			imgToSave = convertMatToQImage(*backupImagePtr);
+		}
+		else {
+			qWarning() << "Backup image is not safe, cannot convert to QImage for saving/display.";
+		}
+
+		QImage imgToPlay;
+		bool afterImageSafe = false;
+		if (afterImagePtr && isMatSafe(*afterImagePtr)) {
+			imgToPlay = convertMatToQImage(*afterImagePtr);
+			afterImageSafe = true;
+		}
+		else {
+			qWarning() << "After process image is not safe, cannot convert to QImage for display.";
+		}
+
 
 		//存图
 		if (cam_instance->DI.saveflag.load() > 1 && cam_instance->video == false)
@@ -286,36 +307,33 @@ void Imageprocess_Image::run()
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
 			{
-				currentSaveData.image = imgToSave;
-				saveToQueue->queue.push_back(currentSaveData);
-				GlobalLog::logger.Mz_AddLog(L"pre Save");
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				if (!imgToSave.isNull()) { // 检查 imgToSave 是否成功转换
+					currentSaveData.image = imgToSave;
+					saveToQueue->queue.push_back(currentSaveData);
+					GlobalLog::logger.Mz_AddLog(L"pre Save");
+					qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				}
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == 0)
 			{
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				qDebug() << "OK 结果，按设置不保存。当前队列大小：" << saveToQueue->queue.size();
 			}
 			else
 			{
-				currentSaveData.image = imgToSave;
-				saveToQueue->queue.push_back(currentSaveData);
-				GlobalLog::logger.Mz_AddLog(L"all Save");
-				qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				if (!imgToSave.isNull()) { // 检查 imgToSave 是否成功转换
+					currentSaveData.image = imgToSave;
+					saveToQueue->queue.push_back(currentSaveData);
+					GlobalLog::logger.Mz_AddLog(L"all Save");
+					qDebug() << "图像数据和信息已推入保存队列。当前队列大小：" << saveToQueue->queue.size();
+				}
 			}
 			saveToQueue->cond.notify_one();
 		}
-		//int num = 5;
-		//while (cam_instance->ui_signal.load() != false)
-		//{
-		//	Sleep(5);
-		//	num += 5;
-		//	if (num > 60) {
-		//		cam_instance->ui_signal.store(false);
-		//		break;
-		//	}
-		//}
+
 		info.paintDataSnapshot = cam_instance->RI->m_PaintData;
-		if (!afterImagePtr || afterImagePtr->empty()) {
+
+		// 替换函数末尾对 afterImagePtr 的检查
+		if (!afterImageSafe) {
 			LOG_DEBUG(GlobalLog::logger, L"Imageprocess_Image::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed_QImage(imgToSave, info);
 
