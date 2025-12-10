@@ -90,31 +90,31 @@ DebugTool::DebugTool(QWidget* parent)
     runPointLayout->addStretch();
     mainLayout->addLayout(runPointLayout);
 
-    // FLOWER_POS_LENGTH
-    QHBoxLayout* flowerPosLayout = new QHBoxLayout;
-    flowerPosLayout->setSpacing(5);
-    QLabel* flowerPosLabel = new QLabel("FLOWER_POS_LENGTH", this);
-    flowerPosLabel->setFixedSize(120, 30);
-    flowerPosCombo = new QComboBox(this);
-    for (int i = 1; i <= 8; ++i) flowerPosCombo->addItem(QString::number(i));
-    flowerPosCombo->setCurrentIndex(GlobalPara::FLOWER_POS_LENGTH - 1);
-    flowerPosLayout->addWidget(flowerPosLabel);
-    flowerPosLayout->addWidget(flowerPosCombo);
-    flowerPosLayout->addStretch();
-    mainLayout->addLayout(flowerPosLayout);
+    //// FLOWER_POS_LENGTH
+    //QHBoxLayout* flowerPosLayout = new QHBoxLayout;
+    //flowerPosLayout->setSpacing(5);
+    //QLabel* flowerPosLabel = new QLabel("FLOWER_POS_LENGTH", this);
+    //flowerPosLabel->setFixedSize(120, 30);
+    //flowerPosCombo = new QComboBox(this);
+    //for (int i = 1; i <= 8; ++i) flowerPosCombo->addItem(QString::number(i));
+    //flowerPosCombo->setCurrentIndex(GlobalPara::FLOWER_POS_LENGTH - 1);
+    //flowerPosLayout->addWidget(flowerPosLabel);
+    //flowerPosLayout->addWidget(flowerPosCombo);
+    //flowerPosLayout->addStretch();
+    //mainLayout->addLayout(flowerPosLayout);
 
-    // FLOWER_NEG_LENGTH
-    QHBoxLayout* flowerNegLayout = new QHBoxLayout;
-    flowerNegLayout->setSpacing(5);
-    QLabel* flowerNegLabel = new QLabel("FLOWER_NEG_LENGTH", this);
-    flowerNegLabel->setFixedSize(120, 30);
-    flowerNegCombo = new QComboBox(this);
-    for (int i = 1; i <= 8; ++i) flowerNegCombo->addItem(QString::number(i));
-    flowerNegCombo->setCurrentIndex(GlobalPara::FLOWER_NEG_LENGTH - 1);
-    flowerNegLayout->addWidget(flowerNegLabel);
-    flowerNegLayout->addWidget(flowerNegCombo);
-    flowerNegLayout->addStretch();
-    mainLayout->addLayout(flowerNegLayout);
+    //// FLOWER_NEG_LENGTH
+    //QHBoxLayout* flowerNegLayout = new QHBoxLayout;
+    //flowerNegLayout->setSpacing(5);
+    //QLabel* flowerNegLabel = new QLabel("FLOWER_NEG_LENGTH", this);
+    //flowerNegLabel->setFixedSize(120, 30);
+    //flowerNegCombo = new QComboBox(this);
+    //for (int i = 1; i <= 8; ++i) flowerNegCombo->addItem(QString::number(i));
+    //flowerNegCombo->setCurrentIndex(GlobalPara::FLOWER_NEG_LENGTH - 1);
+    //flowerNegLayout->addWidget(flowerNegLabel);
+    //flowerNegLayout->addWidget(flowerNegCombo);
+    //flowerNegLayout->addStretch();
+    //mainLayout->addLayout(flowerNegLayout);
 
     //断开相机按钮
     QHBoxLayout* disconnectLayout = new QHBoxLayout;
@@ -239,8 +239,8 @@ void DebugTool::saveSettings()
     paramMap["LIGHT3"] = light3Slider->value();
     paramMap["LIGHT4"] = light4Slider->value();
     paramMap["RunPoint"] = runPointCombo->currentText().toInt();
-    paramMap["FLOWER_POS_LENGTH"] = flowerPosCombo->currentText().toInt();
-    paramMap["FLOWER_NEG_LENGTH"] = flowerNegCombo->currentText().toInt();
+  //  paramMap["FLOWER_POS_LENGTH"] = flowerPosCombo->currentText().toInt();
+ //   paramMap["FLOWER_NEG_LENGTH"] = flowerNegCombo->currentText().toInt();
     paramMap["LearnCount"] = learnCountEdit->text().toInt();  
     paramMap["Timeout"] = timeoutEdit->text().toInt();
 
@@ -251,8 +251,8 @@ void DebugTool::saveSettings()
     GlobalPara::Light3 = paramMap["LIGHT3"];
     GlobalPara::Light4 = paramMap["LIGHT4"];
     GlobalPara::RunPoint = paramMap["RunPoint"];
-    GlobalPara::FLOWER_POS_LENGTH = paramMap["FLOWER_POS_LENGTH"];
-    GlobalPara::FLOWER_NEG_LENGTH = paramMap["FLOWER_NEG_LENGTH"];
+  //  GlobalPara::FLOWER_POS_LENGTH = paramMap["FLOWER_POS_LENGTH"];
+  //  GlobalPara::FLOWER_NEG_LENGTH = paramMap["FLOWER_NEG_LENGTH"];
     GlobalPara::LearnCount = paramMap["LearnCount"]; 
     GlobalPara::TimeOut = paramMap["Timeout"];       
 

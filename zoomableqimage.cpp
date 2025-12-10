@@ -17,11 +17,21 @@ ZoomableQImage::ZoomableQImage(QWidget* parent)
 
 void ZoomableQImage::setImage(const QImage& image)
 {
-    if (image.isNull()) return;
+    if (image.isNull()) {
+        qWarning() << "setImage: 输入图像为 null。";
+        return;
+    }
 
-    m_image = image;           // 深/浅拷贝由 Qt 自动管理（引用计数）
-    updateToFit();             // 根据窗口大小更新初始缩放
-    update();                  // 触发重绘
+    // 增加尺寸检查
+    if (image.width() <= 0 || image.height() <= 0) {
+        qWarning() << "setImage: 输入图像尺寸无效 ("
+            << image.width() << "x" << image.height() << ")，已拒绝。";
+        return;
+    }
+
+    m_image = image;
+    updateToFit(); // 此时 updateToFit 已经通过了所有安全检查
+    update();
 }
 
 void ZoomableQImage::resetView()

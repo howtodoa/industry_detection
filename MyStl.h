@@ -64,6 +64,26 @@ public:
         m_data.clear();
     }
 
+    void resize(size_t newMaxSize)
+    {
+        m_maxSize = newMaxSize;
+
+        while (m_data.size() > m_maxSize)
+        {
+            m_data.pop_front();
+        }
+
+        // int 类型：重新初始化为全 1
+        if constexpr (std::is_same_v<T, int>)
+        {
+            m_data.clear();
+            m_data.resize(m_maxSize, 1);
+        }
+        else
+        {
+            // 非 int 类型：保持现有数据，不做额外处理
+        }
+    }
 
     bool full() const
     {

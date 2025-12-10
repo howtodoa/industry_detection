@@ -81,9 +81,9 @@ InAbutParam LearnPara::inParam6 = {
 	100.0f    // plnMcHeight
 };
 
-InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,4 };
+InFlowerPinParam LearnPara::inParam7 = { false,0,220,0,2 };
 
-InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,4 };
+InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,2 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 
@@ -398,7 +398,7 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 }
 
 
-bool isPointerSafe(void* ptr, size_t requiredSize = 1)
+bool isPointerSafe(void* ptr, size_t requiredSize)
 {
 	if (ptr == nullptr) {
 		qDebug() << "[PtrCheck] 指针为空 nullptr";
@@ -446,7 +446,7 @@ bool isPointerSafe(void* ptr, size_t requiredSize = 1)
 	return true;
 }
 
-bool isMatSafe(const cv::Mat& mat, size_t requiredSize = 0)
+bool isMatSafe(const cv::Mat& mat, size_t requiredSize)
 {
 	if (mat.empty()) {
 		qDebug() << "[MatCheck] Mat 是空的";

@@ -36,16 +36,16 @@ void Imageprocess_FourBrader::run()
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
-			
+
 				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
 				});
-			
+
 			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
 				continue;
 			}
-			
+
 			currentImagePtr = m_inputQueue->queue.front();
- 
+
 			if (!currentImagePtr || currentImagePtr->empty()) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null");
 				qWarning() << "ImageProcess::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
@@ -62,18 +62,18 @@ void Imageprocess_FourBrader::run()
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;
 		int ret = -1;
-//		QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
-		//for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
-		//{
-		//	const QString paramKey = it.key();
+		//		QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+				//for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+				//{
+				//	const QString paramKey = it.key();
 
-		//	UnifyParam& config = it.value();
+				//	UnifyParam& config = it.value();
 
 
-		//	config.change_value();
+				//	config.change_value();
 
-	
-		//}
+
+				//}
 
 		if (cam_instance->video == false) // 非推流的情况
 		{
@@ -113,7 +113,7 @@ void Imageprocess_FourBrader::run()
 				// 先给复位信号false
 				bool outputSignalInvert = false;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
 
 				QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
@@ -121,7 +121,7 @@ void Imageprocess_FourBrader::run()
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
-	
+
 
 			if (cam_instance->indentify == "NaYin") {
 				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 0, LearnPara::inParam2);
@@ -164,58 +164,58 @@ void Imageprocess_FourBrader::run()
 				cv::Mat imgCopy = currentImagePtr->clone();
 
 				ALLResult result;
-				qDebug() << "into XS process";	
+				qDebug() << "into XS process";
 				g_detector->Process(algo_id, imgCopy, result);
 				qDebug() << "out XS process";
-				if (result.xsResult.NGResult != XS_NGReults::OK)
-				{
-					switch (result.xsResult.NGResult)
-					{
-					case XS_NGReults::AX_Err:
-						info.errmsg << "凹陷NG";
-						break;
+				//if (result.xsResult.NGResult != XS_NGReults::OK)
+				//{
+				//	switch (result.xsResult.NGResult)
+				//	{
+				//	case XS_NGReults::AX_Err:
+				//		info.errmsg << "凹陷NG";
+				//		break;
 
-					case XS_NGReults::CMAX_Err:
-						info.errmsg << "侧面凹陷NG";
-						break;
+				//	case XS_NGReults::CMAX_Err:
+				//		info.errmsg << "侧面凹陷NG";
+				//		break;
 
-					case XS_NGReults::HS_Err:
-						info.errmsg << "划伤NG";
-						break;
+				//	case XS_NGReults::HS_Err:
+				//		info.errmsg << "划伤NG";
+				//		break;
 
-					case XS_NGReults::ZW_Err:
-						info.errmsg << "脏污NG";
-						break;
+				//	case XS_NGReults::ZW_Err:
+				//		info.errmsg << "脏污NG";
+				//		break;
 
-					case XS_NGReults::FK_Err:
-						info.errmsg << "未封口";
-						break;
+				//	case XS_NGReults::FK_Err:
+				//		info.errmsg << "未封口";
+				//		break;
 
-					case XS_NGReults::SJ_Err:
-						info.errmsg << "未束胶";
-						break;
+				//	case XS_NGReults::SJ_Err:
+				//		info.errmsg << "未束胶";
+				//		break;
 
-					case XS_NGReults::JM_Err:
-						info.errmsg << "胶帽突出";
-						break;
+				//	case XS_NGReults::JM_Err:
+				//		info.errmsg << "胶帽突出";
+				//		break;
 
-					case XS_NGReults::NG:
-						info.errmsg << "NG";
-						break;
+				//	case XS_NGReults::NG:
+				//		info.errmsg << "NG";
+				//		break;
 
-					default:
-						info.errmsg << "未知错误";
-						break;
-					}
+				//	default:
+				//		info.errmsg << "未知错误";
+				//		break;
+				//	}
 
-					ret = -1;
-				}
-				else
-				{
-					cam_instance->RI->updateActualValues(result.xsResult);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_xs(result.xsResult);
-				}
+				//	ret = -1;
+				//}
+				//else
+				//{
+				cam_instance->RI->updateActualValues(result.xsResult);
+				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+				ret = cam_instance->RI->judge_xs(result.xsResult);
+				//}
 				*afterImagePtr = result.xsResult.dstImg.clone();
 			}
 
@@ -237,59 +237,58 @@ void Imageprocess_FourBrader::run()
 				ALLResult result;
 				g_detector->Process(algo_id, imgCopy, result);
 
-				if (result.nyResult.NGResult_single != NY_NGReults::OK)
-				{
-					switch (result.nyResult.NGResult_single)
-					{
-					case NY_NGReults::NULL_Err:
-						info.errmsg << "空白捺印";
-						break;
+				//if (result.nyResult.NGResult_single != NY_NGReults::OK)
+				//{
+				//	switch (result.nyResult.NGResult_single)
+				//	{
+				//	case NY_NGReults::NULL_Err:
+				//		info.errmsg << "空白捺印";
+				//		break;
 
-					case NY_NGReults::CQ_Err:
-						info.errmsg << "捺印残缺";
-						break;
+				//	case NY_NGReults::CQ_Err:
+				//		info.errmsg << "捺印残缺";
+				//		break;
 
-					case NY_NGReults::GS_Err:
-						info.errmsg << "捺印刮伤";
-						break;
+				//	case NY_NGReults::GS_Err:
+				//		info.errmsg << "捺印刮伤";
+				//		break;
 
-					case NY_NGReults::HS_Err:
-						info.errmsg << "捺印划伤";
-						break;
+				//	case NY_NGReults::HS_Err:
+				//		info.errmsg << "捺印划伤";
+				//		break;
 
-					case NY_NGReults::QP_Err:
-						info.errmsg << "捺印负极气泡";
-						break;
+				//	case NY_NGReults::QP_Err:
+				//		info.errmsg << "捺印负极气泡";
+				//		break;
 
-					case NY_NGReults::YH_Err:
-						info.errmsg << "捺印压痕";
-						break;
+				//	case NY_NGReults::YH_Err:
+				//		info.errmsg << "捺印压痕";
+				//		break;
 
-					case NY_NGReults::ZW_Err:
-						info.errmsg << "捺印脏污NG";
-						break;
+				//	case NY_NGReults::ZW_Err:
+				//		info.errmsg << "捺印脏污NG";
+				//		break;
 
-					case NY_NGReults::XT_ZF_Err:
-						info.errmsg << "型替字符";
-						break;
+				//	case NY_NGReults::XT_ZF_Err:
+				//		info.errmsg << "型替字符";
+				//		break;
 
-					case NY_NGReults::XT_Color_Err:
-						info.errmsg << "型替颜色";
-						break;
+				//	case NY_NGReults::XT_Color_Err:
+				//		info.errmsg << "型替颜色";
+				//		break;
 
-					default:
-						info.errmsg << "未知错误";
-						break;
-					}
+				//	default:
+				//		info.errmsg << "未知错误";
+				//		break;
+				//	}
 
-					ret = -1;
-				}
-				else
-				{
-					cam_instance->RI->updateActualValues(result.nyResult);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_ny(result.nyResult);
-				}
+				//	ret = -1;
+				//}
+
+				cam_instance->RI->updateActualValues(result.nyResult);
+				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+				ret = cam_instance->RI->judge_ny(result.nyResult);
+
 
 
 				*afterImagePtr = result.nyResult.dstImg.clone();
@@ -306,51 +305,48 @@ void Imageprocess_FourBrader::run()
 				cv::Mat imgCopy = currentImagePtr->clone();
 
 				ALLResult result;
-			//	g_detector_mutex.lock();
+				//	g_detector_mutex.lock();
 
 				g_detector->Process(algo_id, imgCopy, result);
 
-				ret = (result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK) ? 0 : -1;
+				//ret = (result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK) ? 0 : -1;
 
-				if (ret == 0)
-				{
-					// OK 情况
-					cam_instance->RI->updateActualValues(result.crop_bootomResult);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
-				}
-				else
-				{
-					// NG 情况（匹配错误信息）
-					switch (result.crop_bootomResult.NGResult)
-					{
-					case Crop_Bottom_NGReults::LKPS_Err:
-						info.errmsg << "铝壳破损";   // 漏孔破损
-						break;
+				//if (ret == 0)
+				//{
+				//	// NG 情况（匹配错误信息）
+				//	switch (result.crop_bootomResult.NGResult)
+				//	{
+				//	case Crop_Bottom_NGReults::LKPS_Err:
+				//		info.errmsg << "铝壳破损";   // 漏孔破损
+				//		break;
 
-					case Crop_Bottom_NGReults::JMPS_Err:
-						info.errmsg << "胶帽破损";   
-						break;
+				//	case Crop_Bottom_NGReults::JMPS_Err:
+				//		info.errmsg << "胶帽破损";
+				//		break;
 
-					case Crop_Bottom_NGReults::WBTC_Err:
-						info.errmsg << "丸棒突出";   
-						break;
+				//	case Crop_Bottom_NGReults::WBTC_Err:
+				//		info.errmsg << "丸棒突出";
+				//		break;
 
-					case Crop_Bottom_NGReults::NG:
-						info.errmsg << "NG";
-						break;
+				//	case Crop_Bottom_NGReults::NG:
+				//		info.errmsg << "NG";
+				//		break;
 
-					default:
-						info.errmsg << "未知错误";
-						break;
-					}
+				//	default:
+				//		info.errmsg << "未知错误";
+				//		break;
+				//	}
 
-					ret = -1;
-				}
+				//	ret = -1;
+				//}
+				// OK 情况
+				cam_instance->RI->updateActualValues(result.crop_bootomResult);
+				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+				ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
 
 				// 你可以选择 JM 或 LK 图，或者做 merge
 				*afterImagePtr = result.crop_bootomResult.JM_dstImg.clone();
-			//	g_detector_mutex.unlock();
+				//	g_detector_mutex.unlock();
 			}
 
 			// 底面 Bottom2
@@ -361,57 +357,57 @@ void Imageprocess_FourBrader::run()
 
 				ALLResult result;
 
-			//	g_detector_mutex.lock();
-		
+				//	g_detector_mutex.lock();
+
 
 				g_detector->Process(algo_id, imgCopy, result);
 
 				ret = (result.crop_bootomResult.NGResult == Crop_Bottom_NGReults::OK) ? 0 : -1;
 
-				if (ret == 0)
-				{
+				/*	if (ret == 0)
+					{*/
 					// OK 情况
-					cam_instance->RI->updateActualValues(result.crop_bootomResult);
-					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-					ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
-				}
-				else
-				{
-					// NG 情况（匹配错误信息）
-					switch (result.crop_bootomResult.NGResult)
-					{
-					case Crop_Bottom_NGReults::LKPS_Err:
-						info.errmsg << "铝壳破损";   // 漏孔破损
-						break;
+				cam_instance->RI->updateActualValues(result.crop_bootomResult);
+				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+				ret = cam_instance->RI->judge_bottom(result.crop_bootomResult);
+				//}
+				//else
+				//{
+				//	// NG 情况（匹配错误信息）
+				//	switch (result.crop_bootomResult.NGResult)
+				//	{
+				//	case Crop_Bottom_NGReults::LKPS_Err:
+				//		info.errmsg << "铝壳破损";   // 漏孔破损
+				//		break;
 
-					case Crop_Bottom_NGReults::JMPS_Err:
-						info.errmsg << "胶帽破损";
-						break;
+				//	case Crop_Bottom_NGReults::JMPS_Err:
+				//		info.errmsg << "胶帽破损";
+				//		break;
 
-					case Crop_Bottom_NGReults::WBTC_Err:
-						info.errmsg << "丸棒突出";
-						break;
+				//	case Crop_Bottom_NGReults::WBTC_Err:
+				//		info.errmsg << "丸棒突出";
+				//		break;
 
-					case Crop_Bottom_NGReults::NG:
-						info.errmsg << "NG";
-						break;
+				//	case Crop_Bottom_NGReults::NG:
+				//		info.errmsg << "NG";
+				//		break;
 
-					default:
-						info.errmsg << "未知错误";
-						break;
-					}
+				//	default:
+				//		info.errmsg << "未知错误";
+				//		break;
+				//	}
 
-					ret = -1;
-				}
+				//	ret = -1;
+				//}
 
 				*afterImagePtr = result.crop_bootomResult.LK_dstImg.clone();
 
-			//	g_detector_mutex.unlock();
+				//	g_detector_mutex.unlock();
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
 
 		}
-		else if(cam_instance->video==true) // 推流的情况
+		else if (cam_instance->video == true) // 推流的情况
 		{
 			afterImagePtr = currentImagePtr;
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
@@ -433,16 +429,16 @@ void Imageprocess_FourBrader::run()
 
 		qDebug() << "cam_instance->photo.load() :" << cam_instance->photo.load();
 		qDebug() << "ret :" << ret;
-		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 &&cam_instance->photo.load()==false)//非本地运行的情况
+		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 && cam_instance->photo.load() == false)//非本地运行的情况
 		{
-			QString camId =QString::fromStdString(cam_instance->indentify);
-			if (MergePointVec.contains(camId)==false)
+			QString camId = QString::fromStdString(cam_instance->indentify);
+			if (MergePointVec.contains(camId) == false)
 			{
 				bool outputSignalInvert = true;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
 				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false);
-				
+
 				QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
@@ -468,16 +464,16 @@ void Imageprocess_FourBrader::run()
 
 
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn &&  cam_instance->photo.load() == false)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && cam_instance->photo.load() == false)//非本地运行的情况
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)
 			{
 				bool outputSignalInvert = false;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load()-1, outputSignalInvert ? true : false, durationMs);
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
 				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() , outputSignalInvert ? true : false);
-				
+
 				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}

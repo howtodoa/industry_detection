@@ -725,7 +725,7 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 		});
 
 	// 在线学习按钮
-	if (cam->indentify == "Carrier_NaYin" || cam->indentify == "NaYin"||cam->indentify=="Top"  ||cam->indentify=="Pin"||cam->indentify=="Ny")
+	if (cam->indentify == "Carrier_NaYin" || cam->indentify == "NaYin"||cam->indentify=="Top"  ||cam->indentify=="Pin"||cam->indentify=="Ny"|| cam->indentify=="FlowerPin"|| cam->indentify=="FlowerPinNeg")
 	{
 		onlineLearnButton = new QPushButton(QIcon(iconPath_onlinelearn), "", this);
 		//onlineLearnButton->setFixedSize(40, 40);
@@ -1264,12 +1264,17 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 	// 捕获必要值（线程安全）
 	QString capturedCameraKey = cameraKey;
 	QString capturedFilePath = filePath;
+
+	// === 捕获 DI 中所有需要保存的值 ===
 	double diScaleFactor = DI->scaleFactor;
 	float diAngle = DI->Angle;
 	int saveFlag = DI->saveflag;
 	bool Sheild = DI->Shield;
 	bool emptyIsOK = DI->EmptyIsOK;
-	QFuture<bool> future = QtConcurrent::run([capturedCameraKey, capturedFilePath, diScaleFactor, diAngle, saveFlag, Sheild, emptyIsOK]() {
+	int queueLen = DI->queueLen;       // 新增：捕获长度
+	bool redTape = DI->RedTape;        // 新增：捕获红胶带开关
+
+	QFuture<bool> future = QtConcurrent::run([capturedCameraKey, capturedFilePath, diScaleFactor, diAngle, saveFlag, Sheild, emptyIsOK, queueLen, redTape]() {
 		qDebug() << "Background thread: Starting update and save for camera" << capturedCameraKey;
 
 		QVariantMap rootMap = FileOperator::readJsonMap(capturedFilePath);
@@ -1322,7 +1327,7 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 			newAngle["单位"] = "";
 			newAngle["可见"] = "true";
 			newAngle["检测"] = "";
-			newAngle["类型"] = "float"; 
+			newAngle["类型"] = "float";
 			newAngle["范围"] = "";
 
 			cameraMap["角度"] = newAngle;
@@ -1350,6 +1355,7 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 			return false;
 		}
 
+		// === 更新 "空料OK" ===
 		if (cameraMap.contains("空料OK")) {
 			ParamDetail emptyOK(cameraMap["空料OK"].toMap());
 			emptyOK.value = QVariant::fromValue(emptyIsOK);
@@ -1359,6 +1365,49 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 			qWarning() << "Background thread: Missing '空料OK' field for camera:" << matchedKey << ", skipping flag update.";
 			return false;
 		}
+
+		// === 更新 "队列长度" (新增) ===
+		// 假设 JSON 中使用 "队列长度" 字段来存储 queueLen
+		if (cameraMap.contains("队列长度")) {
+			ParamDetail length(cameraMap["队列长度"].toMap());
+			length.value = QVariant::fromValue(queueLen);
+			cameraMap["队列长度"] = length.toVariantMap();
+		}
+		else {
+			qWarning() << "Background thread: Missing '队列长度' field for camera:" << matchedKey << ", creating it.";
+			// 如果不存在，创建默认结构
+			QVariantMap newLength;
+			newLength["值"] = QVariant::fromValue(queueLen);
+			newLength["单位"] = "";
+			newLength["可见"] = "true";
+			newLength["检测"] = "";
+			newLength["类型"] = "int";
+			newLength["范围"] = "";
+
+			cameraMap["队列长度"] = newLength;
+		}
+
+		// === 更新 "红胶带开关" (新增) ===
+		// 假设 JSON 中使用 "红胶带开关" 字段来存储 RedTape
+		if (cameraMap.contains("红胶带开关")) {
+			ParamDetail redTapeFlag(cameraMap["红胶带开关"].toMap());
+			redTapeFlag.value = QVariant::fromValue(redTape);
+			cameraMap["红胶带开关"] = redTapeFlag.toVariantMap();
+		}
+		else {
+			qWarning() << "Background thread: Missing '红胶带开关' field for camera:" << matchedKey << ", creating it.";
+			// 如果不存在，创建默认结构
+			QVariantMap newRedTape;
+			newRedTape["值"] = QVariant::fromValue(redTape);
+			newRedTape["单位"] = "";
+			newRedTape["可见"] = "true";
+			newRedTape["检测"] = "";
+			newRedTape["类型"] = "bool";
+			newRedTape["范围"] = "";
+
+			cameraMap["红胶带开关"] = newRedTape;
+		}
+
 		rootMap[matchedKey] = cameraMap;
 
 		if (!FileOperator::writeJsonMap(capturedFilePath, rootMap)) {
@@ -1366,7 +1415,7 @@ void CameraLabelWidget::updateDebugValuesAsync(const QString& cameraKey, const D
 			return false;
 		}
 
-		qDebug() << "Background thread: Successfully updated 标定值, 角度, 存图开关,  for camera" << capturedCameraKey;
+		qDebug() << "Background thread: Successfully updated debug values for camera" << capturedCameraKey;
 		return true;
 		});
 

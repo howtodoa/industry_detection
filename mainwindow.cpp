@@ -346,149 +346,131 @@ void MainWindow::loadjson_layer(const QString& filePath)
 
 void MainWindow::loadjson_layer2(const QString& filePath)
 {
-    // 使用 FileOperator 读取 JSON 文件为 QVariantMap
     QVariantMap configMap = FileOperator::readJsonMap(filePath);
-
-    // 检查是否成功读取到配置
     if (configMap.isEmpty()) {
         qWarning() << "Failed to load configuration from" << filePath;
         return;
     }
 
-    // 遍历 configMap 中的所有顶层键（例如 "相机1"）
     for (auto it = configMap.begin(); it != configMap.end(); ++it) {
-        if (it.value().type() == QVariant::Map) {
-            QVariantMap cameraData = it.value().toMap(); // 获取 "相机1" 下面的所有数据
-
-            Camerinfo currentCamera; // 创建一个 Camerinfo 对象来存储当前相机的信息
-
-            // 相机是否可见,如果不可见直接跳过
-            if (cameraData.contains("检测")) {
-                ParamDetail nameDetail(cameraData.value("检测").toMap());
-                currentCamera.check = nameDetail.value.toString();
-                if(currentCamera.check=="false") continue;
-            } else {
-                qWarning() << "Missing '相机名称' for camera:" << it.key();
-            }
-
-            // 解析 "相机名称"
-            if (cameraData.contains("相机名称")) {
-                ParamDetail nameDetail(cameraData.value("相机名称").toMap());
-                currentCamera.name = nameDetail.value.toString();
-            } else {
-                qWarning() << "Missing '相机名称' for camera:" << it.key();
-            }
-
-            // 解析 "相机映射"
-            if (cameraData.contains("相机映射")) {
-                ParamDetail nameDetail(cameraData.value("相机映射").toMap());
-                currentCamera.mapping = nameDetail.value.toString();
-            } else {
-                qWarning() << "Missing '相机映射' for camera:" << it.key();
-            }
-
-            // 解析 "相机线路"
-            if (cameraData.contains("Route编号")) {
-                ParamDetail routeDetail(cameraData.value("Route编号").toMap());
-                currentCamera.rounte = routeDetail.value.toInt();
-            } else {
-                qWarning() << "Missing 'Route编号' for camera:" << it.key();
-            }
-
-            // 解析 "相机ip"
-            if (cameraData.contains("相机ip")) {
-                ParamDetail ipDetail(cameraData.value("相机ip").toMap());
-                currentCamera.ip = ipDetail.value.toString();
-            } else {
-                qWarning() << "Missing '相机ip' for camera:" << it.key();
-            }
-
-            // 解析 "补偿值"
-            if (cameraData.contains("补偿值")) {
-                ParamDetail fixDetail(cameraData.value("补偿值").toMap());
-                currentCamera.fix = fixDetail.value.toDouble();
-            }
-            else {
-                qWarning() << "Missing '相机ip' for camera:" << it.key();
-            }
-
-           // 解析"触发点位"
-            if (cameraData.contains("触发点位")) {
-                ParamDetail pointNumber(cameraData.value("触发点位").toMap());
-                currentCamera.pointNumber = pointNumber.value.toInt();
-            } else {
-                qWarning() << "Missing '触发点位' for camera:" << it.key();
-            }
-
-            //解析“存图开关”
-            if (cameraData.contains("存图开关")) {
-                ParamDetail saveflagDetail(cameraData.value("存图开关").toMap());
-                currentCamera.saveflag = saveflagDetail.value.toInt();
-            } else {
-                qWarning() << "Missing '存图开关' for camera:" << it.key();
-            }
-
-            //解析 “标定值”
-            if (cameraData.contains("标定值")) {
-                ParamDetail scaleFactorDetail(cameraData.value("标定值").toMap());
-                currentCamera.scaleFactor=scaleFactorDetail.value.toDouble();
-            } else {
-                qWarning() << "Missing '标定值' for camera:" << it.key();
-            }
-
-            //解析 “角度”
-            if (cameraData.contains("角度")) {
-                ParamDetail AngleFactorDetail(cameraData.value("角度").toMap());
-                currentCamera.Angle = AngleFactorDetail.value.toInt();
-            }
-            else {
-                qWarning() << "Missing '角度' for camera:" << it.key();
-            }
-            //解析 “屏蔽开关”
-            if (cameraData.contains("屏蔽开关")) {
-                ParamDetail SheildDetail(cameraData.value("屏蔽开关").toMap());
-                currentCamera.Shield = SheildDetail.value.toBool();
-            }
-            else {
-                qWarning() << "Missing '屏蔽开关' for camera:" << it.key();
-            }
-
-            //解析 “空料OK”
-            if (cameraData.contains("空料OK")) {
-                ParamDetail EmptyIsOKDetail(cameraData.value("空料OK").toMap());
-                currentCamera.EmptyIsOK = EmptyIsOKDetail.value.toBool();
-            }
-            else {
-                qWarning() << "Missing '空料OK' for camera:" << it.key();
-            }
-
-            // 解析 "相机配置文件路径"
-            if (cameraData.contains("配置文件路径")) {
-                ParamDetail snDetail(cameraData.value("配置文件路径").toMap());
-                currentCamera.path= snDetail.value.toString();
-            } else {
-                qWarning() << "Missing '配置文件路径' for camera:" << it.key();
-            }
-            // 将解析好的 Camerinfo 对象添加到 QVector 中
-            caminfo.append(currentCamera);
-            qDebug() << "Parsed Camera Info for" << it.key()
-                     << ": Name=" << currentCamera.name
-                     << ", IP=" << currentCamera.ip
-                     << ",pointNumber=" << currentCamera.pointNumber
-                     <<",saveflag="<<currentCamera.saveflag
-                     <<",Angle="<<currentCamera.Angle
-                     <<",scalefator="<<currentCamera.scaleFactor
-                     <<",path="<<currentCamera.path
-                     << ",EmptyIsOK=" <<currentCamera.EmptyIsOK
-                     << ",Shield=" <<currentCamera.Shield;
-        } else {
+        if (it.value().type() != QVariant::Map) {
             qWarning() << "Top-level key '" << it.key() << "' is not a map. Skipping.";
+            continue;
         }
+
+        QVariantMap cameraData = it.value().toMap();
+        Camerinfo currentCamera;
+
+        // ===== 检测开关 =====
+        if (cameraData.contains("检测")) {
+            ParamDetail detectDetail(cameraData.value("检测").toMap());
+            currentCamera.check = detectDetail.value.toString();
+            if (currentCamera.check == "false") continue;
+        }
+
+        // ===== 相机名称 =====
+        if (cameraData.contains("相机名称")) {
+            ParamDetail detail(cameraData.value("相机名称").toMap());
+            currentCamera.name = detail.value.toString();
+        }
+
+        // ===== 相机映射 =====
+        if (cameraData.contains("相机映射")) {
+            ParamDetail detail(cameraData.value("相机映射").toMap());
+            currentCamera.mapping = detail.value.toString();
+        }
+
+        // ===== Route编号 =====
+        if (cameraData.contains("Route编号")) {
+            ParamDetail detail(cameraData.value("Route编号").toMap());
+            currentCamera.rounte = detail.value.toInt();
+        }
+
+        // ===== 相机IP =====
+        if (cameraData.contains("相机ip")) {
+            ParamDetail detail(cameraData.value("相机ip").toMap());
+            currentCamera.ip = detail.value.toString();
+        }
+
+        // ===== 补偿值 =====
+        if (cameraData.contains("补偿值")) {
+            ParamDetail detail(cameraData.value("补偿值").toMap());
+            currentCamera.fix = detail.value.toDouble();
+        }
+
+        // ===== 触发点位 =====
+        if (cameraData.contains("触发点位")) {
+            ParamDetail detail(cameraData.value("触发点位").toMap());
+            currentCamera.pointNumber = detail.value.toInt();
+        }
+
+        // ===== 存图开关 =====
+        if (cameraData.contains("存图开关")) {
+            ParamDetail detail(cameraData.value("存图开关").toMap());
+            currentCamera.saveflag = detail.value.toInt();
+        }
+
+        // ===== 标定值 =====
+        if (cameraData.contains("标定值")) {
+            ParamDetail detail(cameraData.value("标定值").toMap());
+            currentCamera.scaleFactor = detail.value.toDouble();
+        }
+
+        // ===== 角度 =====
+        if (cameraData.contains("角度")) {
+            ParamDetail detail(cameraData.value("角度").toMap());
+            currentCamera.Angle = detail.value.toInt();
+        }
+
+        // ===== 屏蔽开关 =====
+        if (cameraData.contains("屏蔽开关")) {
+            ParamDetail detail(cameraData.value("屏蔽开关").toMap());
+            currentCamera.Shield = detail.value.toBool();
+        }
+
+        // ===== 空料OK =====
+        if (cameraData.contains("空料OK")) {
+            ParamDetail detail(cameraData.value("空料OK").toMap());
+            currentCamera.EmptyIsOK = detail.value.toBool();
+        }
+
+        // ===== 配置文件路径 =====
+        if (cameraData.contains("配置文件路径")) {
+            ParamDetail detail(cameraData.value("配置文件路径").toMap());
+            currentCamera.path = detail.value.toString();
+        }
+
+        // ===== 新增字段：队列长度 =====
+        if (cameraData.contains("队列长度")) {
+            ParamDetail detail(cameraData.value("队列长度").toMap());
+            currentCamera.queueLen = detail.value.toInt();
+        }
+        else {
+            qWarning() << "Missing '队列长度' for camera:" << it.key();
+        }
+
+        // ===== 新增字段：红胶带开关 =====
+        if (cameraData.contains("红胶带开关")) {
+            ParamDetail detail(cameraData.value("红胶带开关").toMap());
+            currentCamera.RedTape = detail.value.toBool();
+        }
+        else {
+            qWarning() << "Missing '红胶带开关' for camera:" << it.key();
+        }
+
+        caminfo.append(currentCamera);
+
+        qDebug() << "Parsed Camera Info:"
+            << currentCamera.name
+            << ", IP=" << currentCamera.ip
+            << ", queueLen=" << currentCamera.queueLen
+            << ", RedTape=" << currentCamera.RedTape;
     }
+
     qDebug() << "Camera configuration parsing complete.";
 }
 
-void MainWindow::loadjson_layer3(const QString& filePath)
+void MainWindow::loadjson_layer3(const QString& filePath) 
 {
     // 读取 JSON 文件为 QVariantMap
     QVariantMap configMap = FileOperator::readJsonMap(filePath);
@@ -527,23 +509,23 @@ void MainWindow::loadjson_layer3(const QString& filePath)
         qWarning() << "JSON file missing 'FontSize' entry.";
     }
 
-    if (configMap.contains("FLOWER_NEG_LENGTH")) {
-        ParamDetail detail(configMap.value("FLOWER_NEG_LENGTH").toMap());
-        GlobalPara::FLOWER_NEG_LENGTH = detail.value.toInt();
-        qDebug() << "Parsed FontSize:" << GlobalPara::FLOWER_NEG_LENGTH;
-    }
-    else {
-        qWarning() << "JSON file missing 'FLOWER_NEG_LENGTH' entry.";
-    }
+    //if (configMap.contains("FLOWER_NEG_LENGTH")) {
+    //    ParamDetail detail(configMap.value("FLOWER_NEG_LENGTH").toMap());
+    //    GlobalPara::FLOWER_NEG_LENGTH = detail.value.toInt();
+    //    qDebug() << "Parsed FontSize:" << GlobalPara::FLOWER_NEG_LENGTH;
+    //}
+    //else {
+    //    qWarning() << "JSON file missing 'FLOWER_NEG_LENGTH' entry.";
+    //}
 
-    if (configMap.contains("FLOWER_POS_LENGTH")) {
-        ParamDetail detail(configMap.value("FLOWER_POS_LENGTH").toMap());
-        GlobalPara::FLOWER_POS_LENGTH = detail.value.toInt();
-        qDebug() << "Parsed FLOWER_POS_LENGTH:" << GlobalPara::FLOWER_POS_LENGTH;
-    }
-    else {
-        qWarning() << "JSON file missing 'FLOWER_POS_LENGTH' entry.";
-    }
+    //if (configMap.contains("FLOWER_POS_LENGTH")) {
+    //    ParamDetail detail(configMap.value("FLOWER_POS_LENGTH").toMap());
+    //    GlobalPara::FLOWER_POS_LENGTH = detail.value.toInt();
+    //    qDebug() << "Parsed FLOWER_POS_LENGTH:" << GlobalPara::FLOWER_POS_LENGTH;
+    //}
+    //else {
+    //    qWarning() << "JSON file missing 'FLOWER_POS_LENGTH' entry.";
+    //}
 
     if (configMap.contains("Timeout")) {
         ParamDetail detail(configMap.value("Timeout").toMap());
@@ -1307,7 +1289,7 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
         DisplayInfoWidget* infoWidget = nullptr;
      //   DisplayInfoWidget* infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
       if(cams[idx]->indentify=="FlowerLook") infoWidget = new DisplayInfoWidget(cams[idx]->RI->unifyParams, displayInfoContainer);
-      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams,4 , displayInfoContainer);
+      else  infoWidget = new DisplayInfoWidget_Flower(cams[idx]->RI->unifyParams,2 , displayInfoContainer);
         displayInfoHLayout->addWidget(infoWidget);
         m_displayInfoWidgets.append(infoWidget);
         connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateRealtimeData, infoWidget, &DisplayInfoWidget::onUpdateRealtimeData);
@@ -1484,6 +1466,8 @@ void MainWindow::initcams(int camnumber)
          cam->DI.fix = caminfo[i - 1].fix;
          cam->DI.EmptyIsOK = caminfo[i - 1].EmptyIsOK;
          cam->DI.Shield = caminfo[i - 1].Shield;
+		 cam->DI.queueLen = caminfo[i - 1].queueLen;
+         cam->DI.RedTape = caminfo[i - 1].RedTape;
        cam->RC=new RangeClass(cam->rangepath,nullptr);
  
     
@@ -1656,6 +1640,7 @@ void MainWindow::initcams(int camnumber)
 		   LearnPara::inParam7.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+		   GlobalPara::FLOWER_POS_LENGTH = cam->DI.queueLen;
          }
        else if (caminfo[i - 1].mapping == "FlowerPinNeg")
        {
@@ -1664,6 +1649,7 @@ void MainWindow::initcams(int camnumber)
            LearnPara::inParam8.imgAngleNum = caminfo[i - 1].Angle;
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_FlowerPin(cam->unifyParams, nullptr);
+           GlobalPara::FLOWER_NEG_LENGTH = cam->DI.queueLen;
            }
        else if (caminfo[i - 1].mapping == "FlowerLook")
        {

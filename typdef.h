@@ -3,7 +3,7 @@
 
 #define ADAPTATEION
 //#define QIMAGE
-#define FOURBRADER
+//#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
@@ -63,6 +63,8 @@ struct DebugInfo{
      bool EmptyIsOK = false;
      bool Shield = false;
      QString PicDir;
+     int queueLen = 1;
+     bool RedTape = false;
 };
 struct ProcessedParam
 {
@@ -141,6 +143,8 @@ public:
     double fix;
     bool EmptyIsOK=false;
     bool Shield=false;
+    int queueLen = 1;
+    bool RedTape = false;
 };
 
 

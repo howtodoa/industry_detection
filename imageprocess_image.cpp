@@ -40,9 +40,8 @@ void Imageprocess_Image::run()
 
 			currentImagePtr = m_inputQueue->queue.front();
 
-			// 替换对 currentImagePtr 的检查
+	
 			if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
-				// 检查指针是否为空 或 Mat 数据是否安全
 				LOG_DEBUG(GlobalLog::logger, L"ptr null or Mat unsafe");
 				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
 			}
@@ -54,7 +53,6 @@ void Imageprocess_Image::run()
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
 
-		// 如果 Mat 不安全，则跳过本次循环，防止对空 Mat 或无效 Mat 进行处理
 		if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
 			continue;
 		}
@@ -69,7 +67,7 @@ void Imageprocess_Image::run()
 		{
 
 			QElapsedTimer timer;
-			timer.start();  // 开始计时
+			timer.start();
 			for (int i = 0; i < cam_instance->RI->m_PaintData.size(); ++i) {
 				cam_instance->RI->m_PaintData[i].value = ""; // 清空实际值
 				cam_instance->RI->m_PaintData[i].result = 0; // 设置结果为 NG
@@ -218,6 +216,7 @@ void Imageprocess_Image::run()
 			}
 			else if (cam_instance->indentify == "null") {
 				Sleep(20);
+				afterImagePtr = backupImagePtr;
 				ret = 0;
 			}
 			info.timeStr = QString::number(timer.elapsed()).toStdString();
@@ -277,6 +276,7 @@ void Imageprocess_Image::run()
 		}
 		else {
 			qWarning() << "Backup image is not safe, cannot convert to QImage for saving/display.";
+			continue;
 		}
 
 		QImage imgToPlay;
@@ -287,6 +287,7 @@ void Imageprocess_Image::run()
 		}
 		else {
 			qWarning() << "After process image is not safe, cannot convert to QImage for display.";
+			continue;
 		}
 
 

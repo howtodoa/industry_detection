@@ -1452,6 +1452,19 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     angleLayout->addStretch();
     leftParamsLayout->addLayout(angleLayout);
 
+    // === 长度设置 (模仿角度设置布局) ===
+    QHBoxLayout* lengthLayout = new QHBoxLayout;
+    QPushButton* lengthLabelButton = new QPushButton("长度设置", debugPage);
+    QLineEdit* lengthEdit = new QLineEdit(debugPage);
+    lengthEdit->setFixedSize(100, 30);
+    lengthEdit->setPlaceholderText("长度 (int)");
+    lengthEdit->setText(QString::number(DI->queueLen));
+    lengthLabelButton->setFixedSize(160, 30);
+    lengthLayout->addWidget(lengthLabelButton);
+    lengthLayout->addWidget(lengthEdit);
+    lengthLayout->addStretch();
+    leftParamsLayout->addLayout(lengthLayout);
+
     // === 其他按钮 ===
     QSize buttonSize(160, 30);
     QPushButton* roiButton = new QPushButton("ROI", debugPage);
@@ -1469,17 +1482,32 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     QPushButton* selfLearnButton = new QPushButton("自学习", debugPage);
     selfLearnButton->setFixedSize(buttonSize);
 
-    QPushButton *shieldButton = new QPushButton(debugPage);
+    // --- 屏蔽开关 ---
+    QPushButton* shieldButton = new QPushButton(debugPage);
     shieldButton->setCheckable(true);
     shieldButton->setFixedSize(buttonSize);
     shieldButton->setChecked(DI->Shield);
     shieldButton->setText(DI->Shield ? "屏蔽(开启)" : "屏蔽(关闭)");
 
+    // --- 空料OK开关 ---
     QPushButton* emptyOKButton = new QPushButton(debugPage);
     emptyOKButton->setCheckable(true);
     emptyOKButton->setFixedSize(buttonSize);
     emptyOKButton->setChecked(DI->EmptyIsOK);
     emptyOKButton->setText(DI->EmptyIsOK ? "空料OK(开启)" : "空料OK(关闭)");
+
+    // --- 红胶带开关 (新增，只控制文本，依赖默认样式) ---
+    QPushButton* redTapeButton = new QPushButton(debugPage);
+    redTapeButton->setCheckable(true);
+    redTapeButton->setFixedSize(buttonSize);
+    redTapeButton->setChecked(DI->RedTape);
+
+    // 关键修正：只根据状态更新文本，不设置任何样式表
+    auto updateRedTapeText = [redTapeButton](bool checked) {
+        redTapeButton->setText(checked ? "红胶带(开启)" : "红胶带(关闭)");
+        // **这里不添加 setStyleSheet，依赖 Qt 默认的 checked 样式**
+        };
+    updateRedTapeText(DI->RedTape); // 确保初始文本正确
 
     leftParamsLayout->addWidget(roiButton);
     leftParamsLayout->addWidget(recipeButton);
@@ -1488,6 +1516,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     leftParamsLayout->addWidget(learnButton);
     leftParamsLayout->addWidget(shieldButton);
     leftParamsLayout->addWidget(emptyOKButton);
+    leftParamsLayout->addWidget(redTapeButton); // 添加红胶带开关
     leftParamsLayout->addWidget(selfLearnButton);
 
     roiButton->setVisible(false);
@@ -1503,7 +1532,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     mainHorizontalLayout->addWidget(leftPanelWidget);
 
     // === 右侧图片显示窗口 ===
-    imageViewer = new ImageViewerWindow(debugPage);
+    ImageViewerWindow* imageViewer = new ImageViewerWindow(debugPage);
     imageViewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     imageViewer->setMinimumSize(100, 100);
 
@@ -1515,12 +1544,29 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
 
     tabWidget->addTab(debugPage, "调试");
 
+    // 确保所有标签按钮都没有边框和聚焦
+    lengthLabelButton->setFocusPolicy(Qt::NoFocus);
+    lengthLabelButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
+
     calibButton->setFocusPolicy(Qt::NoFocus);
     calibButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
     flagButton->setFocusPolicy(Qt::NoFocus);
     flagButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
     angleButton->setFocusPolicy(Qt::NoFocus);
     angleButton->setStyleSheet("QPushButton { background-color: none; border: none; }");
+
+    if (m_cam->indentify == "FlowerPin" || m_cam->indentify == "FlowerPinNeg")
+    {
+        lengthLabelButton->setVisible(true);
+        lengthEdit->setVisible(true);
+        redTapeButton->setVisible(true);
+    }
+    else
+    {
+        lengthLabelButton->setVisible(false);
+        lengthEdit->setVisible(false);
+        redTapeButton->setVisible(false);
+    }
 
     // 信号连接
     connect(calibButton, &QPushButton::clicked, this, &ParaWidget::onCalibClicked);
@@ -1546,7 +1592,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
 
         if (reply == QMessageBox::Yes) {
             qDebug() << "自学习开始执行";
-            m_cam->LearnOpen.store(true);     
+            m_cam->LearnOpen.store(true);
             m_cam->LearnCount.store(GlobalPara::LearnCount);
         }
         });
@@ -1554,20 +1600,27 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     connect(saveButton, &QPushButton::clicked, this, [=]() {
         QString scaleText = scaleFactorEdit->text();
         QString angleText = angleEdit->text();
-        int flagValue = flagCombo->currentData().toInt(); // 取下拉框值
+        QString lengthText = lengthEdit->text();
+        int flagValue = flagCombo->currentData().toInt();
 
-        bool ok1 = false, ok2 = false;
+        bool ok1 = false, ok2 = false, ok3 = false;
         double scaleValue = scaleText.toDouble(&ok1);
         float angleValue = angleText.toFloat(&ok2);
+        int lengthValue = lengthText.toInt(&ok3);
 
         if (!ok1) {
             QMessageBox::warning(this, "输入错误", "缩放系数必须是浮点数！");
             return;
         }
         if (!ok2 || angleValue < -180 || angleValue > 180) {
-            QMessageBox::warning(this, "输入错误", "角度必须是整数（-180 到 180）！");
+            QMessageBox::warning(this, "输入错误", "角度必须是浮点数（-180 到 180）！");
             return;
         }
+        if (!ok3) {
+            QMessageBox::warning(this, "输入错误", "长度必须是整数！");
+            return;
+        }
+
 
         QMessageBox::StandardButton reply = QMessageBox::question(
             this, "确认保存", "确定要保存当前设置吗？",
@@ -1577,16 +1630,26 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
             DI->scaleFactor = scaleValue;
             DI->Angle = angleValue;
             DI->saveflag = flagValue;
+            if (lengthValue <= 50 && DI->queueLen != lengthValue)
+            {
+                DI->queueLen = lengthValue;
+                m_cam->imageQueue.mutex_red.lock();
+				m_cam->imageQueue.queue_red.resize(lengthValue);
+				m_cam->imageQueue.mutex_red.unlock();
+            }
+            DI->RedTape = redTapeButton->isChecked();
+            
             if (m_cam->indentify == "Carrier_NaYin") LearnPara::inParam1.angleNum = angleValue;
             if (m_cam->indentify == "NaYin") LearnPara::inParam2.angleNum = angleValue;
             if (m_cam->indentify == "Top") LearnPara::inParam3.angleNum = angleValue;
             if (m_cam->indentify == "Side") LearnPara::inParam4.imgAngleNum = angleValue;
             if (m_cam->indentify == "Pin") LearnPara::inParam5.angleNum = angleValue;
             if (m_cam->indentify == "Abut") LearnPara::inParam6.angleNum = angleValue;
-            if(m_cam->indentify=="FlowerPin") LearnPara::inParam7.imgAngleNum = angleValue;
+            if (m_cam->indentify == "FlowerPin") LearnPara::inParam7.imgAngleNum = angleValue;
             if (m_cam->indentify == "FlowerPinNeg") LearnPara::inParam8.imgAngleNum = angleValue;
             if (m_cam->indentify == "FlowerLook") LearnPara::inParam9.imgAngleNum = angleValue;
             emit SaveDebugInfo(DI);
+            qDebug() << "保存成功! 长度:" << DI->queueLen << " 红胶带:" << DI->RedTape;
         }
         });
 
@@ -1599,6 +1662,12 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
         DI->EmptyIsOK = checked;
         emptyOKButton->setText(checked ? "空料OK(开启)" : "空料OK(关闭)");
         qDebug() << "EmptyIsOK 设置为：" << checked;
+        });
+    // 红胶带开关信号连接 (仅更新文本)
+    connect(redTapeButton, &QPushButton::toggled, this, [=](bool checked) {
+        DI->RedTape = checked;
+        updateRedTapeText(checked); // 仅更新文本
+        qDebug() << "RedTape 设置为：" << checked;
         });
 }
 

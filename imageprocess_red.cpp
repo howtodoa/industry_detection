@@ -107,7 +107,7 @@ void Imageprocess_Red::run()
 				else
 				{
 					info.ret = ret;
-					if (cam_instance->DI.Shield == true) ret = 0;
+					if (cam_instance->DI.RedTape == false) ret = 0;
 				}
 #endif
 			}
@@ -125,7 +125,7 @@ void Imageprocess_Red::run()
 			   else
 			   {
 				   info.ret = ret;
-				   if (cam_instance->DI.Shield == true) ret = 0;
+				   if (cam_instance->DI.RedTape == false) ret = 0;
 				    
 			   }
 #endif
