@@ -1532,7 +1532,7 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
     mainHorizontalLayout->addWidget(leftPanelWidget);
 
     // === 右侧图片显示窗口 ===
-    ImageViewerWindow* imageViewer = new ImageViewerWindow(debugPage);
+    this->imageViewer = new ImageViewerWindow(debugPage);
     imageViewer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     imageViewer->setMinimumSize(100, 100);
 
@@ -1700,6 +1700,13 @@ void ParaWidget::onChooseImageClicked()
    
 
     QPixmap pixmap = convertMatToPixmap(*imagePtr);
+    if (pixmap.isNull()) {
+        qDebug() << "[FATAL DEBUG] 转换后的 QPixmap 是空的！setPixmap 将会失败。";
+    }
+    else {
+        qDebug() << "[DEBUG] QPixmap 转换成功，尺寸:" << pixmap.size()
+            << "是否为空 (isNull):" << pixmap.isNull();
+    }
     imageViewer->setPixmap(pixmap);
 }
 

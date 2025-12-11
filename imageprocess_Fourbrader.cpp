@@ -237,57 +237,59 @@ void Imageprocess_FourBrader::run()
 				ALLResult result;
 				g_detector->Process(algo_id, imgCopy, result);
 
-				//if (result.nyResult.NGResult_single != NY_NGReults::OK)
-				//{
-				//	switch (result.nyResult.NGResult_single)
-				//	{
-				//	case NY_NGReults::NULL_Err:
-				//		info.errmsg << "空白捺印";
-				//		break;
+				if (result.nyResult.NGResult_single != NY_NGReults::OK)
+				{
+					switch (result.nyResult.NGResult_single)
+					{
+					case NY_NGReults::NULL_Err:
+						info.errmsg << "空白捺印";
+						break;
 
-				//	case NY_NGReults::CQ_Err:
-				//		info.errmsg << "捺印残缺";
-				//		break;
+					case NY_NGReults::CQ_Err:
+						info.errmsg << "捺印残缺";
+						break;
 
-				//	case NY_NGReults::GS_Err:
-				//		info.errmsg << "捺印刮伤";
-				//		break;
+					case NY_NGReults::GS_Err:
+						info.errmsg << "捺印刮伤";
+						break;
 
-				//	case NY_NGReults::HS_Err:
-				//		info.errmsg << "捺印划伤";
-				//		break;
+					case NY_NGReults::HS_Err:
+						info.errmsg << "捺印划伤";
+						break;
 
-				//	case NY_NGReults::QP_Err:
-				//		info.errmsg << "捺印负极气泡";
-				//		break;
+					case NY_NGReults::QP_Err:
+						info.errmsg << "捺印负极气泡";
+						break;
 
-				//	case NY_NGReults::YH_Err:
-				//		info.errmsg << "捺印压痕";
-				//		break;
+					case NY_NGReults::YH_Err:
+						info.errmsg << "捺印压痕";
+						break;
 
-				//	case NY_NGReults::ZW_Err:
-				//		info.errmsg << "捺印脏污NG";
-				//		break;
+					case NY_NGReults::ZW_Err:
+						info.errmsg << "捺印脏污NG";
+						break;
 
-				//	case NY_NGReults::XT_ZF_Err:
-				//		info.errmsg << "型替字符";
-				//		break;
+					case NY_NGReults::XT_ZF_Err:
+						info.errmsg << "型替字符";
+						break;
 
-				//	case NY_NGReults::XT_Color_Err:
-				//		info.errmsg << "型替颜色";
-				//		break;
+					case NY_NGReults::XT_Color_Err:
+						info.errmsg << "型替颜色";
+						break;
 
-				//	default:
-				//		info.errmsg << "未知错误";
-				//		break;
-				//	}
+					default:
+						info.errmsg << "未知错误";
+						break;
+					}
 
-				//	ret = -1;
-				//}
-
-				cam_instance->RI->updateActualValues(result.nyResult);
-				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
-				ret = cam_instance->RI->judge_ny(result.nyResult);
+					ret = -1;
+				}
+				else
+				{
+					cam_instance->RI->updateActualValues(result.nyResult);
+					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
+					ret = cam_instance->RI->judge_ny(result.nyResult);
+				}
 
 
 

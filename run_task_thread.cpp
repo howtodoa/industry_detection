@@ -25,6 +25,7 @@ void RunTaskThread::run()
     while (m_running)
     {
         QThread::msleep(100);
+		LOG_DEBUG(GlobalLog::logger, L"RunTaskThread is running...");
     }
 
     qDebug() << "RunTaskThread exiting normally.";

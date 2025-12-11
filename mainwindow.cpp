@@ -942,6 +942,7 @@ MainWindow::MainWindow(QString str, QWidget * parent) :
 
         if (reply == QMessageBox::Yes) {
             event->accept();   // 正常关闭
+			LOG_DEBUG(GlobalLog::logger, L"程序正常关闭");
         }
         else {
             event->ignore();   // 阻止关闭
@@ -3452,6 +3453,7 @@ void MainWindow::initSqlite3Db_Unify()
         // initCameraList();
     }
 }
+
 void MainWindow::updateDB_Unify()
 {
     qDebug() << "\n=== [DEBUG] 开始执行 updateDB_Unify (RI数据专注版) ===";
@@ -3765,7 +3767,7 @@ void MainWindow::setupUpdateTimer()
 #else USE_MAIN_WINDOW_FLOWER
     connect(m_updateTimer, &QTimer::timeout, m_rightControlPanel, &RightControlPanel::updateStatistics);
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Unify);
-	m_databaseTimer->start(60 * 100);
+	m_databaseTimer->start(10* 60 * 1000);
 
 #endif
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);

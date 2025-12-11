@@ -2016,7 +2016,7 @@ void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 	}
 
 	// 绘制检测结果
-	ImagePaint::drawDetectionResultExQImage(displayImage, info);
+	if(m_cam->video==false)ImagePaint::drawDetectionResultExQImage(displayImage, info);
 
 	this->currentPixmap = QPixmap::fromImage(displayImage);
 

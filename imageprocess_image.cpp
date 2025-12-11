@@ -228,7 +228,6 @@ void Imageprocess_Image::run()
 			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
 
-			continue;
 		}
 
 		if (GlobalPara::cheatFlag.load() == false)info.ret = ret;
