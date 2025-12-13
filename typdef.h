@@ -579,4 +579,13 @@ inline QDebug operator<<(QDebug dbg, const UnifyParam& param)
 }
 
 using AllUnifyParams = QMap<QString, UnifyParam>;
+
+struct DBInfo
+{
+    AllUnifyParams UnifyParams;
+    QString CamID;
+    QString CostTime;
+	QString SegmentInfo;
+	QString Remarks;
+};
 #endif // TYPDEF_H

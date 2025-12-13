@@ -242,31 +242,31 @@ void Imageprocess_FourBrader::run()
 					switch (result.nyResult.NGResult_single)
 					{
 					case NY_NGReults::NULL_Err:
-						info.errmsg << "空白捺印";
+						//info.errmsg << "空白捺印";
 						break;
 
 					case NY_NGReults::CQ_Err:
-						info.errmsg << "捺印残缺";
+					//	info.errmsg << "捺印残缺";
 						break;
 
 					case NY_NGReults::GS_Err:
-						info.errmsg << "捺印刮伤";
+						//info.errmsg << "捺印刮伤";
 						break;
 
 					case NY_NGReults::HS_Err:
-						info.errmsg << "捺印划伤";
+					//	info.errmsg << "捺印划伤";
 						break;
 
 					case NY_NGReults::QP_Err:
-						info.errmsg << "捺印负极气泡";
+						//info.errmsg << "捺印负极气泡";
 						break;
 
 					case NY_NGReults::YH_Err:
-						info.errmsg << "捺印压痕";
+						//info.errmsg << "捺印压痕";
 						break;
 
 					case NY_NGReults::ZW_Err:
-						info.errmsg << "捺印脏污NG";
+						//info.errmsg << "捺印脏污NG";
 						break;
 
 					case NY_NGReults::XT_ZF_Err:
@@ -278,11 +278,15 @@ void Imageprocess_FourBrader::run()
 						break;
 
 					default:
-						info.errmsg << "未知错误";
+						//info.errmsg << "未知错误";
 						break;
 					}
 
 					ret = -1;
+				}
+				if (result.nyResult.NGResult_single == NY_NGReults::XT_Color_Err || result.nyResult.NGResult_single == NY_NGReults::XT_ZF_Err)
+				{
+
 				}
 				else
 				{
@@ -290,6 +294,7 @@ void Imageprocess_FourBrader::run()
 					cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_ny(result.nyResult);
 				}
+				
 
 
 

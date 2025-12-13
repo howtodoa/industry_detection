@@ -39,6 +39,7 @@ public:
     void loadjson_layer3(const QString& filePath);
     void initcams(int camnumber);
     void CreateMenu();
+    void init_SQLInfo();
     void CreateImageGrid(int camnumber);
     void CreateImageGrid_Braider(int camnumber);
     void SetupDualLayout(int camnumber, QGridLayout* cameraGrid, QVBoxLayout* statsLayout, QVector<CameraLabelWidget*>& cameraLabels, QWidget* window);
@@ -79,6 +80,7 @@ public slots:
     void onAllSheild(bool check);
 	void onAllLearn();
     void onDisconnectAllCameras();
+    void update_SQLInfo(const DBInfo& info);
 private:    
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单

@@ -324,6 +324,13 @@ void Imageprocess_Flower::run()
 
 		UpdateRealtimeData(cam_instance->RI->unifyParams);
 
+		DBInfo dbinfo;
+		dbinfo.CamID = cam_instance->cameral_name;
+		dbinfo.CostTime = QString::fromStdString(info.timeStr);
+		dbinfo.UnifyParams = cam_instance->RI->unifyParams;
+
+		emit WriteInfo(dbinfo);
+
 		if (!afterImagePtr || afterImagePtr->empty()) {
 			LOG_DEBUG(GlobalLog::logger, L"ImageProcess::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 		//	emit imageProcessed(backupImagePtr, info);

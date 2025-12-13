@@ -47,6 +47,11 @@
 #include "rezultinfo_bottom.h"
 #include "debugtool.h"
 #include <QProcess> 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QVariant>
+#include <QDateTime>
 
 namespace AppConfig
 {
@@ -907,6 +912,7 @@ MainWindow::MainWindow(QString str, QWidget * parent) :
         setupMonitorThread();
         setupUpdateTimer();
         initSqlite3Db_Unify();
+        init_SQLInfo();
         if (GlobalPara::MergePointNum > 0)
         {
             for (int i = 0; i < GlobalPara::MergePointNum; i++)
@@ -971,6 +977,98 @@ void MainWindow::onAllLearn()
             cams[i]->ten.store(10);
         }
     }
+}
+
+void MainWindow::init_SQLInfo()
+{
+    // 1. 初始化数据库连接
+    QString dbFileName = SystemPara::ROOT_DIR + "resources/file/SQliteDB/" + GlobalPara::DeviceId + ".db";
+
+    int initResult = SqliteDB::DBOperation::Initialize(dbFileName.toUtf8().constData());
+    if (initResult != 0) {
+        QMessageBox::critical(this, "数据库错误", "无法初始化数据库实例 (Info日志)。");
+        return;
+    }
+
+    // 2. 构建当天的表名: YYYYMMDD_Info
+    QString dateStr = QDate::currentDate().toString("yyyyMMdd");
+    QString tableName = dateStr + "_Info";
+
+    // 3. 定义表结构
+    // 【关键修改】增加了 "备注" 字段
+    // 顺序: 时间 -> SegmentInfo -> 相机名称 -> 检测耗时 -> 备注 -> json文本
+    QString columnsDef = QString::fromUtf8(u8"\"时间\" TEXT, "
+        u8"\"SegmentInfo\" TEXT, "
+        u8"\"相机名称\" TEXT, "
+        u8"\"检测耗时\" TEXT, "
+        u8"\"备注\" TEXT, "
+        u8"\"json文本\" TEXT");
+
+    // 4. 创建表
+    SqliteDB::DBOperation::CreateTable(tableName.toUtf8().constData(), columnsDef.toUtf8().constData());
+
+    qDebug() << "数据日志表初始化完成: " << tableName;
+}
+
+
+void MainWindow::update_SQLInfo(const DBInfo& info)
+{
+    // 1. 准备表名
+    QString dateStr = QDate::currentDate().toString("yyyyMMdd");
+    QString tableName = dateStr + "_Info";
+
+    // 2. 准备时间戳
+    QString timeStr = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
+
+    // 3. --- JSON 序列化核心逻辑 (适配 UnifyParam) ---
+    QJsonObject rootObj;
+
+    // 遍历 UnifyParams Map
+    for (auto it = info.UnifyParams.begin(); it != info.UnifyParams.end(); ++it) {
+        const UnifyParam& param = it.value();
+        QJsonObject itemObj;
+
+        // 存入基础数据
+        // 根据您的要求，"label" 也要存入 JSON 中
+        itemObj["label"] = param.label;
+        itemObj["value"] = param.value;    // UnifyParam 的 value 是 double
+        itemObj["result"] = param.result;  // int
+
+        // 处理 extraData (只有当它包含有效数据时才写入)
+        if (param.extraData.isValid() && !param.extraData.isNull()) {
+            if (param.extraData.typeId() == QMetaType::QVariantList) {
+                // 如果是 List，转为 JSON 数组
+                itemObj["extraData"] = QJsonArray::fromVariantList(param.extraData.toList());
+            }
+            else {
+                // 其他类型直接转为 JSON Value
+                itemObj["extraData"] = QJsonValue::fromVariant(param.extraData);
+            }
+        }
+
+        // 将此项存入根对象，Key 使用 label
+        rootObj[param.label] = itemObj;
+    }
+
+    // 转为 Compact 格式字符串
+    QJsonDocument doc(rootObj);
+    QString jsonString = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
+
+    // 4. --- 插入数据库 ---
+    // 顺序必须与 init_SQLInfo 严格一致: 
+    // 时间 -> SegmentInfo -> 相机名称 -> 检测耗时 -> 备注 -> json文本
+    std::vector<std::variant<int, double, std::string>> valuesToInsert;
+
+    // 使用 .toUtf8().toStdString() 确保中文不乱码
+    valuesToInsert.push_back(timeStr.toUtf8().toStdString());
+    valuesToInsert.push_back(info.SegmentInfo.toUtf8().toStdString());
+    valuesToInsert.push_back(info.CamID.toUtf8().toStdString());
+    valuesToInsert.push_back(info.CostTime.toUtf8().toStdString());
+    valuesToInsert.push_back(info.Remarks.toUtf8().toStdString()); // 写入备注
+    valuesToInsert.push_back(jsonString.toUtf8().toStdString());
+
+    // 执行插入
+    SqliteDB::DBOperation::InsertRecord(tableName.toUtf8().constData(), valuesToInsert);
 }
 
 MainWindow::MainWindow(int mode,QWidget* parent) :
@@ -1303,7 +1401,9 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
 #endif
         connect(cameraLabel->m_imageProcessor, &ImageProcess::StopDevice, this, &MainWindow::onStopAllCamerasClicked);
 		connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateLearnLimits, infoWidget, &DisplayInfoWidget::onBuildUIFromUnifyParameters);
+        connect(cameraLabel->m_imageProcessor, &ImageProcess::WriteInfo, this, &MainWindow::update_SQLInfo);
     }
+
 
     // 保证 3 列布局美观
     for (int col = 0; col < 3; ++col) {
