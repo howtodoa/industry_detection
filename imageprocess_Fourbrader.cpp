@@ -159,6 +159,7 @@ void Imageprocess_FourBrader::run()
 				g_detector->InParam.CMAX_max = xsPtr->CMAX_max;
 				g_detector->InParam.HS_max = xsPtr->HS_max;
 				g_detector->InParam.ZW_max = xsPtr->ZW_max;
+				g_detector->InParam.XS_BDparam = xsPtr->XS_BDparam;
 
 				int algo_id = 0;
 				cv::Mat imgCopy = currentImagePtr->clone();
@@ -230,6 +231,8 @@ void Imageprocess_FourBrader::run()
 				g_detector->InParam.ZW_AreaMin = nyPtr->ZW_AreaMin;
 				g_detector->InParam.NY_SeCha_Ratio = nyPtr->NY_SeCha_Ratio; // 相似度阈值控制参数
 				g_detector->InParam.OCR_Control = nyPtr->OCR_Control;
+				g_detector->InParam.XT_ZF_ColorThreshold = nyPtr->XT_ZF_ColorThreshold;
+				g_detector->InParam.NY_BDparam = nyPtr->NY_BDparam;
 
 				int algo_id = 1;
 				cv::Mat imgCopy = currentImagePtr->clone();
@@ -307,6 +310,8 @@ void Imageprocess_FourBrader::run()
 				g_detector->InParam.LK_min = bottomPtr->LK_min;
 				g_detector->InParam.JM_min = bottomPtr->JM_min;
 				g_detector->InParam.WB_min = bottomPtr->WB_min;
+				g_detector->InParam.LK_BOTTOM_BDparam = bottomPtr->LK_BOTTOM_BDparam;
+				g_detector->InParam.JM_BOTTOM_BDparam = bottomPtr->JM_BOTTOM_BDparam;
 				LOG_DEBUG(GlobalLog::logger, L"into Bottom1 process");
 				int algo_id = 3;//胶帽
 				cv::Mat imgCopy = currentImagePtr->clone();

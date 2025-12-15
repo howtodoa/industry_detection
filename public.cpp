@@ -206,6 +206,83 @@ void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 	redImageForQueue.reset();
 }
 
+
+
+bool IsDiskUsageOverThreshold(const QString& path, double thresholdPercent)
+{
+	QStorageInfo storage(path);
+
+	if (!storage.isValid() || !storage.isReady())
+	{
+		qWarning() << "[DiskCheck] Storage not ready for path:" << path;
+		return false;
+	}
+
+	qint64 total = storage.bytesTotal();
+	qint64 free = storage.bytesFree();
+
+	if (total <= 0)
+	{
+		qWarning() << "[DiskCheck] Invalid total size for path:" << path;
+		return false;
+	}
+
+	double usagePercent = 100.0 * (total - free) / total;
+
+	qDebug() << "[DiskCheck]"
+		<< "Disk:" << storage.rootPath()
+		<< "Usage:" << usagePercent << "%";
+
+	return usagePercent >= thresholdPercent;
+}
+
+
+QQueue<QString> collectDirsByLevel_BFS(const QString& rootPath, int level)
+{
+	QQueue<QString> result;
+	if (rootPath.isEmpty() || level <= 0)
+		return result;
+
+	QQueue<QString> currentLevelQueue;
+	currentLevelQueue.enqueue(rootPath);
+
+	int currentLevel = 0;
+
+	while (!currentLevelQueue.isEmpty())
+	{
+		if (currentLevel == level)
+		{
+			// 当前队列里的所有节点，都是目标层
+			result = currentLevelQueue;
+			break;
+		}
+
+		QQueue<QString> nextLevelQueue;
+
+		while (!currentLevelQueue.isEmpty())
+		{
+			QString path = currentLevelQueue.dequeue();
+			QDir dir(path);
+
+			QFileInfoList children = dir.entryInfoList(
+				QDir::Dirs | QDir::NoDotAndDotDot,
+				QDir::Name
+			);
+
+			for (const QFileInfo& info : children)
+			{
+				nextLevelQueue.enqueue(info.absoluteFilePath());
+			}
+		}
+
+		currentLevelQueue = nextLevelQueue;
+		++currentLevel;
+	}
+
+	return result;
+}
+
+
 bool SaveParamsJson(const QString& absPath, const AllUnifyParams& params)
 {
 	QJsonObject rootObject;

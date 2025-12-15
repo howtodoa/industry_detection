@@ -14,10 +14,10 @@ public:
     explicit RunTaskThread(QObject* parent = nullptr);
     ~RunTaskThread() override;
 
-    void stop();   // 外部调用用于安全停止线程
+    void stop();  
 
 protected:
-    void run() override;  // 线程执行体，用 run 简化结构
+    void run() override; 
 
 private:
     std::atomic<bool> m_running{ true };

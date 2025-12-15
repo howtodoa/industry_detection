@@ -18,6 +18,14 @@ AlgoClass_Ny::AlgoClass_Ny(QString algopath, QObject* parent)
 {
     QVariantMap map = FileOperator::readJsonMap(algopath);
 
+    // ===== 新增参数（最优先读取）=====
+    if (map.contains("颜色过滤参数"))
+        XT_ZF_ColorThreshold = map.value("颜色过滤参数").toMap().value("值").toInt();
+
+    if (map.contains("捺印标定值"))
+        NY_BDparam = map.value("捺印标定值").toMap().value("值").toFloat();
+
+    // ===== 原有参数 =====
     if (map.contains("捺印残缺最小面积"))
         CQ_AreaMin = map.value("捺印残缺最小面积").toMap().value("值").toFloat();
 
@@ -41,10 +49,6 @@ AlgoClass_Ny::AlgoClass_Ny(QString algopath, QObject* parent)
 
     if (map.contains("捺印脏污最小面积"))
         ZW_AreaMin = map.value("捺印脏污最小面积").toMap().value("值").toFloat();
-
-    // 新增：捺印标定参数
-    if (map.contains("捺印标定参数"))
-        NY_BDparam = map.value("捺印标定参数").toMap().value("值").toFloat();
 }
 
 QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
@@ -52,7 +56,7 @@ QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
     QWidget* panel = new QWidget(parent);
     QVBoxLayout* layout = new QVBoxLayout(panel);
 
-    auto addRow = [&](const QString& labelText, float& value) -> QLineEdit* {
+    auto addRowFloat = [&](const QString& labelText, float& value) -> QLineEdit* {
         QHBoxLayout* row = new QHBoxLayout;
         QLabel* label = new QLabel(labelText, panel);
         QLineEdit* edit = new QLineEdit(QString::number(value), panel);
@@ -62,23 +66,38 @@ QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
         return edit;
         };
 
-    QLineEdit* editCQ = addRow("捺印残缺最小面积:", CQ_AreaMin);
-    QLineEdit* editGS = addRow("捺印刮伤最小面积:", GS_AreaMin);
-    QLineEdit* editHS = addRow("捺印划伤最小面积:", HS_AreaMin);
-    QLineEdit* editSeCha = addRow("捺印色差比例:", NY_SeCha_Ratio);
-    QLineEdit* editOCR = addRow("字符识别控制参数:", OCR_Control);
-    QLineEdit* editQP = addRow("捺印负极气泡最小面积:", QP_AreaMin);
-    QLineEdit* editYH = addRow("捺印压痕最小面积:", YH_AreaMin);
-    QLineEdit* editZW = addRow("捺印脏污最小面积:", ZW_AreaMin);
+    auto addRowInt = [&](const QString& labelText, int& value) -> QLineEdit* {
+        QHBoxLayout* row = new QHBoxLayout;
+        QLabel* label = new QLabel(labelText, panel);
+        QLineEdit* edit = new QLineEdit(QString::number(value), panel);
+        row->addWidget(label);
+        row->addWidget(edit);
+        layout->addLayout(row);
+        return edit;
+        };
 
-    // 新增：捺印标定参数
-    QLineEdit* editBD = addRow("捺印标定参数:", NY_BDparam);
+    // ===== 新增参数（放最上面）=====
+    QLineEdit* editColorTh = addRowInt("颜色过滤参数:", XT_ZF_ColorThreshold);
+    QLineEdit* editBD = addRowFloat("捺印标定值:", NY_BDparam);
+
+    // ===== 原有参数 =====
+    QLineEdit* editCQ = addRowFloat("捺印残缺最小面积:", CQ_AreaMin);
+    QLineEdit* editGS = addRowFloat("捺印刮伤最小面积:", GS_AreaMin);
+    QLineEdit* editHS = addRowFloat("捺印划伤最小面积:", HS_AreaMin);
+    QLineEdit* editSeCha = addRowFloat("捺印色差比例:", NY_SeCha_Ratio);
+    QLineEdit* editOCR = addRowFloat("字符识别控制参数:", OCR_Control);
+    QLineEdit* editQP = addRowFloat("捺印负极气泡最小面积:", QP_AreaMin);
+    QLineEdit* editYH = addRowFloat("捺印压痕最小面积:", YH_AreaMin);
+    QLineEdit* editZW = addRowFloat("捺印脏污最小面积:", ZW_AreaMin);
 
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
 
     connect(btnSave, &QPushButton::clicked, this, [=]() mutable {
+        XT_ZF_ColorThreshold = editColorTh->text().toInt();
+        NY_BDparam = editBD->text().toFloat();
+
         CQ_AreaMin = editCQ->text().toFloat();
         GS_AreaMin = editGS->text().toFloat();
         HS_AreaMin = editHS->text().toFloat();
@@ -87,7 +106,6 @@ QWidget* AlgoClass_Ny::createLeftPanel(QWidget* parent)
         QP_AreaMin = editQP->text().toFloat();
         YH_AreaMin = editYH->text().toFloat();
         ZW_AreaMin = editZW->text().toFloat();
-        NY_BDparam = editBD->text().toFloat();   // 新增保存
 
         saveParamAsync();
         });
@@ -99,6 +117,11 @@ void AlgoClass_Ny::saveParamAsync()
 {
     QVariantMap mapToSave;
 
+    // ===== 新增参数 =====
+    mapToSave["颜色过滤参数"] = QVariantMap{ {"值", XT_ZF_ColorThreshold} };
+    mapToSave["捺印标定值"] = QVariantMap{ {"值", NY_BDparam} };
+
+    // ===== 原有参数 =====
     mapToSave["捺印残缺最小面积"] = QVariantMap{ {"值", CQ_AreaMin} };
     mapToSave["捺印刮伤最小面积"] = QVariantMap{ {"值", GS_AreaMin} };
     mapToSave["捺印划伤最小面积"] = QVariantMap{ {"值", HS_AreaMin} };
@@ -108,13 +131,9 @@ void AlgoClass_Ny::saveParamAsync()
     mapToSave["捺印压痕最小面积"] = QVariantMap{ {"值", YH_AreaMin} };
     mapToSave["捺印脏污最小面积"] = QVariantMap{ {"值", ZW_AreaMin} };
 
-    // 新增捺印标定参数
-    mapToSave["捺印标定参数"] = QVariantMap{ {"值", NY_BDparam} };
-
     QString filePath = m_cameralPath;
-    QVariantMap dataToSave = mapToSave;
 
-    QtConcurrent::run([filePath, dataToSave]() {
-        FileOperator::writeJsonMap(filePath, dataToSave);
+    QtConcurrent::run([filePath, mapToSave]() {
+        FileOperator::writeJsonMap(filePath, mapToSave);
         });
 }

@@ -4,6 +4,7 @@
 #include <QList>
 #include <QDebug>
 #include <QLabel>
+#include <QQueue>
 #include <QFont>
 #include <QGridLayout>
 #include <QPushButton>
@@ -32,7 +33,7 @@
 #include <QFuture>
 #include <QFutureWatcher>
 #include "fileoperator.h"
-
+#include <QStorageInfo>
 
 void renameJpgFiles(const QString& directoryPath);
 
@@ -63,6 +64,12 @@ QString FirstFailedParamLabel(const AllUnifyParams& allParams);
 cv::Mat convertQImageToMat(const QImage& image);
 
 std::string generateStamp();
+
+QQueue<QString> collectDirsByLevel_BFS(const QString& rootPath, int level);
+
+bool CleanDir(const QString& dirPath);
+
+bool IsDiskUsageOverThreshold(const QString& path, double thresholdPercent);
 
 void printOutStampResParam(const OutStampResParam& param, const std::string& structName = "OutStampResParam");
 
