@@ -17,6 +17,9 @@
 #include "DBOperation.h" 
 #include "outputhread.h"
 #include "Api_Welding.h"
+#include "run_task_thread.h"
+#include <QProgressBar>
+#include <QTimer>
 namespace Ui {
 class MainWindow;
 }
@@ -56,6 +59,7 @@ public:
     void init_algo();
     void init_algo_Braider();
     void init_algo_Flower();
+    void startAlgoInitAsync();
 	void init_algo_FourBrader();
     void init_cap();
     void initSqlite3Db_Brader();
@@ -115,9 +119,16 @@ private:
     void setupMonitorThread();
 
     OutPutThread* m_outputThread = nullptr;
+	RunTaskThread* m_runTaskThread = nullptr;
     void setupOutPutThread();
 
     void terminateProcessByName(const std::string& processName);
+
+    QProgressBar* m_algoProgressBar = nullptr;
+    QTimer* m_algoProgressTimer = nullptr;
+    QLabel* m_algoStatusLabel = nullptr;
+    QAction* LogAction = nullptr;
+    QAction* DataAction = nullptr;
 private slots:
 
 };

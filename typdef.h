@@ -186,6 +186,7 @@ struct GlobalPara {
     static int FLOWER_NEG_LENGTH;
     static int TimeOut;
 	static int LearnCount;
+    static bool AlogReady;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

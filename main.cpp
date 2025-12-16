@@ -144,7 +144,7 @@ void redirectToFile()
 }
 
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+#ifdef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {

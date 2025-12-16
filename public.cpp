@@ -33,6 +33,7 @@ int GlobalPara::FLOWER_POS_LENGTH = 4;
 int GlobalPara::FLOWER_NEG_LENGTH = 3;
 int GlobalPara::TimeOut = 200;
 int GlobalPara::LearnCount = 50;
+bool GlobalPara::AlogReady = false;
 
 QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;

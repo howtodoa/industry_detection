@@ -654,6 +654,20 @@ void MainWindow::init_algo()
 
 }
 
+void MainWindow::startAlgoInitAsync()
+{
+    QtConcurrent::run([this]() {
+#ifdef FOURBRADER
+        this->init_algo_FourBrader();
+#else
+        this->init_algo();
+#endif
+        GlobalPara::AlogReady = true;
+        LOG_DEBUG(GlobalLog::logger, L"algo load successful");
+        });
+
+}
+
 void MainWindow::init_algo_Braider()
 {
     // 侧面 
@@ -798,17 +812,12 @@ MainWindow::MainWindow(QWidget *parent) :
     init_cap();
     initcams(caminfo.size());
     initSqlite3Db_Plater();
-#ifdef FOURBRADER
-	init_algo_FourBrader();
-#else
-    init_algo();
-#endif
+    startAlgoInitAsync();
     setupImageSaverThread();
     CreateMenu();
     CreateImageGrid(caminfo.size());
     updateCameraStats();
     setupMonitorThread();
-    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
     setupUpdateTimer();
 #ifdef ADAPTATEION || FOURBRADER
@@ -827,6 +836,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif // ADAPTATEION
 
     Sleep(50);
+    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     this->onPhotoAllCamerasClicked();
 }
 
@@ -2029,6 +2039,7 @@ void MainWindow::showAboutWidget()
     about->show();
 }
 
+// MainWindow.cpp
 void MainWindow::CreateMenu()
 {
     // --- 1. 初始化工具栏 ---
@@ -2041,12 +2052,14 @@ void MainWindow::CreateMenu()
         // --- 2. 创建一个总的、居中的容器 ---
         QWidget* centralContainer = new QWidget(ui->mainToolBar);
         QHBoxLayout* containerLayout = new QHBoxLayout(centralContainer);
-        containerLayout->setContentsMargins(0, 0, 0, 0); // 容器两边的边距
-        containerLayout->setSpacing(15);                   // 容器内元素默认间距
+        containerLayout->setContentsMargins(0, 0, 0, 0);
+        containerLayout->setSpacing(15);
 
-        // --- 3. 准备所有要显示的控件 ---
+        // --- 3. 准备所有控件 ---
         QLabel* logoLabel = new QLabel(centralContainer);
-        logoLabel->setPixmap(QPixmap(":/images/resources/images/oo.ico").scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        logoLabel->setPixmap(
+            QPixmap(":/images/resources/images/oo.ico")
+            .scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         logoLabel->setFixedSize(48, 48);
 
         QLabel* versionTextLabel = new QLabel(SystemPara::VERSION, centralContainer);
@@ -2058,22 +2071,35 @@ void MainWindow::CreateMenu()
         m_runtimeLabel->setStyleSheet(statusLabelStyle);
         m_roleLabel->setStyleSheet(statusLabelStyle);
 
-        // --- 4. 在容器内部进行精细布局 ---
+        // ★ 算法载入进度条和文字
+        QLabel* algoLabel = new QLabel("算法载入中", centralContainer);
+        algoLabel->setStyleSheet("color: white; font-size: 12pt;");
+
+        m_algoProgressBar = new QProgressBar(centralContainer);
+        m_algoProgressBar->setRange(0, 100);
+        m_algoProgressBar->setValue(0);
+        m_algoProgressBar->setFixedWidth(180);   // 拉长一点
+        m_algoProgressBar->setFixedHeight(18);
+        m_algoProgressBar->setTextVisible(true);
+        m_algoProgressBar->setFormat("%p%");
+        m_algoProgressBar->setStyleSheet(
+            "QProgressBar { border: 1px solid #555; border-radius: 4px; background: #2b2b2b; color: white; }"
+            "QProgressBar::chunk { background-color: #3daee9; }"
+        );
+
+        // --- 4. 布局 ---
         containerLayout->addWidget(logoLabel);
         containerLayout->addWidget(versionTextLabel);
-
-        // 在这里添加一个弹性间隔
-        // 它会占据所有可用空间，从而把版本号和运行时间推开
         containerLayout->addStretch(1);
-
         containerLayout->addWidget(m_runtimeLabel);
         containerLayout->addWidget(m_roleLabel);
+        containerLayout->addWidget(algoLabel);        // 新增文字
+        containerLayout->addWidget(m_algoProgressBar); // 新增进度条
         centralContainer->setLayout(containerLayout);
 
-        // --- 5. 将总容器在工具栏中居中 ---
+        // --- 5. 居中容器 ---
         QWidget* leftSpacer = new QWidget(ui->mainToolBar);
         leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
         QWidget* rightSpacer = new QWidget(ui->mainToolBar);
         rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -2081,7 +2107,8 @@ void MainWindow::CreateMenu()
         ui->mainToolBar->addWidget(centralContainer);
         ui->mainToolBar->addWidget(rightSpacer);
     }
-    // --- 4. 创建菜单和Action ---
+
+    // --- 6. 菜单和 QAction ---
     QMenuBar* menuBar = this->menuBar();
     menuExecute = menuBar->addMenu("关于软件");
     menuRecord = menuBar->addMenu("记录");
@@ -2091,17 +2118,15 @@ void MainWindow::CreateMenu()
 
     QAction* menuUpdate = menuExecute->addAction("更新说明");
     QAction* ActionSelfStart = menuTools->addAction("开机自启动（开启中）");
-   // QMenu * 
     QAction* actionLogout = menuUser->addAction("注销");
     QAction* loginAction = menuUser->addAction("登录");
-    QAction* LogAction = menuRecord->addAction("日志");
-    QAction* DataAction = menuRecord->addAction("数据");
+    LogAction = menuRecord->addAction("日志");   // ★ 改为类成员
+    DataAction = menuRecord->addAction("数据");  // ★ 改为类成员
     QAction* SystemParaAction = menuTools->addAction("存图路径");
     QAction* CameralSetAction = menuTools->addAction("相机配置");
     QAction* DevToolAction = menuTools->addAction("开发者工具");
 
-
-    // --- 5. 连接所有信号和槽 ---
+    // --- 7. 运行时间定时器 ---
     QTimer* timer = new QTimer(this);
     QDateTime startTime = QDateTime::currentDateTime();
     connect(timer, &QTimer::timeout, this, [this, startTime]() {
@@ -2116,12 +2141,27 @@ void MainWindow::CreateMenu()
         });
     timer->start(1000);
 
-    connect(menuAbout, &QAction::triggered, this, &MainWindow::showAboutWidget);
-
-    connect(ActionSelfStart, &QAction::triggered, this, [=]() {
-        this->toggleAutoStart(ActionSelfStart);
+    // --- 8. 算法进度条定时器 ---
+    m_algoProgressTimer = new QTimer(this);
+    connect(m_algoProgressTimer, &QTimer::timeout, this, [this]() {
+        int value = m_algoProgressBar->value();
+        if (!GlobalPara::AlogReady) {
+            if (value < 99) {
+                value += 4;
+                if (value > 99) value = 99;
+                m_algoProgressBar->setValue(value);
+            }
+        }
+        else {
+            m_algoProgressBar->setValue(100);
+            m_algoProgressTimer->stop();
+        }
         });
+    m_algoProgressTimer->start(1000);
 
+    // --- 9. 菜单功能连接 ---
+    connect(menuAbout, &QAction::triggered, this, &MainWindow::showAboutWidget);
+    connect(ActionSelfStart, &QAction::triggered, this, [=]() { this->toggleAutoStart(ActionSelfStart); });
     connect(actionLogout, &QAction::triggered, this, [this]() {
         Role::ChangeRole("操作员");
         m_roleLabel->setText(Role::GetCurrentRole());
@@ -2136,7 +2176,7 @@ void MainWindow::CreateMenu()
                 m_roleLabel->setText(role.GetCurrentRole());
                 show();
                 Role::StartAutoLogout(600000, this, [this]() {
-                    m_roleLabel->setText("操作员");  // 自动更新界面
+                    m_roleLabel->setText("操作员");
                     qDebug() << "UI 已更新：角色自动注销为操作员";
                     });
             }
@@ -2147,14 +2187,10 @@ void MainWindow::CreateMenu()
     connect(menuUpdate, &QAction::triggered, this, [this]() {
         QString filePath = "../../../resources/file/update.txt";
         QFile file(filePath);
-
         if (file.exists() && file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             QTextStream in(&file);
             QMessageBox::information(this, "更新说明", in.readAll());
             file.close();
-        }
-        else {
-            qDebug() << "文件不存在或无法打开，不执行任何操作：" << filePath;
         }
         });
 
@@ -2162,18 +2198,14 @@ void MainWindow::CreateMenu()
         QString logFolderPath = SystemPara::LOG_DIR;
         if (!QDir(logFolderPath).exists()) return;
         QString selectedFile = QFileDialog::getOpenFileName(this, "选择日志文件", logFolderPath, "Text Files (*.txt)");
-        if (!selectedFile.isEmpty()) {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
-        }
+        if (!selectedFile.isEmpty()) QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
         });
 
     connect(DataAction, &QAction::triggered, this, [this]() {
         QString dataFolderPath = SystemPara::DATA_DIR;
         if (!QDir(dataFolderPath).exists()) return;
         QString selectedFile = QFileDialog::getOpenFileName(this, "选择数据文件", dataFolderPath, "Text Files (*.txt)");
-        if (!selectedFile.isEmpty()) {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
-        }
+        if (!selectedFile.isEmpty()) QDesktopServices::openUrl(QUrl::fromLocalFile(selectedFile));
         });
 
     connect(CameralSetAction, &QAction::triggered, this, [=]() {
