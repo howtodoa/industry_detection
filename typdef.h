@@ -187,6 +187,8 @@ struct GlobalPara {
     static int TimeOut;
 	static int LearnCount;
     static bool AlogReady;
+    static int InputPoint;
+    static int InputFlag;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

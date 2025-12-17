@@ -49,10 +49,10 @@ enum class Crop_Bottom_NGReults//电容底部
 //    TBDIS_Err,
 //};
 
-struct Params 
+struct Params
 {
     bool cuda;
-	bool LearnFlag = false;
+    bool LearnFlag = false;
     //线扫相机参数
     std::string XS_PositionModel;
     std::string SegModel;
@@ -77,7 +77,7 @@ struct Params
     int logolabelindex;
     //型替学习相关
     int ColorNum = 0;
-	std::vector<std::string> OCR_str;
+    std::vector<std::string> OCR_str;
     //电容底部检测
     std::string LB_SegModel;
     std::string RB_SegModel;
@@ -103,7 +103,7 @@ struct InThresholdParam
     float JM_Height = 0.4;
     int JM_Thresholdup = 56;
     int JM_Thresholddown = 29;
-	float XS_BDparam = 7;
+    float XS_BDparam = 7;
     //瑕疵检测
     float AX_max = 0.3;
     float CMAX_max = 0.2;
@@ -116,12 +116,17 @@ struct InThresholdParam
     float QP_AreaMin = 20;
     float YH_AreaMin = 20;
     float ZW_AreaMin = 10;
-	float NY_SeCha_Ratio = 0.3;
+    float NY_SeCha_Ratio = 0.105;
     float NY_BDparam = 5;
-    //相似度阈值控制参数
+    //模型严格程度控制参数
     float OCR_Control = 0.6;
-	//型替字符颜色过滤参数
-	int XT_ZF_ColorThreshold = 50;
+    //型替字符颜色过滤参数
+    int XT_ZF_ColorThreshold = 255;
+    //型替字符相似度控制参数
+    float XT_Similarity_Threshold = 0.9;
+    //型替字符HSV颜色范围
+    int NY_H = 80;
+    int NY_S = 150;
     //底面相机
     float LK_min = 1;
     float JM_min = 1;
@@ -145,15 +150,15 @@ struct XSResult
 };
 struct NYResult
 {
-	NY_NGReults NGResult_single;
+    NY_NGReults NGResult_single;
     unsigned char NGResult = 0x00;
     cv::Mat dstImg;
     //捺印缺陷检测框信息
-	float CQ_Area = 0.0f;
-	float GS_Area = 0.0f;
-	float HS_Area = 0.0f;
-	float QP_Area = 0.0f;
-	float YH_Area = 0.0f;
+    float CQ_Area = 0.0f;
+    float GS_Area = 0.0f;
+    float HS_Area = 0.0f;
+    float QP_Area = 0.0f;
+    float YH_Area = 0.0f;
     float ZW_Area = 0.0f;
 };
 struct Crop_BottomResult
@@ -191,7 +196,8 @@ struct CameraSw {
     int m_nOK;
     int m_nNG;
     CameraSw(int ng = 0, int ok = 0, int composite = 0, int source = 0)
-        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {}
+        : m_nSource(source), m_nComposite(composite), m_nOK(ok), m_nNG(ng) {
+    }
 };
 
 struct SaveSw
@@ -199,7 +205,7 @@ struct SaveSw
     CameraSw m_cSave1, m_cSave2, m_cSave3, m_cSave4, m_cSave5, m_cSave6;
 
     CameraSw& getCameraSw(int index) {
-        switch(index) {
+        switch (index) {
         case 1: return m_cSave1;
         case 2: return m_cSave2;
         case 3: return m_cSave3;

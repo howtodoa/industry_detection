@@ -1,31 +1,25 @@
 #include "DebugTool.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
 #include <QMessageBox>
 #include <QDebug>
-#include <QSlider>
-#include <QComboBox>
+#include <QtConcurrent/QtConcurrent>
 #include "typdef.h"
 #include "fileoperator.h"
-#include <QtConcurrent/QtConcurrent>
-#include <QThreadPool>
-#include <QPushButton>
-#include <QLineEdit>
 #include <MZ_VC3000H.h>
+#include <thread>
 
 DebugTool::DebugTool(QWidget* parent)
     : QWidget(parent)
 {
     this->setWindowTitle("开发者工具");
-    this->resize(500, 400);
+    this->resize(500, 450);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(10, 10, 10, 10);
     mainLayout->setSpacing(10);
 
-    // --- 字体大小 ---
+    // === 字体大小 ===
     QHBoxLayout* fontSizeLayout = new QHBoxLayout;
     fontSizeLayout->setSpacing(5);
     QPushButton* fontSizeButton = new QPushButton("字体大小", this);
@@ -42,7 +36,7 @@ DebugTool::DebugTool(QWidget* parent)
     fontSizeLayout->addStretch();
     mainLayout->addLayout(fontSizeLayout);
 
-    // --- LIGHT1~LIGHT4 ---
+    // === LIGHT1~LIGHT4 ===
     for (int i = 1; i <= 4; ++i) {
         QHBoxLayout* lightLayout = new QHBoxLayout;
         lightLayout->setSpacing(5);
@@ -50,8 +44,6 @@ DebugTool::DebugTool(QWidget* parent)
         lightButton->setFixedSize(100, 30);
         QSlider* slider = new QSlider(Qt::Horizontal, this);
         slider->setRange(1, 100);
-
-        // 设置默认值
         int value = 30;
         switch (i) {
         case 1: value = GlobalPara::Light1; light1Slider = slider; break;
@@ -60,72 +52,54 @@ DebugTool::DebugTool(QWidget* parent)
         case 4: value = GlobalPara::Light4; light4Slider = slider; break;
         }
         slider->setValue(value);
-
         QLabel* valueLabel = new QLabel(QString::number(value), this);
         valueLabel->setFixedWidth(30);
         valueLabel->setAlignment(Qt::AlignCenter);
-
         lightLayout->addWidget(lightButton);
         lightLayout->addWidget(slider);
         lightLayout->addWidget(valueLabel);
         lightLayout->addStretch();
         mainLayout->addLayout(lightLayout);
 
-        // 绑定信号槽，实时更新数字
+        // 实时显示数值
         connect(slider, &QSlider::valueChanged, this, [valueLabel](int v) {
             valueLabel->setText(QString::number(v));
             });
     }
 
-    // --- RunPoint 下拉选择 ---
+    // === 运行点位 RunPoint ===
     QHBoxLayout* runPointLayout = new QHBoxLayout;
     runPointLayout->setSpacing(5);
     QLabel* runPointLabel = new QLabel("运行点位", this);
     runPointLabel->setFixedSize(100, 30);
     runPointCombo = new QComboBox(this);
     for (int i = 1; i <= 30; ++i) runPointCombo->addItem(QString::number(i));
-    runPointCombo->setCurrentIndex(GlobalPara::RunPoint - 1); // 默认值
+    runPointCombo->setCurrentIndex(GlobalPara::RunPoint - 1);
     runPointLayout->addWidget(runPointLabel);
     runPointLayout->addWidget(runPointCombo);
     runPointLayout->addStretch();
     mainLayout->addLayout(runPointLayout);
 
-    //// FLOWER_POS_LENGTH
-    //QHBoxLayout* flowerPosLayout = new QHBoxLayout;
-    //flowerPosLayout->setSpacing(5);
-    //QLabel* flowerPosLabel = new QLabel("FLOWER_POS_LENGTH", this);
-    //flowerPosLabel->setFixedSize(120, 30);
-    //flowerPosCombo = new QComboBox(this);
-    //for (int i = 1; i <= 8; ++i) flowerPosCombo->addItem(QString::number(i));
-    //flowerPosCombo->setCurrentIndex(GlobalPara::FLOWER_POS_LENGTH - 1);
-    //flowerPosLayout->addWidget(flowerPosLabel);
-    //flowerPosLayout->addWidget(flowerPosCombo);
-    //flowerPosLayout->addStretch();
-    //mainLayout->addLayout(flowerPosLayout);
+    // === 输入点位 InputPoint ===
+    QHBoxLayout* inputPointLayout = new QHBoxLayout;
+    inputPointLayout->setSpacing(5);
+    QLabel* inputPointLabel = new QLabel("输入点位", this);
+    inputPointLabel->setFixedSize(100, 30);
+    inputPointCombo = new QComboBox(this);
+    for (int i = 0; i <= 8; ++i) inputPointCombo->addItem(QString::number(i));
+    inputPointCombo->setCurrentIndex(GlobalPara::InputPoint - 1);
+    inputPointLayout->addWidget(inputPointLabel);
+    inputPointLayout->addWidget(inputPointCombo);
+    inputPointLayout->addStretch();
+    mainLayout->addLayout(inputPointLayout);
 
-    //// FLOWER_NEG_LENGTH
-    //QHBoxLayout* flowerNegLayout = new QHBoxLayout;
-    //flowerNegLayout->setSpacing(5);
-    //QLabel* flowerNegLabel = new QLabel("FLOWER_NEG_LENGTH", this);
-    //flowerNegLabel->setFixedSize(120, 30);
-    //flowerNegCombo = new QComboBox(this);
-    //for (int i = 1; i <= 8; ++i) flowerNegCombo->addItem(QString::number(i));
-    //flowerNegCombo->setCurrentIndex(GlobalPara::FLOWER_NEG_LENGTH - 1);
-    //flowerNegLayout->addWidget(flowerNegLabel);
-    //flowerNegLayout->addWidget(flowerNegCombo);
-    //flowerNegLayout->addStretch();
-    //mainLayout->addLayout(flowerNegLayout);
-
-    //断开相机按钮
+    // === 断开相机按钮 ===
     QHBoxLayout* disconnectLayout = new QHBoxLayout;
     disconnectLayout->setSpacing(5);
-
     disconnectCameraButton = new QPushButton("断开相机", this);
     disconnectCameraButton->setFixedSize(160, 30);
-
     disconnectLayout->addWidget(disconnectCameraButton);
     disconnectLayout->addStretch();
-
     mainLayout->addLayout(disconnectLayout);
 
     // === 自学习次数 ===
@@ -137,7 +111,7 @@ DebugTool::DebugTool(QWidget* parent)
     learnCountEdit->setText(QString::number(GlobalPara::LearnCount));
     learnLayout->addWidget(learnCountButton);
     learnLayout->addWidget(learnCountEdit);
-    learnLayout->addStretch();  // 拉伸放在末尾，让控件靠左
+    learnLayout->addStretch();
     mainLayout->addLayout(learnLayout);
 
     // === 超时时间 ===
@@ -149,7 +123,7 @@ DebugTool::DebugTool(QWidget* parent)
     timeoutEdit->setText(QString::number(GlobalPara::TimeOut));
     timeoutLayout->addWidget(timeoutButton);
     timeoutLayout->addWidget(timeoutEdit);
-    timeoutLayout->addStretch();  // 拉伸放在末尾，让控件靠左
+    timeoutLayout->addStretch();
     mainLayout->addLayout(timeoutLayout);
 
     // --- 信号连接 ---
@@ -171,17 +145,14 @@ void DebugTool::onDisconnectCameraClicked()
     );
 
     if (reply == QMessageBox::Yes) {
-
         qDebug() << "用户确认断开全部相机";
-		emit disconnectAllCameras();
-
+        emit disconnectAllCameras();
         QMessageBox::information(this, "完成", "所有相机已断开。");
     }
     else {
         qDebug() << "用户取消断开相机操作";
     }
 }
-
 
 void DebugTool::onFontSizeSliderValueChanged(int value)
 {
@@ -192,40 +163,22 @@ void DebugTool::onFontSizeSliderValueChanged(int value)
 
 void DebugTool::SetLight()
 {
-    if (PCI::pci().setlight(1, GlobalPara::Light1, 100, 1, false, 1) != 0) {
-        std::cerr << "[ERROR] 1通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
+    for (int ch = 1; ch <= 4; ++ch) {
+        int value = 0;
+        switch (ch) {
+        case 1: value = GlobalPara::Light1; break;
+        case 2: value = GlobalPara::Light2; break;
+        case 3: value = GlobalPara::Light3; break;
+        case 4: value = GlobalPara::Light4; break;
+        }
+        if (PCI::pci().setlight(ch, value, 100, 1, false, ch) != 0) {
+            std::cerr << "[ERROR] " << ch << "通道光源设置失败" << std::endl;
+        }
+        else {
+            std::cout << "[INFO] " << ch << "通道光源设置成功" << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    else {
-        std::cout << "[INFO] 1通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    // 通道 2
-    if (PCI::pci().setlight(2, GlobalPara::Light2, 100, 1, false, 2) != 0) {
-        std::cerr << "[ERROR] 2通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-    }
-    else {
-        std::cout << "[INFO] 2通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    // 通道 3
-    if (PCI::pci().setlight(3, GlobalPara::Light3, 100, 1, false, 3) != 0) {
-        std::cerr << "[ERROR] 3通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-    }
-    else {
-        std::cout << "[INFO] 3通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    // 通道 4
-    if (PCI::pci().setlight(4, GlobalPara::Light4, 100, 1, false, 4) != 0) {
-        std::cerr << "[ERROR] 4通道光源设置失败，请检查光源线路或光源模块。" << std::endl;
-    }
-    else {
-        std::cout << "[INFO] 4通道光源设置成功。" << std::endl;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 }
 
 void DebugTool::saveSettings()
@@ -239,9 +192,8 @@ void DebugTool::saveSettings()
     paramMap["LIGHT3"] = light3Slider->value();
     paramMap["LIGHT4"] = light4Slider->value();
     paramMap["RunPoint"] = runPointCombo->currentText().toInt();
-  //  paramMap["FLOWER_POS_LENGTH"] = flowerPosCombo->currentText().toInt();
- //   paramMap["FLOWER_NEG_LENGTH"] = flowerNegCombo->currentText().toInt();
-    paramMap["LearnCount"] = learnCountEdit->text().toInt();  
+    paramMap["InputPoint"] = inputPointCombo->currentText().toInt();
+    paramMap["LearnCount"] = learnCountEdit->text().toInt();
     paramMap["Timeout"] = timeoutEdit->text().toInt();
 
     // 更新全局变量
@@ -251,12 +203,11 @@ void DebugTool::saveSettings()
     GlobalPara::Light3 = paramMap["LIGHT3"];
     GlobalPara::Light4 = paramMap["LIGHT4"];
     GlobalPara::RunPoint = paramMap["RunPoint"];
-  //  GlobalPara::FLOWER_POS_LENGTH = paramMap["FLOWER_POS_LENGTH"];
-  //  GlobalPara::FLOWER_NEG_LENGTH = paramMap["FLOWER_NEG_LENGTH"];
-    GlobalPara::LearnCount = paramMap["LearnCount"]; 
-    GlobalPara::TimeOut = paramMap["Timeout"];       
+    GlobalPara::InputPoint = paramMap["InputPoint"];
+    GlobalPara::LearnCount = paramMap["LearnCount"];
+    GlobalPara::TimeOut = paramMap["Timeout"];
 
-	SetLight();
+    SetLight();
 
     // 异步写入 JSON
     QtConcurrent::run([settingsFilePath, paramMap]() {
@@ -287,7 +238,6 @@ void DebugTool::saveSettings()
 
     qDebug() << "Settings save task submitted via QtConcurrent.";
 }
-
 
 void DebugTool::closeEvent(QCloseEvent* event)
 {

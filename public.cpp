@@ -34,6 +34,7 @@ int GlobalPara::FLOWER_NEG_LENGTH = 3;
 int GlobalPara::TimeOut = 200;
 int GlobalPara::LearnCount = 50;
 bool GlobalPara::AlogReady = false;
+int GlobalPara::InputPoint = 0;
 
 QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;
@@ -152,7 +153,6 @@ void MyImageCallback(cv::Mat & image, void* pUser)
 
 void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 {
-	// ... (检查代码) ...
 
 	auto* DequePtr = reinterpret_cast<ImageQueuePack*>(pUser);
 	if (DequePtr == nullptr) {

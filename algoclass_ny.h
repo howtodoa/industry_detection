@@ -29,6 +29,12 @@ public:
     int XT_ZF_ColorThreshold = 50; //颜色过滤参数
     float NY_BDparam = 5;
 
+    //型替字符相似度控制参数
+    float XT_Similarity_Threshold = 0.9;
+    //型替字符HSV颜色范围
+    int NY_H = 80;
+    int NY_S = 150;
+
 private slots:
 
 };

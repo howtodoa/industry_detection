@@ -21,6 +21,7 @@ protected:
 
 private:
     std::atomic<bool> m_running{ true };
+    std::atomic<bool> m_reading;
 };
 
 #endif // RUN_TASK_THREAD_H

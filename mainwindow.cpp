@@ -189,6 +189,14 @@ void MainWindow::setupOutPutThread()
     qDebug() << "OutPutThread started successfully.";
 }
 
+void MainWindow::setupRunTaskThread()
+{
+	m_runTaskThread = new RunTaskThread(this);
+	m_runTaskThread->setObjectName("RunTaskThread");
+   // m_runTaskThread->start();
+	qDebug() << "RunTaskThread started successfully.";
+}
+
 void MainWindow::loadjson_layer(const QString& filePath)
 {
     // 读取 JSON 文件为 QVariantMap
@@ -561,6 +569,16 @@ void MainWindow::loadjson_layer3(const QString& filePath)
         qWarning() << "JSON file missing 'RunPoint' entry.";
     }
 
+    // InPutPoint
+    if (configMap.contains("InputPoint")) {
+        ParamDetail detail(configMap.value("InputPoint").toMap());
+        GlobalPara::InputPoint = detail.value.toInt();
+        qDebug() << "Parsed RunPoint:" << GlobalPara::InputPoint;
+    }
+    else {
+        qWarning() << "JSON file missing 'RunPoint' entry.";
+    }
+
     qDebug() << "loadjson_layer3 parsing complete.";
 }
 
@@ -837,7 +855,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     Sleep(50);
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
-    this->onPhotoAllCamerasClicked();
+   // this->onPhotoAllCamerasClicked();
 }
 
 MainWindow::MainWindow(QString str, QWidget * parent) :
@@ -1995,6 +2013,14 @@ MainWindow::~MainWindow()
             m_workerThread = nullptr;
         }
 
+        if (m_runTaskThread) {
+            m_runTaskThread->stop();
+            m_runTaskThread->wait();  // 等线程安全退出,output不一定需要，runtask需要收到释放
+        }
+        if (m_outputThread) {
+            m_outputThread->stop();
+            m_outputThread->wait();
+        }
 
         for(auto cam:cams)
         {
@@ -2147,7 +2173,7 @@ void MainWindow::CreateMenu()
         int value = m_algoProgressBar->value();
         if (!GlobalPara::AlogReady) {
             if (value < 99) {
-                value += 4;
+                value += 1;
                 if (value > 99) value = 99;
                 m_algoProgressBar->setValue(value);
             }
@@ -2157,7 +2183,7 @@ void MainWindow::CreateMenu()
             m_algoProgressTimer->stop();
         }
         });
-    m_algoProgressTimer->start(1000);
+    m_algoProgressTimer->start(250);
 
     // --- 9. 菜单功能连接 ---
     connect(menuAbout, &QAction::triggered, this, &MainWindow::showAboutWidget);
@@ -3066,6 +3092,18 @@ int MainWindow::initPCI_VC3000H()
 
 
 #endif // USE_MAIN_WINDOW_CAPACITY
+
+    if (GlobalPara::InputPoint > 0)
+    {
+        if ((result = PCI::pci().setInputMode(GlobalPara::InputPoint, true, 0, 100)) != 0) {
+            QString errorMsg = QString("[ERROR] 设置 set input camera5Output 模式失败，错误码：%1").arg(result);
+            LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
+        }
+        else {
+            QString successMsg = QString("[INFO] 设置 set input camera5Output 模式成功。");
+            LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
+        }
+}
 
     if ((result = PCI::pci().setOutputMode(AppConfig::runningOutput, false, 200)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 runningOutput 模式失败，错误码：%1").arg(result);

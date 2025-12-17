@@ -175,7 +175,7 @@ int runBusiness(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    redirectToFile();
+   // redirectToFile();
     if (argc > 1 && strcmp(argv[1], "--child") == 0) {
         // 子进程需要 QApplication 来运行 GUI
         return runBusiness(argc, argv);

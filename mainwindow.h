@@ -121,6 +121,7 @@ private:
     OutPutThread* m_outputThread = nullptr;
 	RunTaskThread* m_runTaskThread = nullptr;
     void setupOutPutThread();
+	void setupRunTaskThread();
 
     void terminateProcessByName(const std::string& processName);
 

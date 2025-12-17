@@ -33,14 +33,14 @@ void Imageprocess_Plate::run()
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
-			
+
 				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
 				});
-			
+
 			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
 				continue;
 			}
-			
+
 			currentImagePtr = m_inputQueue->queue.front();
 
 			cam_instance->triggerNum.fetch_add(1);
@@ -52,7 +52,7 @@ void Imageprocess_Plate::run()
 				.arg(curTrigger);
 
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
- 
+
 			if (!currentImagePtr || currentImagePtr->empty()) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null");
 				qWarning() << "ImageProcess::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
@@ -65,6 +65,7 @@ void Imageprocess_Plate::run()
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
 		if (GlobalPara::changed.load() == true) continue;
+		if (PCI::pci().getinput(GlobalPara::InputPoint) == 0) continue; 
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
 		cv::Mat image;

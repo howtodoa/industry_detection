@@ -1,4 +1,5 @@
 #include "run_task_thread.h"
+#include "MZ_VC3000H.h"
 
 RunTaskThread::RunTaskThread(QObject* parent)
     : QThread(parent)
@@ -24,8 +25,10 @@ void RunTaskThread::run()
 
     while (m_running)
     {
-        QThread::msleep(100);
-		LOG_DEBUG(GlobalLog::logger, L"RunTaskThread is running...");
+        //if (PCI::pci().getinput(5) == 1)  GlobalPara::InputFlag = true;
+       // PCI::pci().getinput(5) == 0
+        QThread::msleep(500);
+	//	LOG_DEBUG(GlobalLog::logger, L"RunTaskThread is running...");
     }
 
     qDebug() << "RunTaskThread exiting normally.";

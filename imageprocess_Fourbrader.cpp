@@ -233,6 +233,9 @@ void Imageprocess_FourBrader::run()
 				g_detector->InParam.OCR_Control = nyPtr->OCR_Control;
 				g_detector->InParam.XT_ZF_ColorThreshold = nyPtr->XT_ZF_ColorThreshold;
 				g_detector->InParam.NY_BDparam = nyPtr->NY_BDparam;
+				g_detector->InParam.XT_Similarity_Threshold = nyPtr->XT_Similarity_Threshold;
+				g_detector->InParam.NY_H = nyPtr->NY_H;
+				g_detector->InParam.NY_S = nyPtr->NY_S;
 
 				int algo_id = 1;
 				cv::Mat imgCopy = currentImagePtr->clone();
