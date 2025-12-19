@@ -5,8 +5,7 @@ class VC3000;  // Ç°ÏòÉùÃ÷
 
 namespace VC3000DLL
 {
-    static VC3000* vc3000 = nullptr;
-
+  
     class __declspec(dllexport) PCIControl
     {
     public:
@@ -14,7 +13,7 @@ namespace VC3000DLL
         ~PCIControl();
         int InitialSystem();
         int setPNP(unsigned int enable);
-        int openseral(const std::string& portName);
+        int openseral(const char* portName);
         int setoutput(int pointNumber, bool lowOrHigh);
         int getinput(int inputNumber);
         int setlight(int portNumber,
@@ -23,6 +22,8 @@ namespace VC3000DLL
         void Destroy();
 
     private:
+         VC3000* vc3000 = nullptr;
+
     };
     inline PCIControl& pci() {
         static PCIControl instance;

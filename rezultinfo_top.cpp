@@ -190,7 +190,7 @@ int RezultInfo_Top::judge_top(const OutTopParam& ret)
         }
 
         if (!passed && currentPaintDataIndex < m_PaintData.size()) {
-            m_PaintData[currentPaintDataIndex].count++;
+            if(GlobalPara::NG_Count_Able.load() == true)  m_PaintData[currentPaintDataIndex].count++;
         }
 
         printCheckInfo(name, static_cast<float>(val), static_cast<float>(threshold), isUpper, !passed);
@@ -210,7 +210,7 @@ int RezultInfo_Top::judge_top(const OutTopParam& ret)
         bool passed = (actualStatus == expected);
 
         if (!passed && currentPaintDataIndex < m_PaintData.size()) {
-            m_PaintData[currentPaintDataIndex].count++;
+            if(GlobalPara::NG_Count_Able.load() == true)  m_PaintData[currentPaintDataIndex].count++;
         }
 
         printCheckInfo(name, actualStatus ? 1.0f : 0.0f, expectedFloat, false, !passed);

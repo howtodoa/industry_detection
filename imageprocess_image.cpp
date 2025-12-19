@@ -141,6 +141,8 @@ void Imageprocess_Image::run()
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
+				QString logMsg = QString("YYGJ ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else if (cam_instance->indentify == "Abut") {
 				InAbutParam inParam = LearnPara::inParam6;

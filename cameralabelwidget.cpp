@@ -1809,7 +1809,10 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 	if (info.ret == -1||info.ret==1 || info.ret>=3)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
-		if (this->ngDisplay.load() == false) this->ngcount->fetch_add(1);
+		if (this->ngDisplay.load() == false)
+		{
+			this->ngcount->fetch_add(1);
+		}
 	}
 	else  dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
@@ -1876,6 +1879,8 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 				this->ngDisplay.store(true);
 			}
 			m_cam->noneDisplay.store(false);
+			if (this->ngDisplay.load() == true) GlobalPara::NG_Count_Able.store(false);
+			else GlobalPara::NG_Count_Able.store(true);
 			ImagePaint::drawDetectionResultExQt(currentPixmap, info);
 
 		}

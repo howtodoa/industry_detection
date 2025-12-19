@@ -686,6 +686,16 @@ void MainWindow::startAlgoInitAsync()
 
 }
 
+void MainWindow::startAlgoInitAsync_Brader()
+{
+    QtConcurrent::run([this]() {
+        this->init_algo_Braider();
+        GlobalPara::AlogReady = true;
+        LOG_DEBUG(GlobalLog::logger, L"algo load successful");
+        });
+
+}
+
 void MainWindow::init_algo_Braider()
 {
     // 侧面 
@@ -830,14 +840,18 @@ MainWindow::MainWindow(QWidget *parent) :
     init_cap();
     initcams(caminfo.size());
     initSqlite3Db_Plater();
+    LOG_DEBUG(GlobalLog::logger, L"initSqlite3Db_Plater();");
     startAlgoInitAsync();
     setupImageSaverThread();
+    LOG_DEBUG(GlobalLog::logger, L"setupImageSaverThread();");
     CreateMenu();
     CreateImageGrid(caminfo.size());
+    LOG_DEBUG(GlobalLog::logger, L"CreateImageGrid(caminfo.size());");
     updateCameraStats();
     setupMonitorThread();
     initCameralPara();
     setupUpdateTimer();
+    qDebug() << "afetsetupUpdateTimer();";
 #ifdef ADAPTATEION || FOURBRADER
     if (GlobalPara::MergePointNum > 0)
     {
@@ -852,10 +866,9 @@ MainWindow::MainWindow(QWidget *parent) :
         setupOutPutThread();
     }
 #endif // ADAPTATEION
-
-    Sleep(50);
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
-   // this->onPhotoAllCamerasClicked();
+    Sleep(50);
+    this->onPhotoAllCamerasClicked();
 }
 
 MainWindow::MainWindow(QString str, QWidget * parent) :
@@ -1167,7 +1180,7 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     init_log();
     init_cap();
     initcams(caminfo.size());
-    init_algo_Braider();
+    startAlgoInitAsync_Brader();
     setupImageSaverThread();
     CreateMenu();
     CreateImageGrid_Braider(caminfo.size());
@@ -1176,7 +1189,6 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     initSqlite3Db_Brader();
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     initCameralPara();
-
 }
 
 
@@ -1955,7 +1967,7 @@ MainWindow::~MainWindow()
         }
 
 
-        PCI::pci().SaveParam();
+//        PCI::pci().SaveParam();
 
     }
 

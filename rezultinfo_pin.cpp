@@ -157,7 +157,7 @@ int RezultInfo_Pin::judge_pin(const OutPinParam& ret)
         bool isUpper = val > up;
 
         if (!passed && currentPaintDataIndex < m_PaintData.size()) {
-            m_PaintData[currentPaintDataIndex].count++;
+           if(GlobalPara::NG_Count_Able.load()==true) m_PaintData[currentPaintDataIndex].count++;
         }
 
         printCheckInfo(name, val, threshold, isUpper, !passed);
@@ -176,7 +176,7 @@ int RezultInfo_Pin::judge_pin(const OutPinParam& ret)
         bool passed = (actualStatus == expected);
 
         if (!passed && currentPaintDataIndex < m_PaintData.size()) {
-            m_PaintData[currentPaintDataIndex].count++;
+            if(GlobalPara::NG_Count_Able.load() == true) m_PaintData[currentPaintDataIndex].count++;
         }
 
         printCheckInfo(name, actualStatus ? 1.0f : 0.0f, expected ? 1.0f : 0.0f, false, !passed);

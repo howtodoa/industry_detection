@@ -144,7 +144,7 @@ void redirectToFile()
 }
 
 
-#ifdef USE_MAIN_WINDOW_CAPACITY
+#ifndef USE_MAIN_WINDOW_CAPACITY
 
 int runBusiness(int argc, char* argv[])
 {
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 #else // USE_MAIN_WINDOW_CAPACITY
 int main(int argc, char* argv[])
 {
-   // redirectToFile();
+    redirectToFile();
 
 
     HANDLE hMutex = CreateMutex(NULL, TRUE, L"Industry_Detection");

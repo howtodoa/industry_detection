@@ -2,7 +2,7 @@
 #include <string>
 #include <windows.h>
 
-// RAII è¾…åŠ©ç±»ï¼Œç”¨äºè‡ªåŠ¨ç®¡ç†é”çš„ç”Ÿå‘½å‘¨æœŸï¼Œç¡®ä¿å®‰å…¨
+// RAII ¸¨ÖúÀà£¬ÓÃÓÚ×Ô¶¯¹ÜÀíËøµÄÉúÃüÖÜÆÚ£¬È·±£°²È«
 class CriticalSectionLock {
 public:
     explicit CriticalSectionLock(CRITICAL_SECTION& cs) : m_cs(cs) {
@@ -12,14 +12,14 @@ public:
         LeaveCriticalSection(&m_cs);
     }
 private:
-    // ç¦æ­¢æ‹·è´å’Œèµ‹å€¼ï¼Œç¡®ä¿é”çš„å”¯ä¸€æ€§
+    // ½ûÖ¹¿½±´ºÍ¸³Öµ£¬È·±£ËøµÄÎ¨Ò»ĞÔ
     CriticalSectionLock(const CriticalSectionLock&) = delete;
     CriticalSectionLock& operator=(const CriticalSectionLock&) = delete;
 
     CRITICAL_SECTION& m_cs;
 };
 
-class VC3000H;  // å‰å‘å£°æ˜
+class VC3000H;  // Ç°ÏòÉùÃ÷
 
 namespace PCI
 {
@@ -30,7 +30,7 @@ namespace PCI
         ~PCIControl();
 
         int InitialSystem();
-        int SaveParam();
+      //  int SaveParam();
         int setPNP(unsigned int enable, const char* mode);
         int openseral(const char* portName);
         int setoutput(int pointNumber, bool lowOrHigh);

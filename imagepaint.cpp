@@ -401,99 +401,66 @@ for (const auto& item : paintDataList) {
 sourcePixmap = targetPixmap;
 }
 
-void ImagePaint::drawPaintDataEx_QImage(QImage& image, 
-    QVector<PaintDataItem> paintDataList,
-    QSize displaySize)
+void ImagePaint::drawPaintDataEx_QImage(QImage& image, QVector<PaintDataItem> paintDataList, QSize displaySize)
 {
-    // 1. 安全检查
-    if (image.isNull()) {
-        qWarning() << "传入的 image 为空，无法绘制。";
-        // 保持日志记录（假设 LOG_DEBUG 和 GlobalLog::logger 已定义）
-        LOG_DEBUG(GlobalLog::logger, _T("传入的 QImage 为空"));
-        return;
-    }
+    if (image.isNull() || paintDataList.isEmpty()) return;
 
-    // 2. 直接在源 QImage 上创建 QPainter 进行绘制
-    // QPainter 可以在 QImage 上安全工作，即使在非 GUI 线程中调用 QImage::bits() 也是安全的。
+    prepareImageForDrawing(image);
+
     QPainter painter(&image);
+    if (!painter.isActive()) return;
+
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setRenderHint(QPainter::TextAntialiasing);
 
-    // 3. 如果传入的UI控件尺寸无效，则将其视为与原图等大（此时无缩放）。
-    // QImage::size() 和 QPixmap::size() 返回 QSize，逻辑一致。
     if (displaySize.isEmpty() || !displaySize.isValid()) {
         displaySize = image.size();
     }
 
-    // 4. 计算原图在保持宽高比的情况下，真实占满UI控件后的“实际”显示尺寸。
     QSize actualOnScreenSize = image.size().scaled(displaySize, Qt::KeepAspectRatio);
+    if (actualOnScreenSize.height() <= 0) return; // 防呆：避免除零
+
     const QSize canvasSize = image.size();
-
-    // 5. 定义视觉设计参数
     constexpr int TARGET_VISUAL_FONT_SIZE = 16;
-    constexpr double ROW_SPACING_VISUAL_PX = 4.0;
-    constexpr double X_MARGIN_RATIO = 0.01;
-    constexpr double Y_MARGIN_RATIO = 0.05;
 
-    // 6. 根据“实际”显示尺寸，计算出字体/元素在高清画布上应有的像素大小
-    if (actualOnScreenSize.height() == 0) return;
-
+    // 计算字体在画布上的实际像素大小
     double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
-    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
-    if (fontSizeOnCanvas < 1) return;
+    int fontSizeOnCanvas = std::max(1, qRound(canvasSize.height() * fontHeightRatio));
 
-    // 此处 rowSpacingOnCanvas 未在原函数中使用，但保留计算。
-    double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
-    int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
-    Q_UNUSED(rowSpacingOnCanvas); // 避免编译器警告
-
-    // 7. 设置字体
     QFont font;
     font.setWeight(QFont::Medium);
     font.setPixelSize(fontSizeOnCanvas);
     painter.setFont(font);
 
-    // 8. **移除预计算，直接开始循环**
-    // 逻辑：只寻找并绘制第一个满足条件的项 (NG项)
     for (const auto& item : paintDataList) {
-        // 确保项是有效的
-        if (!item.check) {
-            continue;
-        }
+        if (!item.check) continue;
 
-        // --- 核心逻辑：寻找第一个 "NG" (result != 1) 的项目 ---
+        // 核心逻辑：只寻找并绘制第一个 NG (result != 1) 的项
         if (item.result != 1) {
-            // 设置画笔颜色（NG项）
-            // 注意：QImage 通常用于处理，故使用更通用的颜色。
-            // 保持原逻辑：
 #ifdef USE_MAIN_WINDOW_CAPACITY
             QColor color = Qt::blue;
 #else
             QColor color = Qt::red;
 #endif
-            // 注意：在 QImage 上绘制时，如果颜色空间不支持，QPainter 会尽力转换。
             painter.setPen(color);
 
-            // 构建要绘制的文本
             QString text = QString("%1: %2").arg(item.label, item.value);
 
-            // 计算绘制位置
-            int xMarginOnCanvas = qRound(canvasSize.width() * X_MARGIN_RATIO);
-            int yMarginOnCanvas = qRound(canvasSize.height() * Y_MARGIN_RATIO);
+            // 布局计算
+            int xMarginOnCanvas = qRound(canvasSize.width() * 0.01);
+            int yMarginOnCanvas = qRound(canvasSize.height() * 0.05);
 
-            int x = xMarginOnCanvas;
-            int y = yMarginOnCanvas;
+            // 绘制区域：限制在画布内，防止坐标溢出
+            QRect drawRect(xMarginOnCanvas,
+                yMarginOnCanvas,
+                canvasSize.width() - 2 * xMarginOnCanvas,
+                canvasSize.height() - 2 * yMarginOnCanvas);
 
-            // 绘制文本
-            painter.drawText(QRect(x, y, canvasSize.width() - 2 * xMarginOnCanvas, canvasSize.height() - 2 * yMarginOnCanvas),
-                Qt::AlignLeft | Qt::AlignTop, text);
+            painter.drawText(drawRect, Qt::AlignLeft | Qt::AlignTop, text);
 
-            // 找到并绘制第一个后，立即退出循环
-            return;
+            return; // 找到并绘制第一个 NG 后立即退出
         }
     }
-
-    // 如果循环结束都没有找到NG项，则什么都不绘制
 }
 
 void ImagePaint::drawPaintDataEx(QPixmap& pixmap,
@@ -1295,268 +1262,142 @@ void ImagePaint::drawDetectionResultExQt(QPixmap& pixmap, const DetectInfo& info
 
 void ImagePaint::drawDetectionResultExQImage(QImage& image, const DetectInfo& info)
 {
-    // 1. 安全检查：检查 QImage 是否为空
     if (image.isNull()) return;
 
-	prepareImageForDrawing(image);
+    prepareImageForDrawing(image);
 
-    // 2. 在 QImage 上创建 QPainter
-    QPainter painter(&image); // QPainter 可以在 QImage 上安全绘制
+    QPainter painter(&image);
+    if (!painter.isActive()) return; // 防呆：确保 Painter 可用
+
     painter.setRenderHint(QPainter::Antialiasing);
 
-    // 3. 获取图像尺寸
-    int imgW = image.width(); // 使用 image.width()
-    int imgH = image.height(); // 使用 image.height()
+    int imgW = image.width();
+    int imgH = image.height();
 
+    // 防呆：确保字体大小至少为 10 像素，避免极小图像导致计算错误
+    int timePixelSize = std::max(10, static_cast<int>(imgH * 0.05));
+    int resultPixelSize = std::max(12, static_cast<int>(imgH * 0.07));
 
-    // 4. 字体设置 (保持基于图像高度的动态计算)
     QFont timeFont;
-    timeFont.setPixelSize(static_cast<int>(imgH * 0.05));
+    timeFont.setPixelSize(timePixelSize);
 
     QFont resultFont;
-    resultFont.setPixelSize(static_cast<int>(imgH * 0.07));
-    resultFont.setWeight(QFont::Bold); // 结果文本使用粗体以突出显示
+    resultFont.setPixelSize(resultPixelSize);
+    resultFont.setWeight(QFont::Bold);
 
-    // 5. 布局常量
-    const int margin = 10; // 统一的边缘距离
-    const int gap = 15;    // 文本之间的最小间隙
-    const int vertical_gap = 5; // 堆叠时的垂直间隙
+    const int margin = 10;
+    const int gap = 15;
+    const int vertical_gap = 5;
 
-    // 6. 准备文本和计算尺寸
-    // 左下角文本
     QString timeText = "Cost Time: " + QString::fromStdString(info.timeStr);
     QFontMetrics timeFm(timeFont);
-    // 使用 QFontMetrics::boundingRect 来计算文本占用的矩形区域
-    QRect timeRect = timeFm.boundingRect(timeText).adjusted(0, 0, 1, 1); // 调整以包含可能的像素
+    QRect timeRect = timeFm.boundingRect(timeText).adjusted(0, 0, 1, 1);
 
-    // 右下角文本
     QString resultText = (info.ret == 0) ? "OK" : "NG";
     QColor resultColor = (info.ret == 0) ? Qt::green : Qt::red;
     QFontMetrics resultFm(resultFont);
-    QRect resultRect = resultFm.boundingRect(resultText).adjusted(0, 0, 1, 1); // 调整以包含可能的像素
+    QRect resultRect = resultFm.boundingRect(resultText).adjusted(0, 0, 1, 1);
 
-
-    // 7. 计算默认情况下的位置 (基线位置)
-    // 默认 TimeText 在左下角
+    // 默认位置：基线位置坐标
     QPoint timeOrg_default(margin, imgH - margin);
-    // 默认 ResultText 在右下角
     QPoint resultOrg_default(imgW - resultRect.width() - margin, imgH - margin);
 
-    // 8. 重叠判断与绘制
-    // 判断左边文本的右边缘 (基线X + 宽度 + 间隙) 是否超过了右边文本的左边缘 (基线X)
+    // 判断逻辑：如果左侧文本右缘 + 间隙 超过了 右侧文本左缘
     if ((timeOrg_default.x() + timeRect.width() + gap) > resultOrg_default.x()) {
 
-        // --- 会重叠，启用堆叠模式 (全部靠右绘制) ---
-
-        // A. 绘制 "OK/NG" (在下层)
+        // 堆叠模式：全部靠右对齐
         QPoint resultOrg_stacked(imgW - resultRect.width() - margin, imgH - margin);
         painter.setFont(resultFont);
         painter.setPen(resultColor);
-        // 使用 drawText(QRect, Alignment, text) 更精确地控制边界，但原函数使用的是 QPoint
         painter.drawText(resultOrg_stacked, resultText);
 
-        // B. 绘制 "Cost Time" (在上层)
-        // Y坐标 = "OK/NG"的基线Y坐标 - "OK/NG"文本的高度 - 垂直间隙
-        // 注意：QPoint::y() 是基线位置，所以减去的是实际的文本高度（从基线到顶端）
         int timeY_stacked = resultOrg_stacked.y() - resultRect.height() - vertical_gap;
         QPoint timeOrg_stacked(imgW - timeRect.width() - margin, timeY_stacked);
 
         painter.setFont(timeFont);
         painter.setPen(Qt::green);
         painter.drawText(timeOrg_stacked, timeText);
-
     }
     else {
-
-        // --- 不会重叠，使用默认的左右角模式 ---
-
-        // A. 绘制 "Cost Time" (左下角)
+        // 左右分布模式
         painter.setFont(timeFont);
         painter.setPen(Qt::green);
         painter.drawText(timeOrg_default, timeText);
 
-        // B. 绘制 "OK/NG" (右下角)
         painter.setFont(resultFont);
         painter.setPen(resultColor);
         painter.drawText(resultOrg_default, resultText);
     }
 }
 
-void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
-    QVector<PaintDataItem> paintDataList,
-    QSize displaySize)
+
+void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image, QVector<PaintDataItem> paintDataList, QSize displaySize)
 {
-    // 1. 安全检查
-    if (image.isNull()) {
-        qWarning() << "传入的 image 为空，无法绘制。";
-        return;
-    }
-    if (paintDataList.isEmpty()) {
-        qWarning() << "传入的 paintDataList 为空，无法绘制。";
-        return;
-    }
+    if (image.isNull() || paintDataList.isEmpty()) return;
 
     prepareImageForDrawing(image);
 
-    // 2. 直接在源 QImage 上创建 QPainter 进行绘制
     QPainter painter(&image);
+    if (!painter.isActive()) return;
+
     painter.setRenderHint(QPainter::Antialiasing);
-    // 建议加上 TextAntialiasing 以保持和参考代码一致的效果
     painter.setRenderHint(QPainter::TextAntialiasing);
 
-    // 3. 尺寸处理
     if (displaySize.isEmpty() || !displaySize.isValid()) {
         displaySize = image.size();
     }
 
-    // 4. 计算缩放比例
+    // 计算缩放比例与字体
     QSize actualOnScreenSize = image.size().scaled(displaySize, Qt::KeepAspectRatio);
+    if (actualOnScreenSize.height() <= 0) return;
+
     const QSize canvasSize = image.size();
-
-    // 5. 定义视觉设计参数
-    // 【修改点 1】：字号改为 16，与 NG 绘制函数保持一致
     constexpr int TARGET_VISUAL_FONT_SIZE = 12;
-    constexpr double ROW_SPACING_VISUAL_PX = 1.2;
-    constexpr double X_MARGIN_RATIO = 0.01;
-    constexpr double Y_MARGIN_RATIO = 0.05;
-
-    // 6. 字体尺寸计算
-    if (actualOnScreenSize.height() == 0) return;
 
     double fontHeightRatio = static_cast<double>(TARGET_VISUAL_FONT_SIZE) / actualOnScreenSize.height();
-    int fontSizeOnCanvas = qRound(canvasSize.height() * fontHeightRatio);
-    if (fontSizeOnCanvas < 1) return;
+    int fontSizeOnCanvas = std::max(1, qRound(canvasSize.height() * fontHeightRatio));
 
-    double rowSpacingRatio = ROW_SPACING_VISUAL_PX / actualOnScreenSize.height();
-    int rowSpacingOnCanvas = qRound(canvasSize.height() * rowSpacingRatio);
-
-    // 7. 设置字体
     QFont font;
-    // 【修改点 2】：粗细改为 Medium，与 NG 绘制函数保持一致
     font.setWeight(QFont::Medium);
     font.setPixelSize(fontSizeOnCanvas);
     painter.setFont(font);
 
-    // 8. 统计需要绘制的项目总数
-    int itemsToDraw = 0;
-    for (const auto& item : paintDataList) {
-        if (!item.check) {
-            continue;
-        }
+    // 预定义需要匹配的关键字列表，提高可维护性
+    static const QStringList keywords = {
+        "引线总长度", "底座宽度", "底座高度", "左引脚超底座长度", "右引脚超底座长度",
+        "左引脚高度", "右引脚高度", "左引脚宽度", "右引脚宽度", "座板上斜边长度",
+        "左引脚弯脚", "正极宽度", "电容角度", "负极宽度", "正极瑕疵", "负极瑕疵",
+        "引脚到底座距离", "引脚高度"
+    };
 
-        // 包含之前增加的所有检测项
-        if (item.label.contains("引线总长度") ||
-            item.label.contains("底座宽度") ||
-            item.label.contains("底座高度") ||
-            item.label.contains("左引脚超底座长度") ||
-            item.label.contains("右引脚超底座长度") ||
-            item.label.contains("左引脚高度") ||
-            item.label.contains("右引脚高度") ||
-            item.label.contains("左引脚宽度") ||
-            item.label.contains("右引脚宽度") ||
-            item.label.contains("座板上斜边长度") ||
-            item.label.contains("左引脚弯脚") ||
-            item.label.contains("正极宽度") ||
-            item.label.contains("电容角度") ||
-            item.label.contains("负极宽度") ||
-            item.label.contains("正极瑕疵") ||
-            item.label.contains("负极瑕疵") ||
-            item.label.contains("引脚高度") ||
-            item.label.contains("引脚到底座距离")) {
-            itemsToDraw++;
-        }
-    }
-
-    if (itemsToDraw == 0) {
-        return;
-    }
-
-    // 9. 动态计算布局参数
+    // 布局参数
     QFontMetrics fm(font);
+    int rowSpacingOnCanvas = qRound(canvasSize.height() * (1.2 / actualOnScreenSize.height()));
     int lineHeightOnCanvas = fm.height() + rowSpacingOnCanvas;
-    if (lineHeightOnCanvas <= 0) return;
 
-    int xMarginOnCanvas = qRound(canvasSize.width() * X_MARGIN_RATIO);
-    int yMarginOnCanvas = qRound(canvasSize.height() * Y_MARGIN_RATIO);
-
-    // 布局参数（单列布局）
-    int currentColumn = 0;
-    int currentRow = 0;
+    int xMarginOnCanvas = qRound(canvasSize.width() * 0.01);
+    int yMarginOnCanvas = qRound(canvasSize.height() * 0.05);
     int columnWidth = canvasSize.width() - 2 * xMarginOnCanvas;
-    int columnGapOnCanvas = 0;
 
-    if (columnWidth <= 0) return;
+    if (columnWidth <= 0 || lineHeightOnCanvas <= 0) return;
 
-    // 10. 循环绘制
-    int drawIndex = 0;
+    int currentRow = 0;
+
     for (const auto& item : paintDataList) {
-        if (!item.check) {
-            continue;
+        if (!item.check) continue;
+
+        // 查找匹配的关键字
+        QString prefix;
+        for (const QString& key : keywords) {
+            if (item.label.contains(key)) {
+                prefix = key;
+                break; // 找到第一个匹配即跳出
+            }
         }
 
-        // 定义显示的标题前缀
-        QString prefix = "";
+        if (prefix.isEmpty()) continue;
 
-        // 判断当前 item 属于哪一种类型 (if-else 链)
-        if (item.label.contains("引线总长度")) {
-            prefix = "引线总长度";
-        }
-        else if (item.label.contains("底座宽度")) {
-            prefix = "底座宽度";
-        }
-        else if (item.label.contains("底座高度")) {
-            prefix = "底座高度";
-        }
-        else if (item.label.contains("左引脚超底座长度")) {
-            prefix = "左引脚超底座长度";
-        }
-        else if (item.label.contains("右引脚超底座长度")) {
-            prefix = "右引脚超底座长度";
-        }
-        else if (item.label.contains("左引脚高度")) {
-            prefix = "左引脚高度";
-        }
-        else if (item.label.contains("右引脚高度")) {
-            prefix = "右引脚高度";
-        }
-        else if (item.label.contains("左引脚宽度")) {
-            prefix = "左引脚宽度";
-        }
-        else if (item.label.contains("右引脚宽度")) {
-            prefix = "右引脚宽度";
-        }
-        else if (item.label.contains("座板上斜边长度")) {
-            prefix = "座板上斜边长度";
-        }
-        else if (item.label.contains("左引脚弯脚")) {
-            prefix = "左引脚弯脚";
-        }
-        else if (item.label.contains("正极宽度")) {
-            prefix = "正极宽度";
-        }
-        else if (item.label.contains("电容角度")) {
-            prefix = "电容角度";
-        }
-        else if (item.label.contains("负极宽度")) {
-            prefix = "负极宽度";
-        }
-        else if (item.label.contains("正极瑕疵")) {
-            prefix = "正极瑕疵";
-        }
-        else if (item.label.contains("负极瑕疵")) {
-            prefix = "负极瑕疵";
-        }
-        else if (item.label.contains("引脚到底座距离")) {
-            prefix = "引脚到底座距离";
-        }
-        else if (item.label.contains("引脚高度")) { // 放在最后
-            prefix = "引脚高度";
-        }
-        else {
-            continue; // 如果都不是，跳过
-        }
-
-        // 颜色判断
+        // 颜色判定
 #ifdef USE_MAIN_WINDOW_CAPACITY
         QColor color = (item.result == 1) ? Qt::green : Qt::blue;
 #else
@@ -1564,20 +1405,19 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image,
 #endif
         painter.setPen(color);
 
-        // 动态生成文本：前缀 + 数值
         QString text = QString("%1: %2").arg(prefix).arg(item.value);
-
-        // 布局计算
-        int x = xMarginOnCanvas + currentColumn * (columnWidth + columnGapOnCanvas);
         int y = yMarginOnCanvas + currentRow * lineHeightOnCanvas;
 
-        painter.drawText(QRect(x, y, columnWidth, lineHeightOnCanvas), Qt::AlignLeft | Qt::AlignVCenter, text);
+        // 防呆：如果绘制位置已超出图像底部，停止绘制或换列（此处选择停止，防止无效绘制）
+        if (y + lineHeightOnCanvas > canvasSize.height()) {
+            break;
+        }
 
-        ++drawIndex;
-        ++currentRow; // 行号增加，防止重叠
+        painter.drawText(QRect(xMarginOnCanvas, y, columnWidth, lineHeightOnCanvas),
+            Qt::AlignLeft | Qt::AlignVCenter, text);
+        currentRow++;
     }
 }
-
 
 
 void ImagePaint::drawPaintDataOnImage(QImage& canvas,

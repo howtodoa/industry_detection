@@ -35,7 +35,7 @@ int GlobalPara::TimeOut = 200;
 int GlobalPara::LearnCount = 50;
 bool GlobalPara::AlogReady = false;
 int GlobalPara::InputPoint = 0;
-
+std::atomic<bool> GlobalPara::NG_Count_Able=false;
 QHash<QString, MyDeque<int>> MergePointVec;
 std::mutex g_mutex;
 std::condition_variable g_cv;

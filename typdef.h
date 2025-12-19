@@ -1,14 +1,14 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
-#define QIMAGE
+#define ADAPTATEION
+//#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>
 #include <opencv2/opencv.hpp>
 #include "Mz_LogConn.h"
-#include <QString>
+#include <QString>  
 #include <CapacitanceProgram.h>
 #include <QVariant>
 #include "BraidedTape.h"
@@ -189,6 +189,7 @@ struct GlobalPara {
     static bool AlogReady;
     static int InputPoint;
     static int InputFlag;
+    static std::atomic<bool> NG_Count_Able;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;
