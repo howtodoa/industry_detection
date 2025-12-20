@@ -9,6 +9,7 @@
 #include <QProcess>
 #include "initsystem.h"
 //#include <openvino/openvino.hpp>
+#define MUTIPROCESS
 
 int StopAllVC3000HDevices()
 {
@@ -144,7 +145,7 @@ void redirectToFile()
 }
 
 
-#ifndef USE_MAIN_WINDOW_CAPACITY
+#ifdef MUTIPROCESS
 
 int runBusiness(int argc, char* argv[])
 {

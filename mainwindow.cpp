@@ -678,6 +678,7 @@ void MainWindow::startAlgoInitAsync()
 #ifdef FOURBRADER
         this->init_algo_FourBrader();
 #else
+        LOG_DEBUG(GlobalLog::logger, L"algo load start");
         this->init_algo();
 #endif
         GlobalPara::AlogReady = true;
@@ -838,10 +839,23 @@ MainWindow::MainWindow(QWidget *parent) :
     else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000) initPCI_VC3000();
     init_log();
     init_cap();
+    LOG_DEBUG(GlobalLog::logger, L"  init_cap();");
     initcams(caminfo.size());
+    LOG_DEBUG(GlobalLog::logger, L"initcams(caminfo.size());");
     initSqlite3Db_Plater();
     LOG_DEBUG(GlobalLog::logger, L"initSqlite3Db_Plater();");
+    QtConcurrent::run([this]() {
+
+        LOG_DEBUG(GlobalLog::logger, L"Start cameras async");
+
+        if (GlobalPara::envirment == GlobalPara::IPCEn) {
+            this->onStartAllCamerasClicked();
+        }
+
+        LOG_DEBUG(GlobalLog::logger, L"Camera init & photo done");
+        });
     startAlgoInitAsync();
+    LOG_DEBUG(GlobalLog::logger, L"startAlgoInitAsync();");
     setupImageSaverThread();
     LOG_DEBUG(GlobalLog::logger, L"setupImageSaverThread();");
     CreateMenu();
@@ -849,6 +863,7 @@ MainWindow::MainWindow(QWidget *parent) :
     LOG_DEBUG(GlobalLog::logger, L"CreateImageGrid(caminfo.size());");
     updateCameraStats();
     setupMonitorThread();
+    LOG_DEBUG(GlobalLog::logger, L" setupMonitorThread();");
     initCameralPara();
     setupUpdateTimer();
     qDebug() << "afetsetupUpdateTimer();";
@@ -866,9 +881,8 @@ MainWindow::MainWindow(QWidget *parent) :
         setupOutPutThread();
     }
 #endif // ADAPTATEION
-    if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
-    Sleep(50);
-    this->onPhotoAllCamerasClicked();
+
+  //  this->onPhotoAllCamerasClicked();
 }
 
 MainWindow::MainWindow(QString str, QWidget * parent) :
@@ -3952,7 +3966,10 @@ void MainWindow::setupUpdateTimer()
 	m_databaseTimer->start(10* 60 * 1000);
 
 #endif
+
+#ifndef  QIMAGE
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
+#endif // ! QIMAGE
 
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::RefreshDir);
 
@@ -4173,8 +4190,24 @@ void MainWindow::onStartAllCamerasClicked()
     for (int i = 0; i < cameraLabels.size(); ++i) {
         if (cameraLabels[i] && i < cams.size() && cams[i] && cams[i]->camOp)
         {
-            cameraLabels[i]->onCameraStart();
-        } 
+            if (GlobalPara::cameraType == GlobalPara::HIKVISION)
+            {
+                auto label = cameraLabels[i];   //固定住指针
+
+                QtConcurrent::run([label]() {
+                    label->onCameraStart();
+                   // label->onCameraPhoto();
+                    });
+
+                Sleep(20);
+            }
+            else
+            {
+                auto label = cameraLabels[i];
+                cameraLabels[i]->onCameraStart();
+                label->onCameraPhoto();
+            }
+        }
         else {
             // 如果有任何一个为空，打印警告信息
             qWarning() << "Warning: Cannot trigger run for camera" << i + 1 << ". CameraLabelWidget or Cameral object is null.";

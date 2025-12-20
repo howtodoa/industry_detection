@@ -1022,7 +1022,7 @@ QImage convertMatToQImage(const cv::Mat& mat) {
 	case CV_8UC4: {
 		cv::Mat rgbaMat;
 		cv::cvtColor(mat, rgbaMat, cv::COLOR_BGRA2RGBA);
-		// 这里也一样，先创建视图，再拷贝
+		// 先创建视图，再拷贝
 		QImage image(rgbaMat.data, rgbaMat.cols, rgbaMat.rows, rgbaMat.step, QImage::Format_RGBA8888);
 		return image.copy();
 	}

@@ -1362,7 +1362,7 @@ void ImagePaint::drawPaintDataEx_VI_QImage(QImage& image, QVector<PaintDataItem>
     font.setPixelSize(fontSizeOnCanvas);
     painter.setFont(font);
 
-    // 预定义需要匹配的关键字列表，提高可维护性
+    // 预定义需要匹配的关键字列表
     static const QStringList keywords = {
         "引线总长度", "底座宽度", "底座高度", "左引脚超底座长度", "右引脚超底座长度",
         "左引脚高度", "右引脚高度", "左引脚宽度", "右引脚宽度", "座板上斜边长度",

@@ -104,17 +104,17 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 1||ret==4|| ret==7)
 				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
-					//ret = -1;
+				//	cam_instance->RI->m_PaintData[0].result = -1;
+					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
+					ret = -1;
 				}
 				else if (ret == 2) {
 					cam_instance->noneDisplay.store(true);
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
+				//		cam_instance->RI->m_PaintData[0].result = -1;
+						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
 					QString logMsg = QString("Top ret=%1").arg(ret);
@@ -151,8 +151,8 @@ void Imageprocess_Brader::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
+						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
 					QString logMsg = QString("Side ret=%1").arg(ret);
@@ -160,14 +160,14 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 1)
 				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
+				//	cam_instance->RI->m_PaintData[0].result = -1;
+					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					//ret = -1;
 				}
 				else if (ret == 5 || ret==6)
 				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
+			//		cam_instance->RI->m_PaintData[0].result = -1;
+					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 				}
 				else ret = -1;
 			}
@@ -190,8 +190,8 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 1)
 				{
-					cam_instance->RI->m_PaintData[0].result = -1;
-					cam_instance->RI->m_PaintData[0].count++;
+				//	cam_instance->RI->m_PaintData[0].result = -1;
+					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					//ret = -1;
 				}
 				else if (ret == 2) {
@@ -199,8 +199,8 @@ void Imageprocess_Brader::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-						cam_instance->RI->m_PaintData[0].result = -1;
-						cam_instance->RI->m_PaintData[0].count++;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
+						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
 					QString logMsg = QString("Pin ret=%1").arg(ret);
@@ -208,7 +208,8 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 3 || ret==8)
 				{
-					
+				//	cam_instance->RI->m_PaintData[0].result = -1;
+					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					QString logMsg = QString("Pin ret=%1").arg(ret);
 					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 				}

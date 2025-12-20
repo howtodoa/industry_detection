@@ -63,6 +63,8 @@ void Imageprocess_Image::run()
 		cv::Mat image;
 		int ret = -1;
 
+		cv::Mat ptr = NULL;
+		ptr = image.clone();
 		if (cam_instance->video == false) // 非推流的情况
 		{
 

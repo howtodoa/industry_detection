@@ -1806,15 +1806,25 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 		LOG_DEBUG(GlobalLog::logger, _T("m_pParaDock ptr null"));
 		//return;
 	}
-	if (info.ret == -1||info.ret==1 || info.ret>=3)
+	if (info.ret == -1 || info.ret == 1 || info.ret >= 3)
 	{
 		dataToSave.work_path = dataToSave.savePath_NG;
+
+		// 这是你的“第一次计数，第二次不计”机制
 		if (this->ngDisplay.load() == false)
 		{
+			// 1. 增加总 NG 计数
 			this->ngcount->fetch_add(1);
+
+			// 2. 针对第二种 NG (算法直接返回 ret >= 3)，手动补偿单项目计数
+			// 只有在第一次 NG 时，才给单项 count 加 1
+			if (info.ret >= 1 && !m_cam->RI->m_PaintData.isEmpty())
+			{
+			
+			}
 		}
 	}
-	else  dataToSave.work_path = dataToSave.savePath_OK;
+	dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
 
