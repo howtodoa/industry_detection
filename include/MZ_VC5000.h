@@ -35,6 +35,8 @@ namespace VC5000DLL
 
     private:
         PCIControl* m_pciCtrl = nullptr;
+    public:
+        bool m_isOpenCom = false;
     };
 
     // 单例模式访问，保持与 3000 模式一致

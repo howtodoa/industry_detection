@@ -1,8 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-#define ADAPTATEION
-//#define QIMAGE
+//#define ADAPTATEION
+#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>
@@ -153,7 +153,8 @@ struct GlobalPara {
     enum IoType {
         VC3000,
         VC3000H,
-        PCI1230
+        PCI1230,
+        VC5000,
     };
 
     enum CameraType {

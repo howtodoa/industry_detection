@@ -8,7 +8,7 @@
 #include <dbghelp.h>
 #include <QProcess>
 #include "initsystem.h"
-//#include <openvino/openvino.hpp>
+
 #define MUTIPROCESS
 
 int StopAllVC3000HDevices()

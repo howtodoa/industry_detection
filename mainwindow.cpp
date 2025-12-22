@@ -11,6 +11,7 @@
 #include "addcameradialog.h"
 #include "MZ_ADOConn.h"
 #include "MZ_VC3000.h"
+#include "MZ_VC5000.h"
 #include "tcp_client.h"
 #include "rezultinfo_nayin.h"
 #include <opencv2/opencv.hpp>
@@ -65,15 +66,36 @@ namespace AppConfig
     int camera5Output = 5;
     int camera6Output = 6;
     int camera7Output = 7;
+    int camera8Output = 8;
+    int camera9Output = 9;
+    int camera10Output = 10;
+    int camera11Output = 11;
+    int camera12Output = 12;
+    int camera13Output = 13;
+    int camera14Output = 14;
+    int camera15Output = 15;
+    int camera16Output = 16;
 
-    int runningOutput = 8;
-    int ErrorOutput = 9;
 
     int location1lightValue = 100;
     int location2lightValue = 100;
     int location3lightValue = 100;
     int location4lightValue = 100;
+    int location5lightValue = 100;
+    int location6lightValue = 100;
+    int location7lightValue = 100;
+    int location8lightValue = 100;
+    int location9lightValue = 100;
+    int location10lightValue = 100;
+    int location11lightValue = 100;
+    int location12lightValue = 100;
+    int location13lightValue = 100;
+    int location14lightValue = 100;
+    int location15lightValue = 100;
+    int location16lightValue = 100;
 
+    int runningOutput = 8;
+    int ErrorOutput = 9;
 
 }
 
@@ -237,6 +259,9 @@ void MainWindow::loadjson_layer(const QString& filePath)
         }
         else if (strValue == "PCI1230") {
             GlobalPara::ioType = GlobalPara::PCI1230;
+        }
+        else if (strValue == "VC5000") {
+            GlobalPara::ioType = GlobalPara::VC5000;
         }
         else {
             qWarning() << "Unknown IoType:" << strValue;
@@ -837,6 +862,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadjson_layer3(SystemPara::OTHER_DIR);
     if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
     else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000) initPCI_VC3000();
+    else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC5000) initPCI_VC5000();
     init_log();
     init_cap();
     LOG_DEBUG(GlobalLog::logger, L"  init_cap();");
@@ -844,6 +870,8 @@ MainWindow::MainWindow(QWidget *parent) :
     LOG_DEBUG(GlobalLog::logger, L"initcams(caminfo.size());");
     initSqlite3Db_Plater();
     LOG_DEBUG(GlobalLog::logger, L"initSqlite3Db_Plater();");
+    startAlgoInitAsync();
+    LOG_DEBUG(GlobalLog::logger, L"startAlgoInitAsync();");
     QtConcurrent::run([this]() {
 
         LOG_DEBUG(GlobalLog::logger, L"Start cameras async");
@@ -854,8 +882,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
         LOG_DEBUG(GlobalLog::logger, L"Camera init & photo done");
         });
-    startAlgoInitAsync();
-    LOG_DEBUG(GlobalLog::logger, L"startAlgoInitAsync();");
     setupImageSaverThread();
     LOG_DEBUG(GlobalLog::logger, L"setupImageSaverThread();");
     CreateMenu();
@@ -1331,6 +1357,45 @@ int MainWindow::initPCI_VC3000()
 
         return 0;
 
+}
+
+int MainWindow::initPCI_VC5000()
+{
+    AppConfig::runningOutput = GlobalPara::RunPoint;
+    if (VC5000DLL::vc5000_inst().InitialSystem() != 0) {
+        return -1;
+    }
+
+    // 2. 检查连接状态 (对应 C# 的 lightIO5K.m_isOpenCom)
+    if (VC5000DLL::vc5000_inst().m_isOpenCom)
+    {
+        // 3. 设置 NPN/PNP 模式 (对应 SetSystemOutPutPNPorNPN)
+        // 假设 GetIoOutputMode() 返回 "NPN" 或 "PNP"
+        unsigned int pnpMode = (AppConfig::GetIoOutputMode() == "PNP") ? 1 : 0;
+        VC5000DLL::vc5000_inst().setPNP(pnpMode);
+
+        // 4. 初始化所有输出点位为低电平 (对应那一长串 SetSystemOutputMode)
+        // 我们直接按 16 路循环，代码最整洁
+        int allPorts[] = {
+            AppConfig::camera1Output,  AppConfig::camera2Output,  AppConfig::camera3Output,
+            AppConfig::camera4Output,  AppConfig::camera5Output,  AppConfig::camera6Output,
+            AppConfig::camera7Output,  AppConfig::camera8Output,  AppConfig::camera9Output,
+            AppConfig::camera10Output, AppConfig::camera11Output, AppConfig::camera12Output,
+            AppConfig::camera13Output, AppConfig::camera14Output, AppConfig::camera15Output,
+            AppConfig::camera16Output, AppConfig::runningOutput,   AppConfig::ErrorOutput
+        };
+
+        for (int port : allPorts) {
+            if (port > 0) {
+                // 直接调用你写好的底层函数，设置初始状态为 false (低电平)
+                VC5000DLL::vc5000_inst().setoutput(port, false);
+            }
+        }
+        std::cout << "[INFO] VC5000 1-16路 IO 初始化及复位完成。" << std::endl;
+        return 0;
+    }
+
+    return -1;
 }
 
 void MainWindow::setupImageSaverThread()
@@ -4117,11 +4182,8 @@ void MainWindow::AllCameraConnect()
     }
 }
 
-
-void MainWindow::onStartAllCamerasClicked()
+int MainWindow::ResetVC3000H()
 {
-    LOG_DEBUG(GlobalLog::logger, L"收到全部运行的请求");
-//重置七个点位
     int result;
     if ((result = PCI::pci().setOutputMode(AppConfig::camera1Output, false, 1000)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera1Output 模式失败，错误码：%1").arg(result);
@@ -4185,7 +4247,35 @@ void MainWindow::onStartAllCamerasClicked()
         QString successMsg = QString("[INFO] 设置 camera7Output 模式成功。");
         LOG_DEBUG(GlobalLog::logger, successMsg.toStdWString().c_str());
     }
+    return 0;
+}
 
+int MainWindow::ResetVC5000()
+{
+    int allPorts[] = {
+    AppConfig::camera1Output,  AppConfig::camera2Output,  AppConfig::camera3Output,
+    AppConfig::camera4Output,  AppConfig::camera5Output,  AppConfig::camera6Output,
+    AppConfig::camera7Output,  AppConfig::camera8Output,  AppConfig::camera9Output,
+    AppConfig::camera10Output, AppConfig::camera11Output, AppConfig::camera12Output,
+    AppConfig::camera13Output, AppConfig::camera14Output, AppConfig::camera15Output,
+    AppConfig::camera16Output
+    };
+
+    for (int port : allPorts) {
+        if (port > 0) {
+            VC5000DLL::vc5000_inst().setoutput(port, false);
+        }
+    }
+    return 0;
+}
+
+void MainWindow::onStartAllCamerasClicked()
+{
+    LOG_DEBUG(GlobalLog::logger, L"收到全部运行的请求");
+//重置点位
+   
+    if (GlobalPara::ioType == GlobalPara::VC3000H) ResetVC3000H();
+    else if (GlobalPara::ioType == GlobalPara::VC5000) ResetVC5000();
 
     for (int i = 0; i < cameraLabels.size(); ++i) {
         if (cameraLabels[i] && i < cams.size() && cams[i] && cams[i]->camOp)
@@ -4196,7 +4286,7 @@ void MainWindow::onStartAllCamerasClicked()
 
                 QtConcurrent::run([label]() {
                     label->onCameraStart();
-                   // label->onCameraPhoto();
+                    label->onCameraPhoto();
                     });
 
                 Sleep(20);
@@ -4205,6 +4295,7 @@ void MainWindow::onStartAllCamerasClicked()
             {
                 auto label = cameraLabels[i];
                 cameraLabels[i]->onCameraStart();
+                Sleep(20);
                 label->onCameraPhoto();
             }
         }
@@ -4215,7 +4306,12 @@ void MainWindow::onStartAllCamerasClicked()
         }
         bool outputSignalInvert = true;
         unsigned short durationMs = 100;
-        PCI::pci().setOutputMode(AppConfig::runningOutput, outputSignalInvert ? true : false, durationMs);
+       if(GlobalPara::ioType==GlobalPara::VC3000H) PCI::pci().setOutputMode(AppConfig::runningOutput, outputSignalInvert ? true : false, durationMs);
+       else if (GlobalPara::ioType == GlobalPara::VC5000)
+       {
+           VC5000DLL::vc5000_inst().setoutput(AppConfig::runningOutput, outputSignalInvert ? true : false);
+           LOG_DEBUG(GlobalLog::logger, QString("VC5000runport=%1").arg(AppConfig::runningOutput).toStdWString().c_str());
+       }
     }
 }
 

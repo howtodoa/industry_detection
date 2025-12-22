@@ -107,6 +107,7 @@ set(HEADERS
     "include/common.h"
     "include/infer.h"
     "include/Api_Welding.h"
+    "include/MZ_VC5000.h"
     syspara.h
     cameralabelwidget.h
     zoomablelabel.h
@@ -235,6 +236,7 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/FlowerPinDetection.lib"
         "${CMAKE_SOURCE_DIR}/lib/1T4OVDetector.lib"
         "${CMAKE_SOURCE_DIR}/lib/1T4Library.lib"
+        "${CMAKE_SOURCE_DIR}/lib/VC5000DLL.lib"
         ${OPENVINO_LIBS}
         ${OPENCV_LIB_TO_LINK}
         Dbghelp

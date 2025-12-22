@@ -2,6 +2,7 @@
 #include "MZ_VC3000H.h"
 #include <string>
 #include "CapacitanceProgram.h"
+#include "MZ_VC5000.h"
 
 Imageprocess_Image::Imageprocess_Image(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
 	: ImageProcess(cam, m_saveQueue, parent)
@@ -25,8 +26,8 @@ void Imageprocess_Image::run()
 
 	while (!thread_stopFlag.load())
 	{
-		std::shared_ptr<cv::Mat> currentImagePtr;
-
+	
+		cv::Mat currentImagePtr;
 		{
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
@@ -38,34 +39,34 @@ void Imageprocess_Image::run()
 				continue;
 			}
 
-			currentImagePtr = m_inputQueue->queue.front();
+			std::shared_ptr<cv::Mat> TempImagePtr = m_inputQueue->queue.front();
 
 	
-			if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
+			if (!TempImagePtr || !isMatSafe(*TempImagePtr)) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null or Mat unsafe");
-				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 currentImagePtr 为空或数据无效，跳过发出信号。";
+				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 TempImagePtr为空或数据无效，跳过发出信号。";
 			}
 			else {
-				qDebug() << "currentImagePtr not empty() and Mat is safe";
+				qDebug() << "TempImagePtr not empty() and Mat is safe";
 			}
-
+			currentImagePtr = TempImagePtr->clone();
 			m_inputQueue->queue.pop_front();
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
 
-		if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
+	/*	if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
 			continue;
-		}
+		}*/
 
 		if (GlobalPara::changed.load() == true) continue;
-		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
-		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
-		cv::Mat image;
+		cv::Mat afterImagePtr;
+
+		cv::Mat backupImagePtr = currentImagePtr.clone();
+
+
 		int ret = -1;
 
-		cv::Mat ptr = NULL;
-		ptr = image.clone();
-		if (cam_instance->video == false) // 非推流的情况
+		if (cam_instance->video == false&&GlobalPara::AlogReady==true) // 非推流的情况
 		{
 
 			QElapsedTimer timer;
@@ -76,9 +77,9 @@ void Imageprocess_Image::run()
 			}
 
 			if (cam_instance->indentify == "NaYin") {
-				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 0, LearnPara::inParam2);
+				ret = ExportSpace::RunStamp(currentImagePtr, 1, 0, LearnPara::inParam2);
 				OutStampResParam para;
-				ExportSpace::ResultOutStamp(*afterImagePtr, para, 0);
+				ExportSpace::ResultOutStamp(afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -95,9 +96,9 @@ void Imageprocess_Image::run()
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else if (cam_instance->indentify == "Plate") {
-				ret = ExportSpace::RunPlate(*currentImagePtr, 0, cam_instance->DI.Angle);
+				ret = ExportSpace::RunPlate(currentImagePtr, 0, cam_instance->DI.Angle);
 				OutPlateResParam para;
-				ExportSpace::ResultOutPlate(*afterImagePtr, para, 0);
+				ExportSpace::ResultOutPlate(afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -115,9 +116,9 @@ void Imageprocess_Image::run()
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else if (cam_instance->indentify == "Lift") {
-				ret = ExportSpace::RunLift(*currentImagePtr, 0, cam_instance->DI.Angle, true);
+				ret = ExportSpace::RunLift(currentImagePtr, 0, cam_instance->DI.Angle, true);
 				OutLiftResParam para;
-				ExportSpace::ResultOutLift(*afterImagePtr, para, 0);
+				ExportSpace::ResultOutLift(afterImagePtr, para, 0);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 200");
@@ -137,9 +138,9 @@ void Imageprocess_Image::run()
 				else ret = -1;
 			}
 			else if (cam_instance->indentify == "YYGJ") {
-				ret = ExportSpace::RunYYGJ(*currentImagePtr, cam_instance->DI.Angle, true);
+				ret = ExportSpace::RunYYGJ(currentImagePtr, cam_instance->DI.Angle, true);
 				OutAbutResParam para;
-				ExportSpace::ResultOutYYGJ(*afterImagePtr);
+				ExportSpace::ResultOutYYGJ(afterImagePtr);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -148,9 +149,9 @@ void Imageprocess_Image::run()
 			}
 			else if (cam_instance->indentify == "Abut") {
 				InAbutParam inParam = LearnPara::inParam6;
-				ret = ExportSpace::RunAbut(*currentImagePtr, inParam);
+				ret = ExportSpace::RunAbut(currentImagePtr, inParam);
 				OutAbutResParam OutResParam;
-				ExportSpace::ResultOutAbut(*afterImagePtr, OutResParam);
+				ExportSpace::ResultOutAbut(afterImagePtr, OutResParam);
 				qint64 elapsed = timer.elapsed();
 				cam_instance->RI->updateActualValues(OutResParam);
 				cam_instance->RI->applyScaleFactors(cam_instance->DI.scaleFactor.load());
@@ -160,9 +161,9 @@ void Imageprocess_Image::run()
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 			}
 			else if (cam_instance->indentify == "Rift") {
-				ret = ExportSpace::RunLift(*currentImagePtr, 1, cam_instance->DI.Angle, true);
+				ret = ExportSpace::RunLift(currentImagePtr, 1, cam_instance->DI.Angle, true);
 				OutLiftResParam para;
-				ExportSpace::ResultOutLift(*afterImagePtr, para, 1);
+				ExportSpace::ResultOutLift(afterImagePtr, para, 1);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -179,9 +180,9 @@ void Imageprocess_Image::run()
 				else ret = -1;
 			}
 			else if (cam_instance->indentify == "Carrier_Plate") {
-				ret = ExportSpace::RunPlate(*currentImagePtr, 1, cam_instance->DI.Angle);
+				ret = ExportSpace::RunPlate(currentImagePtr, 1, cam_instance->DI.Angle);
 				OutPlateResParam para;
-				ExportSpace::ResultOutPlate(*afterImagePtr, para, 1);
+				ExportSpace::ResultOutPlate(afterImagePtr, para, 1);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -200,9 +201,9 @@ void Imageprocess_Image::run()
 			}
 			else if (cam_instance->indentify == "Carrier_NaYin") {
 				std::cout << " LearnPara::inParam1.textkernl: " << LearnPara::inParam1.textkernl;
-				ret = ExportSpace::RunStamp(*currentImagePtr, 1, 1, LearnPara::inParam1);
+				ret = ExportSpace::RunStamp(currentImagePtr, 1, 1, LearnPara::inParam1);
 				OutStampResParam para;
-				ExportSpace::ResultOutStamp(*afterImagePtr, para, 1);
+				ExportSpace::ResultOutStamp(afterImagePtr, para, 1);
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
@@ -229,7 +230,7 @@ void Imageprocess_Image::run()
 		{
 			afterImagePtr = currentImagePtr;
 			// 推流情况下无需额外的 afterImagePtr 检查
-			if (afterImagePtr) qDebug() << "afterImagePtrptr is not null";
+			if (afterImagePtr.empty()) qDebug() << "afterImagePtrptr is not null";
 			else qDebug() << "afterImagePtrptr is null";
 
 		}
@@ -240,7 +241,8 @@ void Imageprocess_Image::run()
 		// 拍照的情况
 		if (cam_instance->photo.load() == true)
 		{
-			emit ImageLoaded(currentImagePtr);
+			std::shared_ptr<cv::Mat> ImagePtr = std::make_shared<cv::Mat>(backupImagePtr.clone());
+			emit ImageLoaded(ImagePtr);
 			qDebug() << "start photo learn";
 			if (cam_instance->learn.load() == true) emit Learn();
 			cam_instance->photo.store(false);
@@ -256,7 +258,10 @@ void Imageprocess_Image::run()
 			bool outputSignalInvert = true;
 			int durationMs = 100; // 脉冲持续时间
 			// 第二次调用,如果OK给true信号
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			int result;
+			if (GlobalPara::ioType == GlobalPara::VC3000H)result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			else if (GlobalPara::ioType == GlobalPara::VC5000)result = VC5000DLL::vc5000_inst().setoutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
+
 			QString logMsg = QString("相机：%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 
@@ -266,7 +271,9 @@ void Imageprocess_Image::run()
 		{
 			bool outputSignalInvert = false;
 			int durationMs = 100; // 脉冲持续时间
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			int result;
+			if(GlobalPara::ioType==GlobalPara::VC3000H) result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			else if (GlobalPara::ioType == GlobalPara::VC5000)result = VC5000DLL::vc5000_inst().setoutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
 
 			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
@@ -274,8 +281,8 @@ void Imageprocess_Image::run()
 
 		// 在使用 backupImagePtr 和 afterImagePtr 之前，再次检查它们的安全性
 		QImage imgToSave;
-		if (backupImagePtr && isMatSafe(*backupImagePtr)) {
-			imgToSave = convertMatToQImage(*backupImagePtr);
+		if (isMatSafe(backupImagePtr)) {
+			imgToSave = convertMatToQImage(backupImagePtr);
 		}
 		else {
 			qWarning() << "Backup image is not safe, cannot convert to QImage for saving/display.";
@@ -284,8 +291,8 @@ void Imageprocess_Image::run()
 
 		QImage imgToPlay;
 		bool afterImageSafe = false;
-		if (afterImagePtr && isMatSafe(*afterImagePtr)) {
-			imgToPlay = convertMatToQImage(*afterImagePtr);
+		if (isMatSafe(afterImagePtr)) {
+			imgToPlay = convertMatToQImage(afterImagePtr);
 			afterImageSafe = true;
 		}
 		else {

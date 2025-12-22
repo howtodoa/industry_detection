@@ -7,6 +7,7 @@
 #include "typdef.h"
 #include "fileoperator.h"
 #include <MZ_VC3000H.h>
+#include <MZ_VC5000.h>
 #include <thread>
 
 DebugTool::DebugTool(QWidget* parent)
@@ -126,6 +127,32 @@ DebugTool::DebugTool(QWidget* parent)
     timeoutLayout->addStretch();
     mainLayout->addLayout(timeoutLayout);
 
+    // === 点位输出 ===
+    QHBoxLayout* outputLayout = new QHBoxLayout;
+    outputLayout->setSpacing(5);
+
+    QLabel* outputLabel = new QLabel("点位输出", this);
+    outputLabel->setFixedSize(100, 30);
+
+    // 点位选择 1-16
+    outputPointCombo = new QComboBox(this);
+    for (int i = 1; i <= 16; ++i)
+        outputPointCombo->addItem(QString::number(i));
+    outputPointCombo->setFixedWidth(80);
+
+    // 输出值 true / false
+    outputValueCombo = new QComboBox(this);
+    outputValueCombo->addItem("true");
+    outputValueCombo->addItem("false");
+    outputValueCombo->setFixedWidth(80);
+
+    outputLayout->addWidget(outputLabel);
+    outputLayout->addWidget(outputPointCombo);
+    outputLayout->addWidget(outputValueCombo);
+    outputLayout->addStretch();
+
+    mainLayout->addLayout(outputLayout);
+
     // --- 信号连接 ---
     connect(fontSizeSlider, &QSlider::valueChanged,
         this, &DebugTool::onFontSizeSliderValueChanged);
@@ -161,7 +188,7 @@ void DebugTool::onFontSizeSliderValueChanged(int value)
     }
 }
 
-void DebugTool::SetLight()
+void DebugTool::SetIOLight()
 {
     for (int ch = 1; ch <= 4; ++ch) {
         int value = 0;
@@ -178,6 +205,15 @@ void DebugTool::SetLight()
             std::cout << "[INFO] " << ch << "通道光源设置成功" << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    int outPoint = outputPointCombo->currentText().toInt();
+    bool outValue = (outputValueCombo->currentText() == "true");
+    if(GlobalPara::ioType == GlobalPara::VC3000H){
+        PCI::pci().setOutputMode(outPoint, outValue,300);
+	}
+    else if(GlobalPara::ioType == GlobalPara::VC5000)
+    {
+		VC5000DLL::vc5000_inst().setoutput(outPoint, outValue);
     }
 }
 
@@ -207,7 +243,8 @@ void DebugTool::saveSettings()
     GlobalPara::LearnCount = paramMap["LearnCount"];
     GlobalPara::TimeOut = paramMap["Timeout"];
 
-    SetLight();
+    SetIOLight();
+
 
     // 异步写入 JSON
     QtConcurrent::run([settingsFilePath, paramMap]() {

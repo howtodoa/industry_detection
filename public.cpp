@@ -1009,7 +1009,10 @@ QImage convertMatToQImage(const cv::Mat& mat) {
 		LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
 		return QImage();
 	}
-	switch (mat.type()) {
+	//判断Mat的行列是否大于0
+	
+	switch (mat.type()) 
+	{
 	case CV_8UC1: {
 		// 创建视图后，立即调用.copy()创建深拷贝
 		QImage image(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_Grayscale8);
