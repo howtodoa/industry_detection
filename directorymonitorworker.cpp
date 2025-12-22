@@ -13,6 +13,7 @@ DirectoryMonitorWorker::DirectoryMonitorWorker(const QStringList& pathsToWatch, 
     : QObject(parent),
     m_pathsToWatch(pathsToWatch),
     m_saveQueue(saveQueue),
+
     m_timer(nullptr)
 {
     qDebug() << "DirectoryMonitorWorker created. Paths to watch:" << m_pathsToWatch;
@@ -102,36 +103,17 @@ bool CleanDir(const QString& dirPath)
     if (!info.exists() || !info.isDir())
         return true;
 
-    // === 1. 生成临时删除目录名 ===
-    // 例： 20251201  ->  20251201__deleting_1737032123
-    QString parentDir = info.absolutePath();
-    QString baseName = info.fileName();
+    QDir dir(dirPath);
 
-    QString tmpName = QString("%1__deleting_%2")
-        .arg(baseName)
-        .arg(QDateTime::currentSecsSinceEpoch());
-
-    QString tmpPath = parentDir + "/" + tmpName;
-
-    // === 2. 原子性改名 ===
-    QDir parent(parentDir);
-    if (!parent.rename(baseName, tmpName))
-    {
-        qWarning() << "[CleanDir] Rename failed:" << dirPath;
-        return false;
-    }
-
-    // === 3. 递归删除 ===
-    QDir tmpDir(tmpPath);
-    bool ok = tmpDir.removeRecursively();
-
+    bool ok = dir.removeRecursively();
     if (!ok)
     {
-        qWarning() << "[CleanDir] Remove failed:" << tmpPath;
+        qWarning() << "[CleanDir] Remove failed:" << dirPath;
     }
 
     return ok;
 }
+
 
 
 

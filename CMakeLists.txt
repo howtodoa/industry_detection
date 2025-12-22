@@ -17,6 +17,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOMOC ON)
 
+if (MSVC)
+    add_compile_options(/MP)
+endif()
+
 set(SOURCES
     main.cpp
     mainwindow.cpp

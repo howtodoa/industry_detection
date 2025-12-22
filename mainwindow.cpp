@@ -641,6 +641,13 @@ void MainWindow::init_algo()
         if (ret == 1) std::cout << "InitializeGJ fail" << std::endl;
         else std::cout << "InitializeGJ successful" << std::endl;
         qDebug() << "ret:   =" << ret;
+
+		//拱脚侧光
+        if (cams[i]->indentify == "Abut")ret = ExportSpace::InitializeAbut();
+
+        if (ret == 1) std::cout << "InitializeAbut() fail" << std::endl;
+        else std::cout << "InitializeAbut() successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
     }
 
 
@@ -872,6 +879,10 @@ MainWindow::MainWindow(QWidget *parent) :
     LOG_DEBUG(GlobalLog::logger, L"initSqlite3Db_Plater();");
     startAlgoInitAsync();
     LOG_DEBUG(GlobalLog::logger, L"startAlgoInitAsync();");
+    setupImageSaverThread();
+    LOG_DEBUG(GlobalLog::logger, L"setupImageSaverThread();");
+    CreateMenu();
+    CreateImageGrid(caminfo.size());
     QtConcurrent::run([this]() {
 
         LOG_DEBUG(GlobalLog::logger, L"Start cameras async");
@@ -882,14 +893,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
         LOG_DEBUG(GlobalLog::logger, L"Camera init & photo done");
         });
-    setupImageSaverThread();
-    LOG_DEBUG(GlobalLog::logger, L"setupImageSaverThread();");
-    CreateMenu();
-    CreateImageGrid(caminfo.size());
     LOG_DEBUG(GlobalLog::logger, L"CreateImageGrid(caminfo.size());");
     updateCameraStats();
     setupMonitorThread();
     LOG_DEBUG(GlobalLog::logger, L" setupMonitorThread();");
+    Sleep(50);
     initCameralPara();
     setupUpdateTimer();
     qDebug() << "afetsetupUpdateTimer();";
@@ -1220,7 +1228,6 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     init_log();
     init_cap();
     initcams(caminfo.size());
-    startAlgoInitAsync_Brader();
     setupImageSaverThread();
     CreateMenu();
     CreateImageGrid_Braider(caminfo.size());
@@ -1228,8 +1235,11 @@ MainWindow::MainWindow(int mode,QWidget* parent) :
     setupUpdateTimer();
     initSqlite3Db_Brader();
     if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
-    initCameralPara();
+    startAlgoInitAsync_Brader();
+
 }
+
+
 
 
 void MainWindow::init_algo_Flower()
@@ -2687,7 +2697,7 @@ void MainWindow::CreateImageGrid(int camnumber)
             // (SetupDualLayout 无需修改)
             SetupDualLayout(camnumber, cameraGrid, statsLayout, cameraLabels, this);
 
-            mainLayout->addLayout(cameraGrid, 5);
+            mainLayout->addLayout(cameraGrid, 6);
             mainLayout->addLayout(statsLayout, 1);
         }
         else {
@@ -4286,17 +4296,25 @@ void MainWindow::onStartAllCamerasClicked()
 
                 QtConcurrent::run([label]() {
                     label->onCameraStart();
+                    Sleep(20);
+                    label->m_cam->CC->init();
+                    Sleep(20);
+#ifdef USE_MAIN_WINDOW_CAPACITY
                     label->onCameraPhoto();
+#endif
                     });
 
-                Sleep(20);
             }
             else
             {
                 auto label = cameraLabels[i];
                 cameraLabels[i]->onCameraStart();
                 Sleep(20);
+                label->m_cam->CC->init();
+                Sleep(20);
+#ifdef USE_MAIN_WINDOW_CAPACITY
                 label->onCameraPhoto();
+#endif
             }
         }
         else {
