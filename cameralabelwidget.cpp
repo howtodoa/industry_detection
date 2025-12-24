@@ -884,7 +884,14 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	paramButton->hide();
 #endif // USE_MAIN_WINDOW_CAPACITY
 
-
+	if (GlobalPara::Uc.photobutton == false)
+	{
+		this->captureButton->hide();
+	}
+	if(GlobalPara::Uc.viewImageButton == false)
+	{
+		viewImageButton->hide();
+	}
 
 	// 创建一个主垂直布局
 	QVBoxLayout* mainLayout = new QVBoxLayout(this);

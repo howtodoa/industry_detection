@@ -86,6 +86,7 @@ set(SOURCES
     algoclass_xs.cpp
     algoclass_ny.cpp
     algoclass_bottom.cpp
+    ScannerHook.cpp
 )
 
 set(HEADERS
@@ -166,6 +167,7 @@ set(HEADERS
     algoclass_xs.h
     algoclass_ny.h
     algoclass_bottom.h
+    ScannerHook.h
 
 )
 

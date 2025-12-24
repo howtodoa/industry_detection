@@ -1,8 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-#define ADAPTATEION
-//#define QIMAGE
+//#define ADAPTATEION
+#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>
@@ -147,6 +147,12 @@ public:
     bool RedTape = false;
 };
 
+struct UiConfig
+{
+    bool photobutton = true;
+	bool onlinelearn = false;
+	bool viewImageButton = true;
+};
 
 struct GlobalPara {
 
@@ -191,6 +197,7 @@ struct GlobalPara {
     static int InputPoint;
     static int InputFlag;
     static std::atomic<bool> NG_Count_Able;
+    static UiConfig Uc;
 };
 
 extern QHash<QString, MyDeque<int>> MergePointVec;

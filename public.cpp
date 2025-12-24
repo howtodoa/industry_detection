@@ -93,6 +93,8 @@ int LearnPara::inNum = 15;
 
 std::atomic<int> GateStatus = 2;
 
+UiConfig GlobalPara::Uc = {true,false,true};
+
 namespace GlobalLog {
 	Mz_Log::COperation logger;
 }
@@ -410,71 +412,47 @@ int callWithTimeout(std::function<int()> func, int timeoutMs, int defaultValue)
 //		return defaultValue;
 //	}
 //}
+
 int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultValue)
 {
 	using namespace std::chrono;
 
-	// 1. 创建一个共享的 promise 对象
-	// 使用 shared_ptr 是必须的！因为如果超时，这个函数会先返回，栈变量会被销毁。
-	// 必须保证 promise 在后台线程运行结束前一直有效。
+	// 1. 创建共享的 promise 和 future
+	// 用于在线程间传递 int 结果
 	auto promisePtr = std::make_shared<std::promise<int>>();
 	std::future<int> future = promisePtr->get_future();
 
-	// 2. 启动线程执行任务
+	// 2. 启动线程 (纯净版)
+	// 这里的 lambda 没有任何 try-catch，直接裸跑 func
 	std::thread t([promisePtr, func]() {
-		try {
-			// 执行算法
-			int res = func();
-			// 设置返回值 (即便主线程已经不再等待，写入也是安全的)
-			promisePtr->set_value(res);
-		}
-		catch (...) {
-			// 捕获异常，防止后台线程崩溃导致整个程序退出
-			try {
-				promisePtr->set_exception(std::current_exception());
-			}
-			catch (...) {}
-		}
+		// 如果 func() 内部抛出异常，这里会直接导致 terminate，
+		// 调试器会直接停在 func() 内部出错的那一行。
+		int res = func();
+		promisePtr->set_value(res);
 		});
 
-	// 3. 【关键】分离线程！
-	// 这意味着：不管当前函数是否结束，线程 t 都会在后台继续跑，不会阻塞这里的析构
+	// 3. 分离线程
+	// 即使主线程不再等待，这个线程也会在后台继续跑完
 	t.detach();
 
-	// 4. 阻塞等待，带超时
+	// 4. 等待结果 (带超时)
 	std::future_status status = future.wait_for(milliseconds(timeoutMs));
 
-	// 5. 检查状态并打印日志
+	// 5. 根据状态返回
 	if (status == std::future_status::ready)
 	{
-		// --- 任务完成分支 ---
-		int result = future.get(); // 获取结果
-
-		LOG_DEBUG(GlobalLog::logger,
-			QString("callWithTimeout_cpp11: Function finished (within %1 ms). Returned: %2")
-			.arg(timeoutMs)
-			.arg(result)
-			.toStdWString()
-			.c_str());
-		return result;
+		// 如果任务完成，直接拿结果
+		// 注意：如果子线程因为某些原因没写入值（比如崩了），这里 get() 可能会报错
+		return future.get();
 	}
 	else
 	{
-		// --- 超时分支 ---
-		// 任务仍在后台执行（因为 detach 了），但我们直接返回默认值
-		// 这里的日志会告诉你发生了超时
-
+		// 超时，返回默认值
 		LOG_DEBUG(GlobalLog::logger,
-			QString("callWithTimeout_cpp11: Function execution timed out (Timeout: %1 ms). Returning default value: %2")
-			.arg(timeoutMs)
-			.arg(defaultValue)
-			.toStdWString()
-			.c_str());
-
+			QString("callWithTimeout_cpp11: Timeout (%1 ms).").arg(timeoutMs).toStdWString().c_str());
 		return defaultValue;
 	}
 }
-
 
 bool isPointerSafe(void* ptr, size_t requiredSize)
 {

@@ -20,6 +20,7 @@
 #include "run_task_thread.h"
 #include <QProgressBar>
 #include <QTimer>
+#include "ScannerHook.h"
 namespace Ui {
 class MainWindow;
 }
@@ -134,6 +135,8 @@ private:
     QLabel* m_algoStatusLabel = nullptr;
     QAction* LogAction = nullptr;
     QAction* DataAction = nullptr;
+    QAction* m_scannerAction;
+	ScannerHook* m_scannerHook = nullptr;
 private slots:
 
 };

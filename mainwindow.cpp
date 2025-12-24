@@ -604,6 +604,24 @@ void MainWindow::loadjson_layer3(const QString& filePath)
         qWarning() << "JSON file missing 'RunPoint' entry.";
     }
 
+    if (configMap.contains("photobutton")) {
+        ParamDetail detail(configMap.value("photobutton").toMap());
+        GlobalPara::Uc.photobutton = detail.value.toBool();
+        qDebug() << "Parsed RunPoint:" << GlobalPara::Uc.photobutton;
+    }
+    else {
+        qWarning() << "JSON file missing 'RunPoint' entry.";
+    }
+
+    if (configMap.contains("viewImageButton")) {
+        ParamDetail detail(configMap.value("viewImageButton").toMap());
+        GlobalPara::Uc.viewImageButton = detail.value.toBool();
+        qDebug() << "Parsed RunPoint:" << GlobalPara::Uc.viewImageButton;
+    }
+    else {
+        qWarning() << "JSON file missing 'RunPoint' entry.";
+    }
+
     qDebug() << "loadjson_layer3 parsing complete.";
 }
 
@@ -898,7 +916,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupMonitorThread();
     LOG_DEBUG(GlobalLog::logger, L" setupMonitorThread();");
     Sleep(50);
-    initCameralPara();
+  //  initCameralPara();
     setupUpdateTimer();
     qDebug() << "afetsetupUpdateTimer();";
 #ifdef ADAPTATEION || FOURBRADER
@@ -2252,6 +2270,7 @@ void MainWindow::CreateMenu()
     QAction* SystemParaAction = menuTools->addAction("存图路径");
     QAction* CameralSetAction = menuTools->addAction("相机配置");
     QAction* DevToolAction = menuTools->addAction("开发者工具");
+    m_scannerAction = menuTools->addAction("扫码枪");
 
     // --- 7. 运行时间定时器 ---
     QTimer* timer = new QTimer(this);
@@ -2292,6 +2311,9 @@ void MainWindow::CreateMenu()
     connect(actionLogout, &QAction::triggered, this, [this]() {
         Role::ChangeRole("操作员");
         m_roleLabel->setText(Role::GetCurrentRole());
+        });
+    connect(m_scannerAction, &QAction::triggered, this, [this]() {
+        qDebug() << "扫码枪按钮点击，功能待实现";
         });
 
     connect(loginAction, &QAction::triggered, this, [this]() {
@@ -2697,7 +2719,7 @@ void MainWindow::CreateImageGrid(int camnumber)
             // (SetupDualLayout 无需修改)
             SetupDualLayout(camnumber, cameraGrid, statsLayout, cameraLabels, this);
 
-            mainLayout->addLayout(cameraGrid, 6);
+            mainLayout->addLayout(cameraGrid, 7);
             mainLayout->addLayout(statsLayout, 1);
         }
         else {
