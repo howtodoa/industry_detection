@@ -4,6 +4,7 @@ project(Industry_Detection)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC_RELAXED_MODE ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -113,6 +114,7 @@ set(HEADERS
     "include/infer.h"
     "include/Api_Welding.h"
     "include/MZ_VC5000.h"
+    "include/MZ_PCI1230.h"
     syspara.h
     cameralabelwidget.h
     zoomablelabel.h
@@ -243,6 +245,7 @@ if(Qt6_FOUND)
         "${CMAKE_SOURCE_DIR}/lib/1T4OVDetector.lib"
         "${CMAKE_SOURCE_DIR}/lib/1T4Library.lib"
         "${CMAKE_SOURCE_DIR}/lib/VC5000DLL.lib"
+        "${CMAKE_SOURCE_DIR}/lib/PCI1230DLL.lib"
         ${OPENVINO_LIBS}
         ${OPENCV_LIB_TO_LINK}
         Dbghelp

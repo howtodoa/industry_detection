@@ -71,6 +71,7 @@ public:
     int initPCI_VC3000H();
     int initPCI_VC3000();
     int initPCI_VC5000();
+    int initPCI_VC1230();
     int ResetVC3000H();
     int ResetVC5000();
     void initCameralPara();

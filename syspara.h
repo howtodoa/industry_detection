@@ -10,6 +10,12 @@ class SysPara : public QWidget
 public:
     explicit SysPara(QWidget *parent = nullptr);
     QFuture<bool> updateSystemDirsToJsonAsync(const QString& filePath);
+
+    static QFuture<bool> updateSystemParamToJsonAsync(
+        const QString& filePath,
+        const QString& key,
+        const QString& newValue
+    );
 private slots:
     void onModifyClicked(); // 修改按钮槽
     void onCancelClicked(); // 取消按钮槽

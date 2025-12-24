@@ -12,6 +12,7 @@
 #include "MZ_ADOConn.h"
 #include "MZ_VC3000.h"
 #include "MZ_VC5000.h"
+#include "MZ_PCI1230.h"
 #include "tcp_client.h"
 #include "rezultinfo_nayin.h"
 #include <opencv2/opencv.hpp>
@@ -287,6 +288,15 @@ void MainWindow::loadjson_layer(const QString& filePath)
     }
     else {
         qWarning() << "JSON file missing 'Envirment' entry.";
+    }
+
+    // ClassifyStr
+    if (configMap.contains("ClassifyStr")) {
+        ParamDetail detail(configMap.value("ClassifyStr").toMap());
+        GlobalPara::ClassifyStr = detail.value.toString().trimmed();
+    }
+    else {
+        qWarning() << "JSON file missing 'VERSION' entry.";
     }
 
     // VERSION
@@ -888,6 +898,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000H) initPCI_VC3000H();
     else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC3000) initPCI_VC3000();
     else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::VC5000) initPCI_VC5000();
+	else if (GlobalPara::envirment == GlobalPara::IPCEn && GlobalPara::ioType == GlobalPara::PCI1230) initPCI_VC1230();
     init_log();
     init_cap();
     LOG_DEBUG(GlobalLog::logger, L"  init_cap();");
@@ -1424,6 +1435,23 @@ int MainWindow::initPCI_VC5000()
     }
 
     return -1;
+}
+
+int  MainWindow::initPCI_VC1230()
+{
+    int rc = PCI1230DLL::pci1230_inst().Open();
+
+    // 第二行：如果失败，尝试复位并重开（可选，但建议保留一次重试）
+    if (rc != 0) {
+        PCI1230DLL::pci1230_inst().Close();
+        rc = PCI1230DLL::pci1230_inst().Open();
+    }
+    if(rc == 0)
+        for (int i = 0; i < 16; i++)
+        {
+            PCI1230DLL::pci1230_inst().WriteOutput(i, 1);
+        }
+    return 0;
 }
 
 void MainWindow::setupImageSaverThread()
@@ -2313,7 +2341,63 @@ void MainWindow::CreateMenu()
         m_roleLabel->setText(Role::GetCurrentRole());
         });
     connect(m_scannerAction, &QAction::triggered, this, [this]() {
-        qDebug() << "扫码枪按钮点击，功能待实现";
+
+        // --- 创建弹窗 ---
+        QDialog dlg(this);
+        dlg.setWindowTitle("扫码输入");
+        dlg.setFixedSize(320, 140);   // 高度加大
+        dlg.setModal(true);
+
+        QVBoxLayout* mainLayout = new QVBoxLayout(&dlg);
+
+        // --- 显示输入框 ---
+        QLineEdit* lineEdit = new QLineEdit(&dlg);
+        lineEdit->setReadOnly(true);
+        lineEdit->setPlaceholderText("请扫码...");
+        mainLayout->addWidget(lineEdit);
+
+        // --- Yes / No 按钮 ---
+        QHBoxLayout* btnLayout = new QHBoxLayout;
+        QPushButton* yesBtn = new QPushButton("Yes", &dlg);
+        QPushButton* noBtn = new QPushButton("No", &dlg);
+
+        btnLayout->addStretch();
+        btnLayout->addWidget(yesBtn);
+        btnLayout->addWidget(noBtn);
+        mainLayout->addLayout(btnLayout);
+
+        // --- ScannerHook ---
+        ScannerHook* scanner = new ScannerHook(&dlg);
+
+        // --- 扫码完成：只显示内容 ---
+        connect(scanner, &ScannerHook::scanFinished, &dlg,
+            [lineEdit](const QString& code)
+            {
+                lineEdit->setText(code);
+            });
+
+        // --- Yes / No ---
+        connect(yesBtn, &QPushButton::clicked, &dlg, [&]() {
+            dlg.accept();   // 确认
+            });
+
+        connect(noBtn, &QPushButton::clicked, &dlg, [&]() {
+            dlg.reject();   // 取消
+            });
+
+        // --- 启动扫码 ---
+        scanner->start(300);
+
+        // --- 阻塞等待用户操作 ---
+        if (dlg.exec() == QDialog::Accepted) {
+            QString result = lineEdit->text();
+            // ✅ 这里就是你“确认读取”的最终结果
+            // TODO：你后面在这里填业务逻辑
+            qDebug() << "扫码确认：" << result;
+        }
+        else {
+            qDebug() << "扫码取消";
+        }
         });
 
     connect(loginAction, &QAction::triggered, this, [this]() {

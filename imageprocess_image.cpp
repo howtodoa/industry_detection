@@ -45,6 +45,8 @@ void Imageprocess_Image::run()
 			if (!TempImagePtr || !isMatSafe(*TempImagePtr)) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null or Mat unsafe");
 				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 TempImagePtr为空或数据无效，跳过发出信号。";
+				m_inputQueue->queue.pop_front();
+				continue;
 			}
 			else {
 				qDebug() << "TempImagePtr not empty() and Mat is safe";

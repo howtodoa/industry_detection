@@ -1,8 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
-#define QIMAGE
+#define ADAPTATEION
+//#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>
@@ -196,6 +196,7 @@ struct GlobalPara {
     static bool AlogReady;
     static int InputPoint;
     static int InputFlag;
+    static QString ClassifyStr;
     static std::atomic<bool> NG_Count_Able;
     static UiConfig Uc;
 };

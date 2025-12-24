@@ -9,6 +9,7 @@
 #include <MZ_VC3000H.h>
 #include <MZ_VC5000.h>
 #include <thread>
+#include "MZ_PCI1230.h"
 
 DebugTool::DebugTool(QWidget* parent)
     : QWidget(parent)
@@ -214,6 +215,10 @@ void DebugTool::SetIOLight()
     else if(GlobalPara::ioType == GlobalPara::VC5000)
     {
 		VC5000DLL::vc5000_inst().setoutput(outPoint, outValue);
+    }
+    else if (GlobalPara::ioType == GlobalPara::PCI1230)
+    {
+        PCI1230DLL::pci1230_inst().WriteOutput(outPoint, outPoint);
     }
 }
 

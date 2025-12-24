@@ -37,6 +37,7 @@ bool GlobalPara::AlogReady = false;
 int GlobalPara::InputPoint = 0;
 std::atomic<bool> GlobalPara::NG_Count_Able=false;
 QHash<QString, MyDeque<int>> MergePointVec;
+QString GlobalPara::ClassifyStr = "";
 std::mutex g_mutex;
 std::condition_variable g_cv;
 
@@ -122,7 +123,14 @@ void MyImageCallback(cv::Mat & image, void* pUser)
 
 		qDebug() << "MyImageCallback: Input 'image' valid. Size:" << image.size().width << "x" << image.size().height;
 
-		std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
+		//std::shared_ptr<cv::Mat> currentImageForQueue = std::make_shared<cv::Mat>(image.clone());
+
+		// 强制调用 cv::Mat::operator new，保证对齐
+		cv::Mat* rawPtr = new cv::Mat(image.clone());
+
+		// 让 shared_ptr 只管理指针，不负责分配对象内存
+		std::shared_ptr<cv::Mat> currentImageForQueue(rawPtr);
+
 		if (!currentImageForQueue) {
 			LOG_DEBUG(GlobalLog::logger, L"ptr null");
 			return;

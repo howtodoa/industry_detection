@@ -121,6 +121,41 @@ QFuture<bool> SysPara::updateSystemDirsToJsonAsync(const QString& filePath)
     return future;
 }
 
+QFuture<bool> SysPara::updateSystemParamToJsonAsync(
+    const QString& filePath,
+    const QString& key,
+    const QString& newValue)
+{
+    return QtConcurrent::run([filePath, key, newValue]() {
+
+        qDebug() << "Background thread: Updating"
+            << key << "->" << newValue;
+
+        QVariantMap dataMap = FileOperator::readJsonMap(filePath);
+        if (dataMap.isEmpty()) {
+            qWarning() << "Failed to read JSON:" << filePath;
+            return false;
+        }
+
+        if (!dataMap.contains(key)) {
+            qWarning() << "JSON missing key:" << key;
+            return false;
+        }
+
+        QVariantMap paramMap = dataMap.value(key).toMap();
+        paramMap["值"] = newValue;
+        dataMap[key] = paramMap;
+
+        if (!FileOperator::writeJsonMap(filePath, dataMap)) {
+            qWarning() << "Failed to write JSON:" << filePath;
+            return false;
+        }
+
+        return true;
+        });
+}
+
+
 void SysPara::onCancelClicked()
 {
     close();
