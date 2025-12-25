@@ -4127,6 +4127,7 @@ void MainWindow::setupUpdateTimer()
 {
 
     m_updateTimer = new QTimer(this); 
+    m_cameraTimer = new QTimer(this);
     m_databaseTimer = new QTimer(this);
 #ifdef USE_MAIN_WINDOW_CAPACITY
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::updateCameraStats);
@@ -4148,14 +4149,17 @@ void MainWindow::setupUpdateTimer()
 
 #endif
 
-#ifndef  QIMAGE
-    connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
-#endif // ! QIMAGE
+
+    connect(m_cameraTimer, &QTimer::timeout, this, &MainWindow::AllCameraConnect);
 
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::RefreshDir);
 
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::BackupDir);
     m_updateTimer->start(1000);
+
+    QTimer::singleShot(10000, [this]() {
+        m_cameraTimer->start(1000);
+        });
    
 }
 

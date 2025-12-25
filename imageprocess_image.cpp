@@ -257,7 +257,8 @@ void Imageprocess_Image::run()
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0)//非本地运行的情况
 		{
 
-			bool outputSignalInvert = true;
+			bool outputSignalInvert = true; 
+			if (cam_instance->cameral_name == "wg4")  outputSignalInvert = false;
 			int durationMs = 100; // 脉冲持续时间
 			// 第二次调用,如果OK给true信号
 			int result;
@@ -272,6 +273,7 @@ void Imageprocess_Image::run()
 		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
 		{
 			bool outputSignalInvert = false;
+			if (cam_instance->cameral_name == "wg4")  outputSignalInvert = true;
 			int durationMs = 100; // 脉冲持续时间
 			int result;
 			if(GlobalPara::ioType==GlobalPara::VC3000H) result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);

@@ -110,6 +110,7 @@ private:
     QVector<Camerinfo> caminfo;
     QVector<QVector<QLabel*>> dataLabels;
     QTimer *m_updateTimer;
+    QTimer *m_cameraTimer;
     QTimer* m_databaseTimer;
     //唯一的全局保存队列
     SaveQueue m_saveQueue;

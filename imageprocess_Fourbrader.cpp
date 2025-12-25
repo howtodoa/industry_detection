@@ -75,7 +75,7 @@ void Imageprocess_FourBrader::run()
 
 				//}
 
-		if (cam_instance->video == false) // 非推流的情况
+		if (cam_instance->video == false && GlobalPara::AlogReady == true) // 非推流的情况
 		{
 
 			//存图
@@ -242,13 +242,13 @@ void Imageprocess_FourBrader::run()
 
 				ALLResult result;
 				g_detector->Process(algo_id, imgCopy, result);
-
+				LOG_DEBUG(GlobalLog::logger, QString("Ny ret= %1").arg((int)result.nyResult.NGResult_single).toStdWString().c_str());
 				if (result.nyResult.NGResult_single != NY_NGReults::OK)
 				{
 					switch (result.nyResult.NGResult_single)
 					{
 					case NY_NGReults::NULL_Err:
-						//info.errmsg << "空白捺印";
+						info.errmsg << "空白捺印";
 						break;
 
 					case NY_NGReults::CQ_Err:
@@ -290,7 +290,7 @@ void Imageprocess_FourBrader::run()
 
 					ret = -1;
 				}
-				if (result.nyResult.NGResult_single == NY_NGReults::XT_Color_Err || result.nyResult.NGResult_single == NY_NGReults::XT_ZF_Err)
+				if (result.nyResult.NGResult_single == NY_NGReults::XT_Color_Err || result.nyResult.NGResult_single == NY_NGReults::XT_ZF_Err || result.nyResult.NGResult_single == NY_NGReults::NULL_Err)
 				{
 
 				}

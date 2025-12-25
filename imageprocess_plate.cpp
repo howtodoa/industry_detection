@@ -83,7 +83,7 @@ void Imageprocess_Plate::run()
 		}
 
 		long long birthtime = QDateTime::currentMSecsSinceEpoch();
-		if (cam_instance->video == false) // 非推流的情况
+		if (cam_instance->video == false && GlobalPara::AlogReady == true) // 非推流的情况
 		{
 	
 
@@ -135,19 +135,19 @@ void Imageprocess_Plate::run()
 				int flagCopy = 0; // 这里的 0 是固定值
 				int angleCopy = cam_instance->DI.Angle; // 拷贝 angle 的值
 
-				// 深拷贝 cv::Mat 数据。这是线程安全的关键！
+				// 深拷贝 cv::Mat 数据
 				cv::Mat imageCopy = currentImagePtr->clone();
 
 				QElapsedTimer totalTimer; // 用于测量整个流程的总耗时
 				totalTimer.start();
 
-				// 2. 调用 C++11 超时函数
+				// 超时函数
 				int ret_from_call = callWithTimeout_cpp11([imageCopy, flagCopy, angleCopy]() mutable -> int {
 
 					QElapsedTimer innerTimer;
 					innerTimer.start();
 
-					// ！！在子线程中执行 RunPlate，使用副本 ！！
+					//在子线程中执行 RunPlate，使用副本
 					int innerResult = ExportSpace::RunPlate(imageCopy, flagCopy, angleCopy);
 
 					qint64 elapsedMs = innerTimer.elapsed();
@@ -265,16 +265,16 @@ void Imageprocess_Plate::run()
 
 				InAbutParam paramCopy = LearnPara::inParam6;
 
-				// 深拷贝 cv::Mat 数据。这是线程安全的关键！
+				// 深拷贝 cv::Mat 数据
 				cv::Mat imageCopy = currentImagePtr->clone();
 
-				// 2. 调用 C++11 超时函数
+				// 调用 C++11 超时函数
 				int ret_from_call = callWithTimeout_cpp11([imageCopy, paramCopy]() mutable -> int {
 
 					QElapsedTimer innerTimer;
 					innerTimer.start();
 
-					// ！！在子线程中执行 RunAbut，使用副本 (mutable 允许非 const 引用绑定)
+					// 在子线程中执行 RunAbut，使用副本 (mutable 允许非 const 引用绑定)
 					int innerResult = ExportSpace::RunAbut(imageCopy, paramCopy);
 
 					qint64 elapsedMs = innerTimer.elapsed();

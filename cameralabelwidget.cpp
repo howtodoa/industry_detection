@@ -2070,7 +2070,7 @@ void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 
 	// 显示
 	if (check_flag.load()) {
-		QPixmap displayPixmap = QPixmap::fromImage(image);
+		QPixmap displayPixmap = QPixmap::fromImage(displayImage);
 		parawidget->imageViewer->setPixmap(displayPixmap);
 		check_flag.store(false);
 	}

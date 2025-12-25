@@ -425,32 +425,24 @@ int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultV
 {
 	using namespace std::chrono;
 
-	// 1. 创建共享的 promise 和 future
+	// 创建共享的 promise 和 future
 	// 用于在线程间传递 int 结果
 	auto promisePtr = std::make_shared<std::promise<int>>();
 	std::future<int> future = promisePtr->get_future();
 
-	// 2. 启动线程 (纯净版)
-	// 这里的 lambda 没有任何 try-catch，直接裸跑 func
 	std::thread t([promisePtr, func]() {
-		// 如果 func() 内部抛出异常，这里会直接导致 terminate，
-		// 调试器会直接停在 func() 内部出错的那一行。
+		// 如果 func() 内部抛出异常，这里会直接terminate，调试器会直接停在 func() 内部出错的那一行。
 		int res = func();
 		promisePtr->set_value(res);
 		});
-
-	// 3. 分离线程
-	// 即使主线程不再等待，这个线程也会在后台继续跑完
 	t.detach();
 
-	// 4. 等待结果 (带超时)
+	// 等待结果 (带超时)
 	std::future_status status = future.wait_for(milliseconds(timeoutMs));
 
-	// 5. 根据状态返回
+	// 根据状态返回
 	if (status == std::future_status::ready)
 	{
-		// 如果任务完成，直接拿结果
-		// 注意：如果子线程因为某些原因没写入值（比如崩了），这里 get() 可能会报错
 		return future.get();
 	}
 	else
