@@ -1,8 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
-#define QIMAGE
+#define ADAPTATEION
+//#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>
@@ -106,6 +106,7 @@ namespace LearnPara{
     extern InFlowerPinParam inParam7;
     extern InFlowerPinParam inParam8;
     extern InLookPinParam inParam9;
+	extern InVCParam inParam10, inParam11, inParam12, inParam13;
     extern int inNum;//学习的字符数量
    // extern ScoreVector;
 }

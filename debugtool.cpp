@@ -218,7 +218,7 @@ void DebugTool::SetIOLight()
     }
     else if (GlobalPara::ioType == GlobalPara::PCI1230)
     {
-        PCI1230DLL::pci1230_inst().WriteOutput(outPoint, outPoint);
+        PCI1230DLL::pci1230_inst().WriteOutput(outPoint, outValue);
     }
 }
 

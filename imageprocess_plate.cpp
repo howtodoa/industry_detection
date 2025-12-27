@@ -74,12 +74,15 @@ void Imageprocess_Plate::run()
 		//复位
 		if (GlobalPara::MergePointNum == 0)
 		{
-			bool outputSignalInvert = false;
-			int durationMs = 100; // 脉冲持续时间
-			int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+			if(GlobalPara::pulse.load()==false)
+			{
+				bool outputSignalInvert = false;
+				int durationMs = 100; // 脉冲持续时间
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 
-			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			}
 		}
 
 		long long birthtime = QDateTime::currentMSecsSinceEpoch();
@@ -397,7 +400,7 @@ void Imageprocess_Plate::run()
 				QString logMsg = QString("Carrier_NaYin ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
-			else if (cam_instance->indentify == "null") {
+			else {
 				Sleep(20);
 				ret = 0;
 			}

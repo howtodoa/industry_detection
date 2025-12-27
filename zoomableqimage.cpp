@@ -28,10 +28,16 @@ void ZoomableQImage::setImage(const QImage& image)
             << image.width() << "x" << image.height() << ")，已拒绝。";
         return;
     }
-
-    m_image = image;
-    updateToFit(); // 此时 updateToFit 已经通过了所有安全检查
-    update();
+    try
+    {
+        m_image = image;
+        updateToFit(); // 此时 updateToFit 已经通过了所有安全检查
+        update();
+    }
+    catch (...)
+    {
+		LOG_DEBUG(GlobalLog::logger, L"ZoomableQImage::setImage: 设置图像时发生异常，catch成功");
+    }
 }
 
 void ZoomableQImage::resetView()

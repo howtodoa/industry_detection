@@ -1648,6 +1648,11 @@ void ParaWidget::setupDebugTab(QTabWidget* tabWidget)
             if (m_cam->indentify == "FlowerPin") LearnPara::inParam7.imgAngleNum = angleValue;
             if (m_cam->indentify == "FlowerPinNeg") LearnPara::inParam8.imgAngleNum = angleValue;
             if (m_cam->indentify == "FlowerLook") LearnPara::inParam9.imgAngleNum = angleValue;
+			if (m_cam->indentify == "wg1") LearnPara::inParam10.angleNum = angleValue;
+            if (m_cam->indentify == "wg2") LearnPara::inParam11.angleNum = angleValue;
+            if (m_cam->indentify == "wg3") LearnPara::inParam12.angleNum = angleValue;
+            if (m_cam->indentify == "wg4") LearnPara::inParam13.angleNum = angleValue;
+
             emit SaveDebugInfo(DI);
             qDebug() << "保存成功! 长度:" << DI->queueLen << " 红胶带:" << DI->RedTape;
         }

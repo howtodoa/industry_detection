@@ -42,6 +42,11 @@ void DirectoryMonitorWorker::doCheckAndCleanup()
     qDebug() << "Performing scheduled check...";
 
     // 检查当前EXE所在磁盘的使用率 ---
+    if(m_pathsToWatch.isEmpty())
+    {
+		LOG_DEBUG(GlobalLog::logger, L"[DirectoryMonitorWorker] No paths to watch. Exiting cleanup check.");
+        return;
+	}
     QString appPath = m_pathsToWatch[0];
 
     bool needsDeletion = IsDiskUsageOverThreshold(appPath, 80.0);

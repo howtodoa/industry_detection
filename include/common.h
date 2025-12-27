@@ -22,15 +22,15 @@ enum class XS_NGReults//线扫相机NG输出
 enum class NY_NGReults//捺印字符
 {
     OK,
-    NULL_Err,
-    CQ_Err,
-    GS_Err,
-    HS_Err,
-    QP_Err,
-    YH_Err,
+    NULL_Err, 
+    QP_Err, 
+    GSBX_Err, 
     ZW_Err,
-    XT_ZF_Err,
-    XT_Color_Err,
+    HS_Err, 
+    FJBG_Err, 
+    YH_Err, 
+    XT_ZF_Err, 
+    XT_Color_Err, 
 };
 enum class Crop_Bottom_NGReults//电容底部
 {

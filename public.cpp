@@ -90,6 +90,14 @@ InFlowerPinParam LearnPara::inParam8 = { false,0,220,0,2 };
 
 InLookPinParam LearnPara::inParam9 = { false,0};
 
+InVCParam LearnPara::inParam10 = { 0 };
+
+InVCParam LearnPara::inParam11 = { 0 };
+
+InVCParam LearnPara::inParam12 = { 0 };
+
+InVCParam LearnPara::inParam13 = { 0 };
+
 int LearnPara::inNum = 15;
 
 std::atomic<int> GateStatus = 2;

@@ -17,6 +17,7 @@ namespace PCI1230DLL
         int Close(int cardId = 15);
         int ReadInput(int port, int cardId = 15);
         int WriteOutput(int port, int level, int cardId = 15);
+        int writeall(unsigned int data, int cardId = 15);
 
         // ×´Ì¬¼ì²é
         bool IsConnected() const;

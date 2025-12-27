@@ -676,6 +676,35 @@ void MainWindow::init_algo()
         if (ret == 1) std::cout << "InitializeAbut() fail" << std::endl;
         else std::cout << "InitializeAbut() successful" << std::endl;
         qDebug() << "ret:   =" << ret;
+
+        //外观1
+        if (cams[i]->indentify == "wg1")ret = ExportSpace::InitializeVC1();
+
+        if (ret == 1) std::cout << "InitializeVC1() fail" << std::endl;
+        else std::cout << "InitializeVC1() successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
+
+        //外观2
+        if (cams[i]->indentify == "wg2")ret = ExportSpace::InitializeVC2();
+
+        if (ret == 1) std::cout << "InitializeVC2() fail" << std::endl;
+        else std::cout << "InitializeVC2() successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
+
+
+        //外观3
+        if (cams[i]->indentify == "wg3")ret = ExportSpace::InitializeVC3();
+
+        if (ret == 1) std::cout << "InitializeVC3() fail" << std::endl;
+        else std::cout << "InitializeVC3() successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
+
+        //外观4
+        if (cams[i]->indentify == "wg4")ret = ExportSpace::InitializeVC4();
+
+        if (ret == 1) std::cout << "InitializeVC4() fail" << std::endl;
+        else std::cout << "InitializeVC4() successful" << std::endl;
+        qDebug() << "ret:   =" << ret;
     }
 
 
@@ -1439,6 +1468,7 @@ int MainWindow::initPCI_VC5000()
 
 int  MainWindow::initPCI_VC1230()
 {
+    AppConfig::runningOutput = GlobalPara::RunPoint;
     int rc = PCI1230DLL::pci1230_inst().Open();
 
     // 第二行：如果失败，尝试复位并重开（可选，但建议保留一次重试）
@@ -1446,11 +1476,8 @@ int  MainWindow::initPCI_VC1230()
         PCI1230DLL::pci1230_inst().Close();
         rc = PCI1230DLL::pci1230_inst().Open();
     }
-    if(rc == 0)
-        for (int i = 0; i < 16; i++)
-        {
-            PCI1230DLL::pci1230_inst().WriteOutput(i, 1);
-        }
+  /*  Sleep(100);
+    if (rc == 0) PCI1230DLL::pci1230_inst().writeall(1);*/
     return 0;
 }
 
@@ -1963,6 +1990,38 @@ void MainWindow::initcams(int camnumber)
            cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
            cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
            }
+       else if (caminfo[i - 1].mapping == "wg1")
+       {
+           cam->AC = new AlgoClass(cam->algopath, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
+           LearnPara::inParam10.angleNum = caminfo[i - 1].Angle;
+           }
+       else if (caminfo[i - 1].mapping == "wg2")
+       {
+           cam->AC = new AlgoClass(cam->algopath, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
+           LearnPara::inParam11.angleNum = caminfo[i - 1].Angle;
+           }
+       else if (caminfo[i - 1].mapping == "wg3")
+       {
+           cam->AC = new AlgoClass(cam->algopath, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
+           LearnPara::inParam12.angleNum = caminfo[i - 1].Angle;
+           }
+       else if (caminfo[i - 1].mapping == "wg4")
+       {
+           cam->AC = new AlgoClass(cam->algopath, nullptr);
+           cam->indentify = caminfo[i - 1].mapping.toStdString();
+           cam->unifyParams = RangeClass::loadUnifiedParameters(cam->rangepath);
+           cam->RI = new RezultInfo_Bottom(cam->unifyParams, nullptr);
+           LearnPara::inParam13.angleNum = caminfo[i - 1].Angle;
+           }
        cam->cameral_name=caminfo[i-1].name;
        cam->rounte=caminfo[i-1].rounte;
        cam->pointNumber.store(caminfo[i-1].pointNumber);
@@ -2342,61 +2401,57 @@ void MainWindow::CreateMenu()
         });
     connect(m_scannerAction, &QAction::triggered, this, [this]() {
 
-        // --- 创建弹窗 ---
         QDialog dlg(this);
         dlg.setWindowTitle("扫码输入");
-        dlg.setFixedSize(320, 140);   // 高度加大
+        dlg.setFixedSize(320, 140);
         dlg.setModal(true);
 
         QVBoxLayout* mainLayout = new QVBoxLayout(&dlg);
 
-        // --- 显示输入框 ---
         QLineEdit* lineEdit = new QLineEdit(&dlg);
         lineEdit->setReadOnly(true);
         lineEdit->setPlaceholderText("请扫码...");
         mainLayout->addWidget(lineEdit);
 
-        // --- Yes / No 按钮 ---
         QHBoxLayout* btnLayout = new QHBoxLayout;
         QPushButton* yesBtn = new QPushButton("Yes", &dlg);
         QPushButton* noBtn = new QPushButton("No", &dlg);
+
+        yesBtn->setAutoDefault(false);
+        noBtn->setAutoDefault(false);
 
         btnLayout->addStretch();
         btnLayout->addWidget(yesBtn);
         btnLayout->addWidget(noBtn);
         mainLayout->addLayout(btnLayout);
 
-        // --- ScannerHook ---
         ScannerHook* scanner = new ScannerHook(&dlg);
 
-        // --- 扫码完成：只显示内容 ---
         connect(scanner, &ScannerHook::scanFinished, &dlg,
-            [lineEdit](const QString& code)
-            {
+            [lineEdit](const QString& code) {
                 lineEdit->setText(code);
             });
 
-        // --- Yes / No ---
         connect(yesBtn, &QPushButton::clicked, &dlg, [&]() {
-            dlg.accept();   // 确认
+            dlg.accept();
             });
 
         connect(noBtn, &QPushButton::clicked, &dlg, [&]() {
-            dlg.reject();   // 取消
+            dlg.reject();
             });
 
-        // --- 启动扫码 ---
-        scanner->start(300);
+        // ⭐ Dialog 生命周期控制 hook
+        connect(&dlg, &QDialog::finished, &dlg, [&](int) {
+            scanner->stop();
+            });
 
-        // --- 阻塞等待用户操作 ---
+        // ⭐ 无限监听
+        scanner->start(-1);
+
         if (dlg.exec() == QDialog::Accepted) {
             QString result = lineEdit->text();
-            // ✅ 这里就是你“确认读取”的最终结果
-            // TODO：你后面在这里填业务逻辑
             qDebug() << "扫码确认：" << result;
-        }
-        else {
-            qDebug() << "扫码取消";
+            // TODO：你的业务逻辑
         }
         });
 
@@ -3225,7 +3280,7 @@ int MainWindow::initPCI_VC3000H()
         std::cout << "[INFO] PNP/NPN 模式设置为：" << AppConfig::GetIoOutputMode() << std::endl;
 
 // 依次设置输出模式
-    if ((result = PCI::pci().setOutputMode(AppConfig::camera1Output, false, 200)) != 0) {
+    if ((result = PCI::pci().setOutputMode(AppConfig::camera1Output, false, 400)) != 0) {
         QString errorMsg = QString("[ERROR] 设置 camera1Output 模式失败，错误码：%1").arg(result);
         LOG_DEBUG(GlobalLog::logger, errorMsg.toStdWString().c_str());
     }
@@ -4439,6 +4494,13 @@ void MainWindow::onStartAllCamerasClicked()
        {
            VC5000DLL::vc5000_inst().setoutput(AppConfig::runningOutput, outputSignalInvert ? true : false);
            LOG_DEBUG(GlobalLog::logger, QString("VC5000runport=%1").arg(AppConfig::runningOutput).toStdWString().c_str());
+       }
+       else if (GlobalPara::ioType == GlobalPara::PCI1230)
+       {
+           PCI1230DLL::pci1230_inst().WriteOutput(AppConfig::runningOutput, true);
+   /*        QTimer::singleShot(5000, this, [=]() {
+               PCI1230DLL::pci1230_inst().WriteOutput(10, true);
+               });*/
        }
     }
 }

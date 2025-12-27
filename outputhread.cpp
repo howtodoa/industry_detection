@@ -100,9 +100,9 @@ void OutPutThread::run()
                 break;
             }
         }
-
-        PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
-
+        if(GlobalPara::pulse.load()==false)   PCI::pci().setoutput(GlobalPara::MergePoint, allOne);
+        else  PCI::pci().setOutputMode(GlobalPara::MergePoint, allOne, 100);
+     
         LOG_DEBUG(GlobalLog::logger,
             QString("setOutputMode: MergePoint=%1, allOne=%2")
             .arg(GlobalPara::MergePoint)

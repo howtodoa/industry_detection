@@ -3,98 +3,102 @@
 
 struct InStampParam
 {
-	float angleNum = 0;               //æ—‹è½¬è§’åº¦
-	int textkernl = 3;                 //å­—ç¬¦æ ¸å¤§å°
-	int logoid = 3;                        //è´Ÿælogæ ‡ç­¾
-	bool textextralenabel = false;             //å­—ç¬¦è¶…å‡ºéƒ¨åˆ†æ˜¯å¦æ£€æµ‹
-	bool textMissPixEnable = false;            //å­—ç¬¦ç¼ºå¤±éƒ¨åˆ†æ˜¯å¦æ£€æµ‹
-	bool isRect = false;                       //è´ŸæåŒºåŸŸæ˜¯å¦æ˜¯çŸ©å½¢
-	bool isOCR = true;                         //å­—ç¬¦æ˜¯å¦æ£€æµ‹
+	float angleNum = 0;               //Ğı×ª½Ç¶È
+	int textkernl = 3;                 //×Ö·ûºË´óĞ¡
+	int logoid = 3;                        //¸º¼«log±êÇ©
+	bool textextralenabel = false;             //×Ö·û³¬³ö²¿·ÖÊÇ·ñ¼ì²â
+	bool textMissPixEnable = false;            //×Ö·ûÈ±Ê§²¿·ÖÊÇ·ñ¼ì²â
+	bool isRect = false;                       //¸º¼«ÇøÓòÊÇ·ñÊÇ¾ØĞÎ
+	bool isOCR = true;                         //×Ö·ûÊÇ·ñ¼ì²â
 };
-
-struct ScoreVector
-{
-	std::vector<float> scoresPosLimit;         //æ­£æåŒºåŸŸåˆ†æ•°
-    std::vector<float> scoresNegLimit;         //è´ŸæåŒºåŸŸåˆ†æ•°
-};
-
 
 struct OutStampResParam
 {
-	float phi;                          //æ—‹è½¬è§’åº¦
-	float posWidth;                     //æ­£æå®½åº¦
-	float posErr;                       //æ­£æç¼ºé™·é¢ç§¯
-	float negWidth;                     //è´Ÿæå®½åº¦
-	float negErr;                       //è´Ÿæç¼ºé™·é¢ç§¯
-	int textNum;                      //å­—ç¬¦ä¸ªæ•°
-	std::vector<float> textScores;    //å„ä¸ªå­—ç¬¦çš„å¾—åˆ†
-	float logoScores;                 //logoå¾—åˆ†
+	float phi = 0.0f;                          //Ğı×ª½Ç¶È
+	float posWidth = 0.0f;                     //Õı¼«¿í¶È
+	float posErr = 0.0f;                       //Õı¼«È±ÏİÃæ»ı
+	float negWidth = 0.0f;                     //¸º¼«¿í¶È
+	float negErr = 0.0f;                       //¸º¼«È±ÏİÃæ»ı
+	int textNum = 0;                      //×Ö·û¸öÊı
+	std::vector<float> textScores;    //¸÷¸ö×Ö·ûµÄµÃ·Ö
+	float logoScores = 0.0f;                 //logoµÃ·Ö
 };
 
 struct OutPlateResParam
 {
-	bool m_PlatExist;                                          //åº•åº§æ˜¯å¦å­˜åœ¨
-	float m_PlateArea;                                         //åº•åº§é¢ç§¯
-	float m_PlateHeight, m_PlateWid;                           //åº•åº§é«˜åº¦ã€å®½åº¦
-	float m_PlateHypUpLen, m_PlateHypDownLen;                  //åº•åº§ä¸Šæ–œè¾¹é•¿åº¦ï¼Œä¸‹æ–œè¾¹é•¿åº¦
-	float m_PlateErrNum;                                       //åº•åº§ç‘•ç–µåŒºåŸŸä¸ªæ•°
-	float m_PlateCrushNum;                                     //åº•åº§å‹ä¼¤åŒºåŸŸä¸ªæ•°
-	bool m_PlatePinLeftExist, m_PlatePinRightExist;            //åº•åº§å·¦å¼•è„šã€å³å¼•è„šæ˜¯å¦å­˜åœ¨
-	float m_PlatePinLeftHeight, m_PlatePinRightHeight;         //åº•åº§å·¦å¼•è„šã€å³å¼•è„šé«˜åº¦
-	float m_PlatePinLeftWid, m_PlatePinRightWid;               //åº•åº§å·¦å¼•è„šã€å³å¼•è„šå®½åº¦
-	float m_PlatePinLeftAngle, m_PlatePinRightAngle;           //åº•åº§å·¦å¼•è„šã€å³å¼•è„šè§’åº¦
-	float m_PlatePinLeftBendAngle, m_PlatePinRightBendAngle;   //åº•åº§å·¦å¼•è„šã€å³å¼•è„šå¼¯è„š
-	float m_PlatePinLeftParalAngle, m_PlatePinRightParalAngle; //åº•åº§å·¦å¼•è„šã€å³å¼•è„šå¹³è¡Œåº¦
-	float m_PlatePinLeftExceLen, m_PlatePinRightExceLen;       //å·¦ã€å³å¼•è„šè¶…åº•åº§é•¿åº¦
-	float m_PlatePinTotalLen;                                  //å¼•è„šæ€»é•¿åº¦
+	bool m_PlatExist = false;                                          //µ××ùÊÇ·ñ´æÔÚ
+	float m_PlateArea = 0.0f;                                         //µ××ùÃæ»ı
+	float m_PlateHeight = 0.0f, m_PlateWid = 0.0f;                           //µ××ù¸ß¶È¡¢¿í¶È
+	float m_PlateHypUpLen = 0.0f, m_PlateHypDownLen = 0.0f;                  //µ××ùÉÏĞ±±ß³¤¶È£¬ÏÂĞ±±ß³¤¶È
+	float m_PlateErrNum = 0.0f;                                       //µ××ùè¦´ÃÇøÓò¸öÊı
+	float m_PlateCrushNum = 0.0f;                                     //µ××ùÑ¹ÉËÇøÓò¸öÊı
+	bool m_PlatePinLeftExist = false, m_PlatePinRightExist = false;            //µ××ù×óÒı½Å¡¢ÓÒÒı½ÅÊÇ·ñ´æÔÚ
+	float m_PlatePinLeftHeight = 0.0f, m_PlatePinRightHeight = 0.0f;         //µ××ù×óÒı½Å¡¢ÓÒÒı½Å¸ß¶È
+	float m_PlatePinLeftWid = 0.0f, m_PlatePinRightWid = 0.0f;               //µ××ù×óÒı½Å¡¢ÓÒÒı½Å¿í¶È
+	float m_PlatePinLeftAngle = 0.0f, m_PlatePinRightAngle = 0.0f;           //µ××ù×óÒı½Å¡¢ÓÒÒı½Å½Ç¶È
+	float m_PlatePinLeftBendAngle = 0.0f, m_PlatePinRightBendAngle = 0.0f;   //µ××ù×óÒı½Å¡¢ÓÒÒı½ÅÍä½Å
+	float m_PlatePinLeftParalAngle = 0.0f, m_PlatePinRightParalAngle = 0.0f; //µ××ù×óÒı½Å¡¢ÓÒÒı½ÅÆ½ĞĞ¶È
+	float m_PlatePinLeftExceLen = 0.0f, m_PlatePinRightExceLen = 0.0f;       //×ó¡¢ÓÒÒı½Å³¬µ××ù³¤¶È
+	float m_PlatePinTotalLen = 0.0f;                                  //Òı½Å×Ü³¤¶È
 
 };
 
 struct OutLiftResParam
 {
-	float m_PinWidthLift;                     //å¼•è„šå®½åº¦
-	float m_PinHeightLift;                    //å¼•è„šé«˜åº¦
-	float m_disLift;                          //å¼•è„šåˆ°åº•åº§è·ç¦»
-	float m_PinAngle;                         //å¼•è„šè§’åº¦
+	float m_PinWidthLift = 0.0f;                     //Òı½Å¿í¶È
+	float m_PinHeightLift = 0.0f;                    //Òı½Å¸ß¶È
+	float m_disLift = 0.0f;                          //Òı½Åµ½µ××ù¾àÀë
+	float m_PinAngle = 0.0f;                         //Òı½Å½Ç¶È
 };
 
 struct InAbutParam
 {
-	float angleNum = 0;                               //æ—‹è½¬è§’åº¦
-	float p_pin_range_min = 0.0;
-	float p_pin_range_max = 0.3;
-	float b_pln_range_min = 0.32;
-	float b_pln_range_max = 0.68;
-	float n_pin_range_min = 0.7;
-	float n_pin_range_max = 1;
-	float plateOffsetY = 130;                    //åº§æ¿å®½åº¦ä¸Šè¾¹å¹³ç§»é«˜åº¦
-	float plateHeight = 100;                     //åº§æ¿å®½åº¦æ£€æµ‹é«˜åº¦
-	float waistOffsetY = 200;                    //è…°çº¿æ£€æµ‹ä¸Šè¾¹å¹³ç§»é«˜åº¦
-	float waistHeight = 50;                      //è…°çº¿æ£€æµ‹å®½åº¦
-	int gauss_ksize = 5;                         //é«˜æ–¯æ»¤æ³¢å‚æ•°
-	int bin_thres_value = 60;                    //å›¾åƒäºŒå€¼åŒ–å‚æ•°
-	float prod_Area_Min = 0.1;                   //åŸºåº§æœ‰æ— é¢ç§¯å‚æ•°
-	float pin_Mc_height = 0;                     //å¼•è„šæ¯›åˆºçŸ©å½¢é«˜åº¦
-	float pln_Mc_height = 20;                    //åŸºåº§æ¯›åˆºçŸ©å½¢é«˜åº¦
+	float angleNum = 0;                               //Ğı×ª½Ç¶È
+	float p_pin_range_min = 0.0f;
+	float p_pin_range_max = 0.3f;
+	float b_pln_range_min = 0.32f;
+	float b_pln_range_max = 0.68f;
+	float n_pin_range_min = 0.7f;
+	float n_pin_range_max = 1.0f;                   //µ×±ß·Ö¶Î±ÈÀı
+	float plateOffsetY = 130.0f;                    //×ù°å¿í¶ÈÉÏ±ßÆ½ÒÆ¸ß¶È
+	float plateHeight = 100.0f;                     //×ù°å¿í¶È¼ì²â¸ß¶È
+	float waistOffsetY = 200.0f;                    //ÑüÏß¼ì²âÉÏ±ßÆ½ÒÆ¸ß¶È
+	float waistHeight = 50.0f;                      //ÑüÏß¼ì²â¿í¶È
+	int gauss_ksize = 5;                         //¸ßË¹ÂË²¨²ÎÊı
+	int bin_thres_value = 60;                    //Í¼Ïñ¶şÖµ»¯²ÎÊı
+	float prod_Area_Min = 0.1f;                   //»ù×ùÓĞÎŞÃæ»ı²ÎÊı
+	float pin_Mc_height = 0.0f;                     //Òı½ÅÃ«´Ì¾ØĞÎ¸ß¶È
+	float pln_Mc_height = 20.0f;                    //»ù×ùÃ«´Ì¾ØĞÎ¸ß¶È
 };
 
 struct OutAbutResParam
 {
-	bool isHaveProd = 0;        // æ˜¯å¦æœ‰æ–™
-	bool isHavePpin = 0;        // æ˜¯å¦æœ‰å·¦å¼•è„š
-	bool isHaveNpin = 0;        // æ˜¯å¦æœ‰å³å¼•è„š
-	bool isHaveBpln = 0;        // æ˜¯å¦æœ‰åº§æ¿
-	float Pin_C = 0;              // å¼•è„šæ€»é•¿
-	float shuyao_width = 0;      // æŸè…°å®½åº¦
-	float plate_width = 0;       //åº•åº§å®½åº¦
-	float p_pin_over_pln = 0;    // å·¦å¼•è„šè¶…æ¿
-	float n_pin_over_pln = 0;    // å³å¼•è„šè¶…æ¿
-	float p_pin_H = 0;           // å·¦å¼•è„šç¿˜è„š
-	float n_pin_H = 0;           // å³å¼•è„šç¿˜è„š
-	float p_n_height_diff = 0;   // å·¦å³å¼•è„šé«˜åº¦å·®
-	float p_pin_Angle = 0;       // å·¦å¼•è„šè§’åº¦
-	float n_pin_Angle = 0;       // å³å¼•è„šè§’åº¦
-	float p_pin_Mc = 0;          // å·¦å¼•è„šæ¯›åˆº
-	float n_pin_Mc = 0;          // å³å¼•è„šæ¯›åˆº
-	float b_pln_Mc = 0;         // åŸºåº§æ¯›åˆº
+	bool isHaveProd = false;        // ÊÇ·ñÓĞÁÏ
+	bool isHavePpin = false;        // ÊÇ·ñÓĞ×óÒı½Å
+	bool isHaveNpin = false;        // ÊÇ·ñÓĞÓÒÒı½Å
+	bool isHaveBpln = false;        // ÊÇ·ñÓĞ×ù°å
+	float Pin_C = 0.0f;              // Òı½Å×Ü³¤
+	float shuyao_width = 0.0f;      // ÊøÑü¿í¶È
+	float plate_width = 0.0f;       //µ××ù¿í¶È
+	float p_pin_over_pln = 0.0f;    // ×óÒı½Å³¬°å
+	float n_pin_over_pln = 0.0f;    // ÓÒÒı½Å³¬°å
+	float p_pin_H = 0.0f;           // ×óÒı½ÅÇÌ½Å
+	float n_pin_H = 0.0f;           // ÓÒÒı½ÅÇÌ½Å
+	float p_n_height_diff = 0.0f;   // ×óÓÒÒı½Å¸ß¶È²î
+	float p_pin_Angle = 0.0f;       // ×óÒı½Å½Ç¶È
+	float n_pin_Angle = 0.0f;       // ÓÒÒı½Å½Ç¶È
+	float p_pin_Mc = 0.0f;          // ×óÒı½ÅÃ«´Ì
+	float n_pin_Mc = 0.0f;          // ÓÒÒı½ÅÃ«´Ì
+	float b_pln_Mc = 0.0f;         // »ù×ùÃ«´Ì
+};
+
+struct InVCParam
+{
+	float angleNum = 0;                               //Ğı×ª½Ç¶È
+	
+};
+
+struct OutVCResParam
+{
+	
 };

@@ -3,6 +3,7 @@
 #include <string>
 #include "CapacitanceProgram.h"
 #include "MZ_VC5000.h"
+#include "MZ_PCI1230.h"
 
 Imageprocess_Image::Imageprocess_Image(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
 	: ImageProcess(cam, m_saveQueue, parent)
@@ -221,7 +222,51 @@ void Imageprocess_Image::run()
 				QString logMsg = QString("Carrier_NaYin ret=%1").arg(ret);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
-			else if (cam_instance->indentify == "null") {
+			else if (cam_instance->indentify == "wg1")
+			{
+				ret=ExportSpace::RunVC1(currentImagePtr, LearnPara::inParam10);
+				OutStampResParam para;
+				ExportSpace::ResultOutVC1(afterImagePtr);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+	
+				QString logMsg = QString("wg1 ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				}
+			else if (cam_instance->indentify == "wg2")
+			{
+				ret=ExportSpace::RunVC2(currentImagePtr,LearnPara::inParam11);
+				OutStampResParam para;
+				ExportSpace::ResultOutVC2(afterImagePtr);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+
+				QString logMsg = QString("wg2 ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				}
+			else if (cam_instance->indentify == "wg3")
+			{
+				ret=ExportSpace::RunVC3(currentImagePtr, LearnPara::inParam12);
+				OutStampResParam para;
+				ExportSpace::ResultOutVC3(afterImagePtr);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+
+				QString logMsg = QString("wg3 ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				}
+			else if (cam_instance->indentify == "wg4")
+			{
+				ret=ExportSpace::RunVC4(currentImagePtr, LearnPara::inParam13);
+				OutStampResParam para;
+				ExportSpace::ResultOutVC4(afterImagePtr);
+				qint64 elapsed = timer.elapsed();
+				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
+
+				QString logMsg = QString("wg4 ret=%1").arg(ret);
+				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				}
+			else {
 				Sleep(20);
 				afterImagePtr = backupImagePtr;
 				ret = 0;
@@ -258,13 +303,13 @@ void Imageprocess_Image::run()
 		{
 
 			bool outputSignalInvert = true; 
-			if (cam_instance->cameral_name == "wg4")  outputSignalInvert = false;
+			if (cam_instance->indentify == "wg4")  outputSignalInvert = false;
 			int durationMs = 100; // 脉冲持续时间
 			// 第二次调用,如果OK给true信号
 			int result;
 			if (GlobalPara::ioType == GlobalPara::VC3000H)result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 			else if (GlobalPara::ioType == GlobalPara::VC5000)result = VC5000DLL::vc5000_inst().setoutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
-
+			else if(GlobalPara::ioType==GlobalPara::PCI1230) result= PCI1230DLL::pci1230_inst().WriteOutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
 			QString logMsg = QString("相机：%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 
@@ -273,12 +318,12 @@ void Imageprocess_Image::run()
 		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1)//非本地运行的情况
 		{
 			bool outputSignalInvert = false;
-			if (cam_instance->cameral_name == "wg4")  outputSignalInvert = true;
+			if (cam_instance->indentify == "wg4")  outputSignalInvert = true;
 			int durationMs = 100; // 脉冲持续时间
 			int result;
 			if(GlobalPara::ioType==GlobalPara::VC3000H) result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
 			else if (GlobalPara::ioType == GlobalPara::VC5000)result = VC5000DLL::vc5000_inst().setoutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
-
+			else if (GlobalPara::ioType == GlobalPara::PCI1230) result = PCI1230DLL::pci1230_inst().WriteOutput(cam_instance->pointNumber.load(), outputSignalInvert ? true : false);
 			QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}

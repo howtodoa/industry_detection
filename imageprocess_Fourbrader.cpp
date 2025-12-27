@@ -251,29 +251,30 @@ void Imageprocess_FourBrader::run()
 						info.errmsg << "空白捺印";
 						break;
 
-					case NY_NGReults::CQ_Err:
-					//	info.errmsg << "捺印残缺";
+					case NY_NGReults::QP_Err:
+						//info.errmsg << "捺印负极气泡";
 						break;
 
-					case NY_NGReults::GS_Err:
-						//info.errmsg << "捺印刮伤";
+					case NY_NGReults::GSBX_Err:
+						//info.errmsg << "刮伤白色显露";
+						break;
+
+					case NY_NGReults::ZW_Err:
+						//info.errmsg << "捺印脏污NG";
 						break;
 
 					case NY_NGReults::HS_Err:
-					//	info.errmsg << "捺印划伤";
+						//	info.errmsg << "捺印划伤";
 						break;
 
-					case NY_NGReults::QP_Err:
-						//info.errmsg << "捺印负极气泡";
+					case NY_NGReults::FJBG_Err:
+						//	info.errmsg << "负极白杠";
 						break;
 
 					case NY_NGReults::YH_Err:
 						//info.errmsg << "捺印压痕";
 						break;
 
-					case NY_NGReults::ZW_Err:
-						//info.errmsg << "捺印脏污NG";
-						break;
 
 					case NY_NGReults::XT_ZF_Err:
 						info.errmsg << "型替字符";

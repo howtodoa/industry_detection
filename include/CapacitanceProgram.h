@@ -10,56 +10,73 @@
 
 
 namespace ExportSpace {
-    
-        // é¢„å¤„ç†
-    MYLIBRARY_API cv::Mat RotateImg(cv::Mat image, double angle);
 
-        // åˆå§‹åŒ–
+    // ³õÊ¼»¯
     MYLIBRARY_API int InitializeStamp();
     MYLIBRARY_API int InitializePlate();
     MYLIBRARY_API int InitializeLift();
     MYLIBRARY_API int InitializeAbut();
     MYLIBRARY_API int InitializeGJ();
+    MYLIBRARY_API int InitializeVC1();
+    MYLIBRARY_API int InitializeVC2();
+    MYLIBRARY_API int InitializeVC3();
+    MYLIBRARY_API int InitializeVC4();
 
-        // æ‰§è¡Œå‡½æ•°
+    // Ö´ĞĞº¯Êı
     MYLIBRARY_API int RunStamp(cv::Mat& Src, bool update, int al_core, InStampParam& inStampParam);
-    MYLIBRARY_API int RunPlate( cv::Mat& SrcImg, int al_core = 1, int angleNum = 0);
+    MYLIBRARY_API int RunPlate(cv::Mat& SrcImg, int al_core = 1, int angleNum = 0);
     MYLIBRARY_API int RunLift(cv::Mat& src, int al_core, int angleNum = 0, bool PinAnglEnalbe = true);
     MYLIBRARY_API int RunAbut(cv::Mat& src, InAbutParam& inParam);
     MYLIBRARY_API int RunYYGJ(cv::Mat& src, int angleNum, bool PinAnglEnalbe);
+    MYLIBRARY_API int RunVC1(cv::Mat& src, InVCParam& inParam);
+    MYLIBRARY_API int RunVC2(cv::Mat& src, InVCParam& inParam);
+    MYLIBRARY_API int RunVC3(cv::Mat& src, InVCParam& inParam);
+    MYLIBRARY_API int RunVC4(cv::Mat& src, InVCParam& inParam);
 
-        // ç»“æœè·å–
-        //æºå°  æ­£è´ŸææœŸæœ›markå›¾ï¼ˆç¬¬ä¸€ä¸ªæ¨¡å‹è¾“å‡ºçš„cropï¼‰
+    // ½á¹û»ñÈ¡
+    //ŞàÓ¡  Õı¸º¼«ÆÚÍûmarkÍ¼£¨µÚÒ»¸öÄ£ĞÍÊä³öµÄcrop£©
     MYLIBRARY_API void GetStampMaskExpect(cv::Mat& _expectmask, int al_core);
-        //æºå°  ç¬¬ä¸€ä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //ŞàÓ¡  µÚÒ»¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetStampSegmentImg(cv::Mat& expectmask, int al_core);
-        //æºå°  ç¬¬äºŒä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //ŞàÓ¡  µÚ¶ş¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetStampDetectImg(cv::Mat& expectmask, int al_core);
-        //æºå°  ç¬¬ä¸‰ä¸ªæ¨¡å‹è¾“å…¥å›¾
+    //ŞàÓ¡  µÚÈı¸öÄ£ĞÍÊäÈëÍ¼
     MYLIBRARY_API void GetStampCropimage(cv::Mat& cropimage, int al_core);
-        //æºå°  ç¬¬ä¸‰ä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //ŞàÓ¡  µÚÈı¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetStampCropSegmentImg(cv::Mat& expectmask, int al_core);
     MYLIBRARY_API void ResultOutStamp(cv::Mat& dstImg, OutStampResParam& OutResParam, int al_core);
 
-        //åº§æ¿  ç¬¬ä¸€ä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //×ù°å  µÚÒ»¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetSegmentPlateImg(cv::Mat& expectmask, int al_core);
-        //åº§æ¿  ç¬¬äºŒä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //×ù°å  µÚ¶ş¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetDetectorPlateImg(cv::Mat& expectmask, int al_core);
     MYLIBRARY_API void ResultOutPlate(cv::Mat& dstImg, OutPlateResParam& OutResParam, int al_core);
 
-        //ç¿˜è„š  ç¬¬ä¸€ä¸ªæ¨¡å‹è¾“å‡ºå›¾
+    //ÇÌ½Å  µÚÒ»¸öÄ£ĞÍÊä³öÍ¼
     MYLIBRARY_API void GetLiftDetect1Img(cv::Mat& expectmask, int al_core);
     MYLIBRARY_API void ResultOutLift(cv::Mat& dstImg, OutLiftResParam& OutResParam, int al_core);
 
 
-        //å¼¯è„š  äºŒå€¼åŒ–åçš„å›¾ç‰‡
+    //¹°½Å±³¹â  ¶şÖµ»¯ºóµÄÍ¼Æ¬
     MYLIBRARY_API void GethresholdImgAbut(cv::Mat& binaryImg);
     MYLIBRARY_API void ResultOutAbut(cv::Mat& dstImg, OutAbutResParam& OutResParam);
-        
 
+    //¹°½ÅÕı¹â
     MYLIBRARY_API void ResultOutYYGJ(cv::Mat& dstImg);
 
-        // é‡Šæ”¾èµ„æº
+    //Íâ¹Û1
+    MYLIBRARY_API void ResultOutVC1(cv::Mat& dstImg);
+
+    //Íâ¹Û2
+    MYLIBRARY_API void ResultOutVC2(cv::Mat& dstImg);
+
+    //Íâ¹Û3
+    MYLIBRARY_API void ResultOutVC3(cv::Mat& dstImg);
+
+    //Íâ¹Û4
+    MYLIBRARY_API void ResultOutVC4(cv::Mat& dstImg);
+
+    // ÊÍ·Å×ÊÔ´
     MYLIBRARY_API void ReleaseStamp(int al_core);
     MYLIBRARY_API void ReleasePlate(int al_core);
     MYLIBRARY_API void ReleaseLift(int al_core);
