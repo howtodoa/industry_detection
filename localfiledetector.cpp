@@ -70,6 +70,7 @@ void LocalFileDetector::run() {
             if (m_imageQueuePack) {
                 std::unique_lock<std::mutex> lock(m_imageQueuePack->mutex);
                 m_imageQueuePack->queue.push_back(imagePtr);
+				m_imageQueuePack->queue_mat.push_back(imagePtr->clone());
                 qDebug() << "LocalFileDetector: Pushed image to queue. Current queue size:" << m_imageQueuePack->queue.size();
                 lock.unlock();
                 m_imageQueuePack->cond.notify_all();

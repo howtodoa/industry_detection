@@ -7,7 +7,7 @@
 
 class LocalFileDetector : public QThread
 {
-    Q_OBJECT // 启用 Qt 信号槽机制
+    Q_OBJECT 
 
 public:
     // 构造函数：接收图像队列的指针和要检测的目录路径

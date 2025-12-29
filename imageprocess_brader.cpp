@@ -5,9 +5,9 @@
 #include "CapacitanceProgram.h"
 
 Imageprocess_Brader::Imageprocess_Brader(Cameral* cam, SaveQueue* m_saveQueue, QObject* parent)
-	: ImageProcess(cam, m_saveQueue, parent) 
+	: ImageProcess(cam, m_saveQueue, parent)
 {
-	
+
 }
 
 Imageprocess_Brader::~Imageprocess_Brader()
@@ -54,7 +54,7 @@ void Imageprocess_Brader::run()
 		}
 		//if(GlobalPara::AlogReady !=true) continue;
 
-		if (GlobalPara::changed.load() == true && cam_instance->learn.load()==false) continue;
+		if (GlobalPara::changed.load() == true && cam_instance->learn.load() == false) continue;
 
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());
@@ -102,9 +102,9 @@ void Imageprocess_Brader::run()
 					cam_instance->RI->scaleDimensions(para, cam_instance->DI.scaleFactor.load());
 					ret = cam_instance->RI->judge_top(para);
 				}
-				else if (ret == 1||ret==4|| ret==7)
+				else if (ret == 1 || ret == 4 || ret == 7)
 				{
-				//	cam_instance->RI->m_PaintData[0].result = -1;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
 					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					ret = -1;
 				}
@@ -113,7 +113,7 @@ void Imageprocess_Brader::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-				//		cam_instance->RI->m_PaintData[0].result = -1;
+						//		cam_instance->RI->m_PaintData[0].result = -1;
 						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
@@ -125,12 +125,12 @@ void Imageprocess_Brader::run()
 			else if (cam_instance->indentify == "Side") {
 				InSideParam inpara = LearnPara::inParam4;
 				if (cam_instance->ten != 0)
-				{					
+				{
 					inpara.al_core = true;
 					cam_instance->ten -= 1;
 				}
 				ret = BraidedTapeSpace::RunSide(*currentImagePtr, inpara);
-				if(inpara.al_core==true&&ret!=0) cam_instance->ten += 1;
+				if (inpara.al_core == true && ret != 0) cam_instance->ten += 1;
 				OutSideParam para;
 				BraidedTapeSpace::ResultOutSide(*afterImagePtr, para);
 				qint64 elapsed = timer.elapsed();
@@ -151,7 +151,7 @@ void Imageprocess_Brader::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-					//	cam_instance->RI->m_PaintData[0].result = -1;
+						//	cam_instance->RI->m_PaintData[0].result = -1;
 						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
@@ -160,13 +160,13 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 1)
 				{
-				//	cam_instance->RI->m_PaintData[0].result = -1;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
 					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					//ret = -1;
 				}
-				else if (ret == 5 || ret==6)
+				else if (ret == 5 || ret == 6)
 				{
-			//		cam_instance->RI->m_PaintData[0].result = -1;
+					//		cam_instance->RI->m_PaintData[0].result = -1;
 					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 				}
 				else ret = -1;
@@ -190,7 +190,7 @@ void Imageprocess_Brader::run()
 				}
 				else if (ret == 1)
 				{
-				//	cam_instance->RI->m_PaintData[0].result = -1;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
 					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					//ret = -1;
 				}
@@ -199,16 +199,16 @@ void Imageprocess_Brader::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else
 					{
-					//	cam_instance->RI->m_PaintData[0].result = -1;
+						//	cam_instance->RI->m_PaintData[0].result = -1;
 						if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 						ret = -1;
 					}
 					QString logMsg = QString("Pin ret=%1").arg(ret);
 					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 				}
-				else if (ret == 3 || ret==8)
+				else if (ret == 3 || ret == 8)
 				{
-				//	cam_instance->RI->m_PaintData[0].result = -1;
+					//	cam_instance->RI->m_PaintData[0].result = -1;
 					if (GlobalPara::NG_Count_Able.load() == true)	cam_instance->RI->m_PaintData[0].count++;
 					QString logMsg = QString("Pin ret=%1").arg(ret);
 					LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
@@ -257,7 +257,7 @@ void Imageprocess_Brader::run()
 			QString logMsg = QString("相机：%1,第二次bradersetOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 			LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 		}
-		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 ||ret==1 || ret>=3)//非本地运行的情况
+		else if (GlobalPara::envirment == GlobalPara::IPCEn && ret == -1 || ret == 1 || ret >= 3)//非本地运行的情况
 		{
 
 			if (0)
@@ -292,7 +292,7 @@ void Imageprocess_Brader::run()
 				Sleep(200);
 				GlobalPara::changed.store(false);
 				emit StartGetIn();
-			//	emit SetButtonBackground("red");
+				//	emit SetButtonBackground("red");
 				QString logMsg = QString("相机：%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
@@ -308,7 +308,7 @@ void Imageprocess_Brader::run()
 			{
 				GlobalLog::logger.Mz_AddLog(L"deque size more than 100");
 			}
-			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret>=3))
+			else if (cam_instance->DI.saveflag.load() == 2 && (info.ret == -1 || info.ret >= 3))
 			{
 				dataToSave.imagePtr = currentImagePtr;
 				saveToQueue->queue.push_back(dataToSave);

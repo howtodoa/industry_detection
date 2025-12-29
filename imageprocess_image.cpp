@@ -33,33 +33,30 @@ void Imageprocess_Image::run()
 			std::unique_lock<std::mutex> lock(m_inputQueue->mutex);
 
 			m_inputQueue->cond.wait(lock, [this] {
-				return !m_inputQueue->queue.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
+				return !m_inputQueue->queue_mat.empty() || m_inputQueue->stop_flag.load() || thread_stopFlag.load();
 				});
 
-			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue.empty())) {
+			if (thread_stopFlag.load() || (m_inputQueue->stop_flag.load() && m_inputQueue->queue_mat.empty())) {
 				continue;
 			}
 
-			std::shared_ptr<cv::Mat> TempImagePtr = m_inputQueue->queue.front();
+			cv::Mat TempImagePtr = m_inputQueue->queue_mat.front();
 
 	
-			if (!TempImagePtr || !isMatSafe(*TempImagePtr)) {
+			if (TempImagePtr.empty() || !isMatSafe(TempImagePtr)) {
 				LOG_DEBUG(GlobalLog::logger, L"ptr null or Mat unsafe");
 				qWarning() << "Imageprocess_Image::run(): 准备发出信号时 TempImagePtr为空或数据无效，跳过发出信号。";
-				m_inputQueue->queue.pop_front();
+				m_inputQueue->queue_mat.pop_front();
 				continue;
 			}
 			else {
 				qDebug() << "TempImagePtr not empty() and Mat is safe";
 			}
-			currentImagePtr = TempImagePtr->clone();
-			m_inputQueue->queue.pop_front();
+			currentImagePtr = TempImagePtr.clone();
+			m_inputQueue->queue_mat.pop_front();
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
 
-	/*	if (!currentImagePtr || !isMatSafe(*currentImagePtr)) {
-			continue;
-		}*/
 
 		if (GlobalPara::changed.load() == true) continue;
 		cv::Mat afterImagePtr;
@@ -367,7 +364,7 @@ void Imageprocess_Image::run()
 			}
 			else if (cam_instance->DI.saveflag.load() == 2 && info.ret == -1)
 			{
-				if (!imgToSave.isNull()) { // 检查 imgToSave 是否成功转换
+				if (!imgToSave.isNull()) { 
 					currentSaveData.image = imgToSave;
 					saveToQueue->queue.push_back(currentSaveData);
 					GlobalLog::logger.Mz_AddLog(L"pre Save");
@@ -380,7 +377,7 @@ void Imageprocess_Image::run()
 			}
 			else
 			{
-				if (!imgToSave.isNull()) { // 检查 imgToSave 是否成功转换
+				if (!imgToSave.isNull()) { 
 					currentSaveData.image = imgToSave;
 					saveToQueue->queue.push_back(currentSaveData);
 					GlobalLog::logger.Mz_AddLog(L"all Save");
@@ -392,7 +389,6 @@ void Imageprocess_Image::run()
 
 		info.paintDataSnapshot = cam_instance->RI->m_PaintData;
 
-		// 替换函数末尾对 afterImagePtr 的检查
 		if (!afterImageSafe) {
 			LOG_DEBUG(GlobalLog::logger, L"Imageprocess_Image::run(): 准备发出信号时 afterImagePtr 为空或数据无效，发送备用图像");
 			emit imageProcessed_QImage(imgToSave, info);

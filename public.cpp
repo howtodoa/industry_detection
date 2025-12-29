@@ -169,6 +169,48 @@ void MyImageCallback(cv::Mat & image, void* pUser)
 		currentImageForQueue.reset();
 	}
 
+void MyImageCallback_Mat(cv::Mat& image, void* pUser)
+{
+	LOG_DEBUG(GlobalLog::logger, L"cap picture successful");
+	if (pUser == nullptr) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		return;
+	}
+
+	if (image.empty()) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		qCritical() << "MyImageCallback: Input 'image' is empty before cloning! This is the root cause.";
+		return;
+	}
+
+	if (!image.data) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		qCritical() << "MyImageCallback: Input 'image.data' is null before cloning! This is also a root cause.";
+		return;
+	}
+
+	qDebug() << "MyImageCallback: Input 'image' valid. Size:" << image.size().width << "x" << image.size().height;
+
+	cv::Mat mat = image.clone();
+
+	auto* DequePtr = reinterpret_cast<ImageQueuePack*>(pUser);
+	if (DequePtr == nullptr) {
+		LOG_DEBUG(GlobalLog::logger, L"ptr null");
+		return;
+	}
+	else {
+		std::unique_lock<std::mutex> lock(DequePtr->mutex);
+		if (DequePtr->queue.size() < 10)DequePtr->queue_mat.push_back(mat);
+		else
+		{
+			DequePtr->queue_mat.pop_front();
+			DequePtr->queue_mat.push_back(mat);
+		}
+		qDebug() << "  DequePtr->queue.size():    " << DequePtr->queue.size();
+		DequePtr->cond.notify_one();
+	}
+}
+
 void MyImageCallback_Flower(cv::Mat& image, void* pUser)
 {
 

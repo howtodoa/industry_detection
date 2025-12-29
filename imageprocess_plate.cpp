@@ -330,7 +330,17 @@ void Imageprocess_Plate::run()
 					if (cam_instance->DI.EmptyIsOK == true) ret = 0;
 					else ret = -1;
 				}
-				else ret = -1;
+				else
+				{
+					QMap<QString, UnifyParam>& unifyParams = cam_instance->RI->unifyParams;
+					for (auto it = unifyParams.begin(); it != unifyParams.end(); ++it)
+					{
+						const QString paramKey = it.key();
+						UnifyParam& config = it.value();
+						config.change_value();
+					}
+					ret = -1;
+				}
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");
 				QString logMsg = QString("Abut ret=%1").arg(ret);

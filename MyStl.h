@@ -26,7 +26,7 @@ public:
         }
 
        if(polution_flag==false) m_data.push_back(value);
-       else
+	   else if constexpr (std::is_same_v<T, int>)
        {
            polution_flag = false;
            m_data.push_back(0);
@@ -97,15 +97,21 @@ public:
         }
     }
 
-    void polution()
+    void polution()//for flower
     {
         if (m_data.empty())
         {
-            m_data.push_back(0);
+            if constexpr (std::is_same_v<T, int>)
+            {
+                m_data.push_back(0);
+            } 
         }
         else
         {
-            m_data.back() = 0;
+            if constexpr (std::is_same_v<T, int>)
+            {
+                m_data.push_back(0);
+            }
         }
         polution_flag = true;
     }

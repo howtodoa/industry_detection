@@ -47,6 +47,8 @@ void MyImageCallback(cv::Mat& image, void* pUser);
 
 void MyImageCallback_Flower(cv::Mat& image, void* pUser);
 
+void MyImageCallback_Mat(cv::Mat& image, void* pUser);
+
 bool areMatFormatsIdentical(const cv::Mat& mat1, const cv::Mat& mat2);
 
 int callWithTimeout_cpp11(std::function<int()> func, int timeoutMs, int defaultValue);

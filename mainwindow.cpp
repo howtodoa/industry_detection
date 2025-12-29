@@ -933,7 +933,12 @@ MainWindow::MainWindow(QWidget *parent) :
     LOG_DEBUG(GlobalLog::logger, L"  init_cap();");
     initcams(caminfo.size());
     LOG_DEBUG(GlobalLog::logger, L"initcams(caminfo.size());");
+#ifdef ADAPTATEION
+    initSqlite3Db_Unify();
+    init_SQLInfo();
+#else 
     initSqlite3Db_Plater();
+#endif
     LOG_DEBUG(GlobalLog::logger, L"initSqlite3Db_Plater();");
     startAlgoInitAsync();
     LOG_DEBUG(GlobalLog::logger, L"startAlgoInitAsync();");
@@ -1603,7 +1608,6 @@ void MainWindow::CreateImageGrid_Braider(int camnumber)
 #endif
         connect(cameraLabel->m_imageProcessor, &ImageProcess::StopDevice, this, &MainWindow::onStopAllCamerasClicked);
 		connect(cameraLabel->m_imageProcessor, &ImageProcess::UpdateLearnLimits, infoWidget, &DisplayInfoWidget::onBuildUIFromUnifyParameters);
-        connect(cameraLabel->m_imageProcessor, &ImageProcess::WriteInfo, this, &MainWindow::update_SQLInfo);
     }
 
 
@@ -3881,8 +3885,6 @@ void MainWindow::initSqlite3Db_Unify()
             }
         }
 
-        // 最后同样需要刷新下拉框 (可选)
-        // initCameraList();
     }
 }
 
@@ -4187,7 +4189,11 @@ void MainWindow::setupUpdateTimer()
 #ifdef USE_MAIN_WINDOW_CAPACITY
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::updateCameraStats);
 
+#ifndef QIMAGE
+    connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Unify);
+#else
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Plater);
+#endif
 
     m_databaseTimer->start(10*60*1000);
 #elif  USE_MAIN_WINDOW_BRADER
@@ -4210,6 +4216,11 @@ void MainWindow::setupUpdateTimer()
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::RefreshDir);
 
 	connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::BackupDir);
+
+    for(auto label: cameraLabels)
+    {
+        connect(label->m_imageProcessor, &ImageProcess::WriteInfo, this, &MainWindow::update_SQLInfo);
+	}
     m_updateTimer->start(1000);
 
     QTimer::singleShot(10000, [this]() {
@@ -4220,7 +4231,6 @@ void MainWindow::setupUpdateTimer()
 
 void MainWindow::BackupDir()
 {
-    // 假设 SystemPara::ROOT_DIR 是一个可访问的 QString
     QString rootDir = SystemPara::ROOT_DIR;
 
     // 1. 定义源目录和目标目录

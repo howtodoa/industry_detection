@@ -629,19 +629,6 @@ CameraLabelWidget::CameraLabelWidget(Cameral* cam, int index, const QString& fix
 	this->captureButton->setStyleSheet(buttonStyle);
 	topLayout->addWidget(captureButton);
 	connect(captureButton, &QPushButton::clicked, [this, index, cam]() mutable {
-		//// 静态变量：只初始化一次，所有 captureButton 共用
-		//static qint64 lastClickTime = 0;
-
-		//qint64 now = QDateTime::currentMSecsSinceEpoch();
-
-		//
-		//if (now - lastClickTime < 1000) {
-		//	
-		//	GlobalPara::cheatFlag.store(true);
-		//
-		//	return;
-		//}
-		//lastClickTime = now;
 
 		if (!this->captureButton->isEnabled()) {
 			qDebug() << "拍照按钮被禁用，忽略本次点击。";
@@ -2114,8 +2101,11 @@ void CameraLabelWidget::triggerCameraStart(Cameral* cam)
 
 		}
 		Sleep(50);
-
+#ifdef QIMAGE
+		ret = cam->camOp->RegisterImageCallBack(MyImageCallback_Mat, &cam->imageQueue);
+#else 
 		ret = cam->camOp->RegisterImageCallBack(MyImageCallback, &cam->imageQueue);
+#endif
 
 		if (ret != 0)
 		{
