@@ -27,6 +27,7 @@ struct  OutStampResParam;
 struct ImageQueuePack {
     std::mutex mutex;
     std::condition_variable cond;
+    MyDeque<cv::Mat> queue_mat;
     MyDeque<std::shared_ptr<cv::Mat>> queue;
     std::atomic<bool> process_flag = false;
 

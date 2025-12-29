@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include "typdef.h"
 #include <QDebug>
 
 ZoomableQImage::ZoomableQImage(QWidget* parent)
@@ -37,6 +38,7 @@ void ZoomableQImage::setImage(const QImage& image)
     catch (...)
     {
 		LOG_DEBUG(GlobalLog::logger, L"ZoomableQImage::setImage: 设置图像时发生异常，catch成功");
+        return;
     }
 }
 
