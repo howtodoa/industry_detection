@@ -37,7 +37,7 @@ set(SOURCES
     cameralabelwidget.cpp
     zoomablelabel.cpp
     fullscreenwindow.cpp
-    tcp_client.cpp
+   # tcp_client.cpp
     imageviewerwindow.cpp
     rangeclass.cpp
     algoclass.cpp
@@ -100,7 +100,7 @@ set(HEADERS
     virtualbox.h
     parawidget.h
     fileoperator.h
-    "include/MZ_ClientControl.h"
+   # "include/MZ_ClientControl.h"
     "include/MZ_ADOConn.h"
     "include/Mz_LogConn.h"
     "include/MZ_VC3000H.h"
@@ -119,7 +119,7 @@ set(HEADERS
     cameralabelwidget.h
     zoomablelabel.h
     fullscreenwindow.h
-    tcp_client.h
+  #  tcp_client.h
     imageviewerwindow.h
     rangeclass.h
     algoclass.h
@@ -221,7 +221,7 @@ set(OPENCV_LIB_TO_LINK "")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(OPENCV_LIB_TO_LINK "${CMAKE_SOURCE_DIR}/lib/opencv_world490d.lib")
 else()
-    set(OPENCV_LIB_TO_LINK "${CMAKE_SOURCE_DIR}/lib/opencv_world460.lib")
+    set(OPENCV_LIB_TO_LINK "${CMAKE_SOURCE_DIR}/lib/opencv_world490.lib")
 endif()
 
 file(GLOB OPENVINO_LIBS "${CMAKE_SOURCE_DIR}/lib/Release_openvino/*.lib")
@@ -232,7 +232,7 @@ if(Qt6_FOUND)
         Qt6::Gui
         Qt6::Widgets
         Qt6::VirtualKeyboard
-        "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
+       # "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
         "${CMAKE_SOURCE_DIR}/lib/MZ_Log.lib"
         "${CMAKE_SOURCE_DIR}/lib/SqliteDB.lib"
@@ -257,7 +257,7 @@ else()
         Qt5::Gui
         Qt5::Widgets
         Qt5::VirtualKeyboard
-        "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
+      #  "${CMAKE_SOURCE_DIR}/lib/MZ_ClientControl.lib"
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
     )
 endif()

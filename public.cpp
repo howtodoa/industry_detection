@@ -1031,38 +1031,108 @@ bool generateDir(const std::string& dirPath)
 	return true;
 }
 
-QImage convertMatToQImage(const cv::Mat& mat) {
+//QImage convertMatToQImage(const cv::Mat& mat) {
+//	if (mat.empty()) {
+//		qWarning("MatToQImageConverter: Input Mat is empty.");
+//		LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
+//		return QImage();
+//	}
+//	//判断Mat的行列是否大于0
+//	
+//	switch (mat.type()) 
+//	{
+//	case CV_8UC1: {
+//		// 创建视图后，立即调用.copy()创建深拷贝
+//		QImage image(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_Grayscale8);
+//		return image.copy();
+//	}
+//	case CV_8UC3: {
+//		QImage image(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_BGR888);
+//		return image.copy();
+//	}
+//	case CV_8UC4: {
+//		cv::Mat rgbaMat;
+//		cv::cvtColor(mat, rgbaMat, cv::COLOR_BGRA2RGBA);
+//		// 先创建视图，再拷贝
+//		QImage image(rgbaMat.data, rgbaMat.cols, rgbaMat.rows, rgbaMat.step, QImage::Format_RGBA8888);
+//		return image.copy();
+//	}
+//	default:
+//		qWarning("MatToQImageConverter: Unsupported Mat type.");
+//		return QImage();
+//	}
+//}
+
+QImage convertMatToQImage(const cv::Mat& mat)
+{
 	if (mat.empty()) {
-		qWarning("MatToQImageConverter: Input Mat is empty.");
-		LOG_DEBUG(GlobalLog::logger, _T("afterImagePtr ptr null"));
 		return QImage();
 	}
-	//判断Mat的行列是否大于0
-	
-	switch (mat.type()) 
+
+	// 获取图像尺寸
+	int width = mat.cols;
+	int height = mat.rows;
+
+	switch (mat.type())
 	{
-	case CV_8UC1: {
-		// 创建视图后，立即调用.copy()创建深拷贝
-		QImage image(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_Grayscale8);
-		return image.copy();
+	case CV_8UC1:
+	{
+		// Qt 会自动处理 4 字节对齐，申请的 bytesPerLine 可能大于 width
+		QImage dest(width, height, QImage::Format_Grayscale8);
+		if (dest.isNull()) return QImage();
+
+		// 2. 必须设置灰度颜色表 (Qt 的 Indexed 格式要求)
+		QVector<QRgb> s_grayTable;
+		if (s_grayTable.isEmpty()) {
+			s_grayTable.reserve(256);
+			for (int i = 0; i < 256; ++i) s_grayTable.push_back(qRgb(i, i, i));
+		}
+		dest.setColorTable(s_grayTable);
+
+		// 只拷贝有效像素 (width 字节)。
+		// 如果 Qt 这一行有 Padding (比如宽 101，Qt分配 104)，后面那 3 个字节我们碰都不碰。
+		for (int y = 0; y < height; ++y) {
+			// mat.ptr(y): OpenCV 源数据行的首地址
+			// dest.scanLine(y): Qt 目标内存行的首地址
+			memcpy(dest.scanLine(y), mat.ptr(y), width);
+		}
+		return dest;
 	}
-	case CV_8UC3: {
-		QImage image(mat.data, mat.cols, mat.rows, static_cast<int>(mat.step), QImage::Format_BGR888);
-		return image.copy();
+
+	case CV_8UC3:
+	{
+		QImage dest(width, height, QImage::Format_BGR888);
+		if (dest.isNull()) return QImage();
+
+		const int validBytesPerLine = width * 3;
+
+		for (int y = 0; y < height; ++y) {
+			memcpy(dest.scanLine(y), mat.ptr(y), validBytesPerLine);
+		}
+		return dest;
 	}
-	case CV_8UC4: {
+
+	case CV_8UC4:
+	{
 		cv::Mat rgbaMat;
 		cv::cvtColor(mat, rgbaMat, cv::COLOR_BGRA2RGBA);
-		// 先创建视图，再拷贝
-		QImage image(rgbaMat.data, rgbaMat.cols, rgbaMat.rows, rgbaMat.step, QImage::Format_RGBA8888);
-		return image.copy();
+
+		QImage dest(width, height, QImage::Format_RGBA8888);
+		if (dest.isNull()) return QImage();
+
+		const int validBytesPerLine = width * 4;
+
+		for (int y = 0; y < height; ++y) {
+			memcpy(dest.scanLine(y), rgbaMat.ptr(y), validBytesPerLine);
+		}
+		return dest;
 	}
+
 	default:
-		qWarning("MatToQImageConverter: Unsupported Mat type.");
+		qWarning() << "MatToQImageConverter: Unsupported Mat type:" << mat.type();
 		return QImage();
 	}
 }
-
 
 QPixmap convertMatToPixmap(const cv::Mat& mat)
 {
