@@ -53,7 +53,6 @@ public:
     void setLabel(QVBoxLayout *layout, int row, int col);
     void updateCameraStats();
     void AllCameraConnect();
-    void RefreshDir();
     void setupUpdateTimer();
     void toggleAutoStart(QAction* action);
     void test_show();
@@ -91,6 +90,7 @@ public slots:
 	void onAllLearn();
     void onDisconnectAllCameras();
     void update_SQLInfo(const DBInfo& info);
+    void RefreshDir();
 private:    
     Ui::MainWindow *ui;
     QMenu *menuExecute; // "执行"菜单

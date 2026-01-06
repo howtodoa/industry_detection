@@ -1720,7 +1720,7 @@ void MainWindow::initcams(int camnumber)
 
          QString dateStr = QDate::currentDate().toString("yyyyMMdd");
         // cam->ok_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/OK/"+dateStr;
-         cam->ok_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/OK/" + dateStr;
+         cam->ok_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/OK/" + dateStr+"/"+GlobalPara::ClassifyStr;
          qDebug()<<"  cam->ok_path:     "<<  cam->ok_path;
 
          if (!QDir(cam->ok_path).exists()) {
@@ -1736,7 +1736,7 @@ void MainWindow::initcams(int camnumber)
 
 
         // cam->ng_path=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/NG/"+dateStr;
-         cam->ng_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/NG/" + dateStr;
+         cam->ng_path = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/NG/" + dateStr + "/" + GlobalPara::ClassifyStr;
 
          qDebug()<<"  cam->ng_path:     "<<  cam->ng_path;
 
@@ -1752,7 +1752,7 @@ void MainWindow::initcams(int camnumber)
          }
 
          //cam->localpath=SystemPara::ROOT_DIR+"/data/"+caminfo[i-1].mapping+"/LOCAL/"+dateStr;
-         cam->localpath = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/LOCAL/" + dateStr;
+         cam->localpath = SystemPara::DATA_DIR + "/" + caminfo[i - 1].mapping + "/LOCAL/" + dateStr + "/" + GlobalPara::ClassifyStr;
          qDebug()<<"  cam->localpath:     "<<  cam->localpath;
 
          if (!QDir(cam->localpath).exists()) {
@@ -2060,6 +2060,10 @@ MainWindow::~MainWindow()
     updateDB_Brader();
     updateDeviceId();
 #endif // USE_MAIN_WINDOW_CAPACITY
+
+#ifdef ADAPTATEION
+    updateDB_Unify();
+#endif // ADAPTATEION
 
     int result = 0;
      qDebug() << "MainWindow()析构函数被调用";
@@ -2384,7 +2388,7 @@ void MainWindow::CreateMenu()
         int value = m_algoProgressBar->value();
         if (!GlobalPara::AlogReady) {
             if (value < 99) {
-                value += 1;
+                value += 8;
                 if (value > 99) value = 99;
                 m_algoProgressBar->setValue(value);
             }
@@ -2415,6 +2419,7 @@ void MainWindow::CreateMenu()
         QLineEdit* lineEdit = new QLineEdit(&dlg);
         lineEdit->setReadOnly(true);
         lineEdit->setPlaceholderText("请扫码...");
+        lineEdit->setText(GlobalPara::ClassifyStr);
         mainLayout->addWidget(lineEdit);
 
         QHBoxLayout* btnLayout = new QHBoxLayout;
@@ -2455,7 +2460,8 @@ void MainWindow::CreateMenu()
         if (dlg.exec() == QDialog::Accepted) {
             QString result = lineEdit->text();
             qDebug() << "扫码确认：" << result;
-            // TODO：你的业务逻辑
+			GlobalPara::ClassifyStr = result;    
+
         }
         });
 
@@ -4195,7 +4201,7 @@ void MainWindow::setupUpdateTimer()
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Plater);
 #endif
 
-    m_databaseTimer->start(10*60*1000);
+    m_databaseTimer->start(10*60*10);
 #elif  USE_MAIN_WINDOW_BRADER
     connect(m_updateTimer, &QTimer::timeout, m_rightControlPanel, &RightControlPanel::updateStatistics);
 
@@ -4287,17 +4293,28 @@ void MainWindow::RefreshDir()
 {
     QDate today = QDate::currentDate();
     if (today != m_lastDate) {
+        // 记录旧日期字符串，用于在路径中查找定位
+        QString oldDateStr = m_lastDate.toString("yyyyMMdd");
+
         m_lastDate = today;
-        QString dateStr = today.toString("yyyyMMdd");
+        QString newDateStr = today.toString("yyyyMMdd");
 
         for (int i = 0; i < cams.size(); ++i) {
-            // 先把已有路径分割成目录列表
+
             auto updatePath = [&](QString& path) {
-                QDir dir(path);
-                QString parent = dir.path();           // 当前路径
-                QString baseName = dir.dirName();     // 最后一层目录（原日期）
-                parent.chop(baseName.length());       // 去掉原日期
-                path = parent + dateStr;              // 拼接新的日期
+                // 1. 找到旧日期在路径中的起始位置
+                int index = path.indexOf(oldDateStr);
+                if (index != -1) {
+                    // 2. 截断旧日期及其之后的所有字符
+                    path.truncate(index);
+                    // 3. 拼接新的日期和分类目录
+                    // 确保路径分隔符正确
+                    if (!path.endsWith('/')) path += "/";
+                    path += newDateStr + "/" + GlobalPara::ClassifyStr;
+                }
+                else {
+                    
+                }
                 };
 
             updatePath(cams[i]->ok_path);
@@ -4307,25 +4324,20 @@ void MainWindow::RefreshDir()
             // 创建目录
             QStringList paths = { cams[i]->ok_path, cams[i]->ng_path, cams[i]->localpath };
             for (const QString& p : paths) {
-                if (!QDir(p).exists()) {
-                    if (QDir().mkpath(p))
-                        qDebug() << "路径创建成功:" << p;
+                QDir dir;
+                if (!dir.exists(p)) {
+                    if (dir.mkpath(p))
+                        qDebug() << "路径成功:" << p;
                     else
-                        qDebug() << "路径创建失败:" << p;
-                }
-                else {
-                    qDebug() << "路径已存在:" << p;
+                        qWarning() << "路径失败:" << p;
                 }
             }
 
-			cameraLabels[i]->ChangeDateDir(*cams[i]);
+            cameraLabels[i]->ChangeDateDir(*cams[i]);
             cameraLabels[i]->m_imageProcessor->ChangeDir(*cams[i]);
         }
     }
- 
-
 }
-
 
 void MainWindow::AllCameraConnect()
 {

@@ -22,15 +22,15 @@ enum class XS_NGReults//线扫相机NG输出
 enum class NY_NGReults//捺印字符
 {
     OK,
-    NULL_Err, 
-    QP_Err, 
-    GSBX_Err, 
+    NULL_Err,
+    QP_Err,
+    GSBX_Err,
     ZW_Err,
-    HS_Err, 
-    FJBG_Err, 
-    YH_Err, 
-    XT_ZF_Err, 
-    XT_Color_Err, 
+    HS_Err,
+    FJBG_Err,
+    YH_Err,
+    XT_ZF_Err,
+    XT_Color_Err,
 };
 enum class Crop_Bottom_NGReults//电容底部
 {
@@ -101,7 +101,7 @@ struct InThresholdParam
     float SJ_WidthMin = 1;
     float SJ_WidthMax = 3;
     float JM_Height = 0.4;
-    int JM_Thresholdup = 56;
+    int JM_Thresholdup = 58;
     int JM_Thresholddown = 29;
 	float XS_BDparam = 7;
     //瑕疵检测
@@ -133,6 +133,10 @@ struct InThresholdParam
     float WB_min = 1;
     float LK_BOTTOM_BDparam = 5;
     float JM_BOTTOM_BDparam = 5;
+    //底面相机阈值控制参数
+	int JMROI_Threshold = 240;
+    int LKROI_Threshold = 118;
+	int ROI_center_Threshold = 50;
 };
 struct XSResult
 {

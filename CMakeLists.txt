@@ -261,6 +261,11 @@ else()
         "${CMAKE_SOURCE_DIR}/lib/MZ_ADOConnect.lib"
     )
 endif()
+
+if (MSVC)
+    target_link_options(Industry_Detection PRIVATE /STACK:16777216)
+endif()
+
 target_compile_options(${PROJECT_NAME} PRIVATE /EHa)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

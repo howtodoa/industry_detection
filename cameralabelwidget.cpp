@@ -209,6 +209,8 @@ void CameraLabelWidget::onLearn()
 		ALLResult result;
 		g_detector->Process(1, *this->learnimage, result);
 		afterImagePtr = result.nyResult.dstImg;
+		std::string path = "../../../resources/images/Ny.jpg";
+		cv::imwrite(path, afterImagePtr);
 		qDebug() << "Ny 原图尺寸:" << this->learnimage->cols << "x" << this->learnimage->rows;
 		qDebug() << "Ny 结果图(afterImagePtr)尺寸:" << afterImagePtr.cols << "x" << afterImagePtr.rows;
 		this->currentPixmap = convertMatToPixmap(afterImagePtr);
@@ -1818,7 +1820,7 @@ void CameraLabelWidget::onImageProcessed_Brader(std::shared_ptr<cv::Mat> process
 			}
 		}
 	}
-	dataToSave.work_path = dataToSave.savePath_OK;
+	else dataToSave.work_path = dataToSave.savePath_OK;
 	this->sumcount->fetch_add(1);
 	LOG_DEBUG(GlobalLog::logger, QString("sumcount: %1").arg(this->sumcount->load()).toStdWString().c_str());
 

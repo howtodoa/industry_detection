@@ -316,6 +316,9 @@ void Imageprocess_FourBrader::run()
 				g_detector->InParam.WB_min = bottomPtr->WB_min;
 				g_detector->InParam.LK_BOTTOM_BDparam = bottomPtr->LK_BOTTOM_BDparam;
 				g_detector->InParam.JM_BOTTOM_BDparam = bottomPtr->JM_BOTTOM_BDparam;
+				g_detector->InParam.JMROI_Threshold = bottomPtr->JMROI_Threshold;
+				g_detector->InParam.LKROI_Threshold = bottomPtr->LKROI_Threshold;
+				g_detector->InParam.ROI_center_Threshold = bottomPtr->ROI_center_Threshold;
 				LOG_DEBUG(GlobalLog::logger, L"into Bottom1 process");
 				int algo_id = 3;//胶帽
 				cv::Mat imgCopy = currentImagePtr->clone();

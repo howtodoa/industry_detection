@@ -20,7 +20,9 @@ public:
     float LK_BOTTOM_BDparam = 5;   // 胶帽标定
     float JM_BOTTOM_BDparam = 5;   // 铝壳标定
 
-
+    int JMROI_Threshold = 240;
+    int LKROI_Threshold = 118;
+    int ROI_center_Threshold = 50;
 private slots:
 
 };

@@ -141,6 +141,7 @@ void Imageprocess_Image::run()
 				ret = ExportSpace::RunYYGJ(currentImagePtr, cam_instance->DI.Angle, true);
 				OutAbutResParam para;
 				ExportSpace::ResultOutYYGJ(afterImagePtr);
+				if (ret != 0) ret = -1;
 				qint64 elapsed = timer.elapsed();
 				qDebug() << cam_instance->cameral_name << "算法耗时：" << elapsed << "毫秒";
 				if (elapsed >= 150) GlobalLog::logger.Mz_AddLog(L"alog process more than 150");

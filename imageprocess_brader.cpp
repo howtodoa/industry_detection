@@ -52,7 +52,7 @@ void Imageprocess_Brader::run()
 			m_inputQueue->queue.pop_front();
 			std::cout << "image has output m_inputQueue->queue.pop_front():" << m_inputQueue->queue.size() << std::endl;
 		}
-		//if(GlobalPara::AlogReady !=true) continue;
+		if(GlobalPara::AlogReady !=true) continue;
 
 		if (GlobalPara::changed.load() == true && cam_instance->learn.load() == false) continue;
 

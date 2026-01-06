@@ -4,9 +4,9 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QCheckBox>
 #include <QtConcurrent/QtConcurrentRun>
 #include "typdef.h"
+#include "fileoperator.h"
 
 AlgoClass_Bottom::AlgoClass_Bottom(QObject* parent)
     : AlgoClass(parent)
@@ -18,14 +18,7 @@ AlgoClass_Bottom::AlgoClass_Bottom(QString algopath, QObject* parent)
 {
     QVariantMap map = FileOperator::readJsonMap(algopath);
 
-    // ------- 标定参数读取 -------
-    if (map.contains("胶帽标定"))
-        LK_BOTTOM_BDparam = ParamDetail(map.value("胶帽标定").toMap()).value.toFloat();
-
-    if (map.contains("铝壳标定"))
-        JM_BOTTOM_BDparam = ParamDetail(map.value("铝壳标定").toMap()).value.toFloat();
-
-    // ------- 原有参数 -------
+    // ------- 读取中文 Key -------
     if (map.contains("胶帽最小值"))
         LK_min = ParamDetail(map.value("胶帽最小值").toMap()).value.toFloat();
 
@@ -34,6 +27,22 @@ AlgoClass_Bottom::AlgoClass_Bottom(QString algopath, QObject* parent)
 
     if (map.contains("丸棒最小值"))
         WB_min = ParamDetail(map.value("丸棒最小值").toMap()).value.toFloat();
+
+    if (map.contains("胶帽标定"))
+        LK_BOTTOM_BDparam = ParamDetail(map.value("胶帽标定").toMap()).value.toFloat();
+
+    if (map.contains("铝壳标定"))
+        JM_BOTTOM_BDparam = ParamDetail(map.value("铝壳标定").toMap()).value.toFloat();
+
+    // 新增 ROI 参数
+    if (map.contains("铝壳ROI阈值"))
+        JMROI_Threshold = ParamDetail(map.value("铝壳ROI阈值").toMap()).value.toInt();
+
+    if (map.contains("胶帽ROI阈值"))
+        LKROI_Threshold = ParamDetail(map.value("胶帽ROI阈值").toMap()).value.toInt();
+
+    if (map.contains("ROI中心阈值"))
+        ROI_center_Threshold = ParamDetail(map.value("ROI中心阈值").toMap()).value.toInt();
 }
 
 QWidget* AlgoClass_Bottom::createLeftPanel(QWidget* parent)
@@ -41,59 +50,46 @@ QWidget* AlgoClass_Bottom::createLeftPanel(QWidget* parent)
     QWidget* panel = new QWidget(parent);
     QVBoxLayout* layout = new QVBoxLayout(panel);
 
-    // *************** 标定参数放最上面 ***************
-    // --- 胶帽标定 ---
-    QHBoxLayout* lkBDLayout = new QHBoxLayout;
-    QLabel* lblLKBD = new QLabel("胶帽标定:", panel);
-    QLineEdit* editLKBD = new QLineEdit(QString::number(LK_BOTTOM_BDparam), panel);
-    lkBDLayout->addWidget(lblLKBD);
-    lkBDLayout->addWidget(editLKBD);
-    layout->addLayout(lkBDLayout);
+    auto addRow = [&](const QString& labelText, auto& value) -> QLineEdit* {
+        QHBoxLayout* row = new QHBoxLayout;
+        QLabel* label = new QLabel(labelText, panel);
+        QLineEdit* edit = new QLineEdit(QString::number(value), panel);
+        row->addWidget(label);
+        row->addWidget(edit);
+        layout->addLayout(row);
+        return edit;
+        };
 
-    // --- 铝壳标定 ---
-    QHBoxLayout* jmBDLayout = new QHBoxLayout;
-    QLabel* lblJMBD = new QLabel("铝壳标定:", panel);
-    QLineEdit* editJMBD = new QLineEdit(QString::number(JM_BOTTOM_BDparam), panel);
-    jmBDLayout->addWidget(lblJMBD);
-    jmBDLayout->addWidget(editJMBD);
-    layout->addLayout(jmBDLayout);
+    // 标定参数
+    QLineEdit* editLKBD = addRow("胶帽标定:", LK_BOTTOM_BDparam);
+    QLineEdit* editJMBD = addRow("铝壳标定:", JM_BOTTOM_BDparam);
 
-    // *************** 原有参数 ***************
-    // --- 胶帽最小值 ---
-    QHBoxLayout* lkLayout = new QHBoxLayout;
-    QLabel* lblLK = new QLabel("胶帽最小值:", panel);
-    QLineEdit* editLK = new QLineEdit(QString::number(LK_min), panel);
-    lkLayout->addWidget(lblLK);
-    lkLayout->addWidget(editLK);
-    layout->addLayout(lkLayout);
+    // 最小值参数
+    QLineEdit* editLK = addRow("胶帽最小值:", LK_min);
+    QLineEdit* editJM = addRow("铝壳最小值:", JM_min);
+    QLineEdit* editWB = addRow("丸棒最小值:", WB_min);
 
-    // --- 铝壳最小值 ---
-    QHBoxLayout* jmLayout = new QHBoxLayout;
-    QLabel* lblJM = new QLabel("铝壳最小值:", panel);
-    QLineEdit* editJM = new QLineEdit(QString::number(JM_min), panel);
-    jmLayout->addWidget(lblJM);
-    jmLayout->addWidget(editJM);
-    layout->addLayout(jmLayout);
+    // ROI 参数
+    QLineEdit* editJMROI = addRow("铝壳ROI阈值:", JMROI_Threshold);
+    QLineEdit* editLKROI = addRow("胶帽ROI阈值:", LKROI_Threshold);
+    QLineEdit* editROIcenter = addRow("ROI中心阈值:", ROI_center_Threshold);
 
-    // --- 丸棒最小值 ---
-    QHBoxLayout* wbLayout = new QHBoxLayout;
-    QLabel* lblWB = new QLabel("丸棒最小值:", panel);
-    QLineEdit* editWB = new QLineEdit(QString::number(WB_min), panel);
-    wbLayout->addWidget(lblWB);
-    wbLayout->addWidget(editWB);
-    layout->addLayout(wbLayout);
-
-    // 保存按钮
     QPushButton* btnSave = new QPushButton("保存", panel);
     layout->addWidget(btnSave);
     layout->addStretch();
 
-    connect(btnSave, &QPushButton::clicked, this, [=]() {
+    connect(btnSave, &QPushButton::clicked, this, [=]() mutable {
         LK_BOTTOM_BDparam = editLKBD->text().toFloat();
         JM_BOTTOM_BDparam = editJMBD->text().toFloat();
+
         LK_min = editLK->text().toFloat();
         JM_min = editJM->text().toFloat();
         WB_min = editWB->text().toFloat();
+
+        JMROI_Threshold = editJMROI->text().toInt();
+        LKROI_Threshold = editLKROI->text().toInt();
+        ROI_center_Threshold = editROIcenter->text().toInt();
+
         saveParamAsync();
         });
 
@@ -104,14 +100,17 @@ void AlgoClass_Bottom::saveParamAsync()
 {
     QVariantMap mapToSave;
 
-    // ------- 标定参数 -------
     mapToSave["胶帽标定"] = QVariantMap{ {"值", LK_BOTTOM_BDparam} };
     mapToSave["铝壳标定"] = QVariantMap{ {"值", JM_BOTTOM_BDparam} };
 
-    // ------- 原有参数 -------
     mapToSave["胶帽最小值"] = QVariantMap{ {"值", LK_min} };
     mapToSave["铝壳最小值"] = QVariantMap{ {"值", JM_min} };
     mapToSave["丸棒最小值"] = QVariantMap{ {"值", WB_min} };
+
+    // ROI 参数
+    mapToSave["铝壳ROI阈值"] = QVariantMap{ {"值", JMROI_Threshold} };
+    mapToSave["胶帽ROI阈值"] = QVariantMap{ {"值", LKROI_Threshold} };
+    mapToSave["ROI中心阈值"] = QVariantMap{ {"值", ROI_center_Threshold} };
 
     QString filePath = m_cameralPath;
 
