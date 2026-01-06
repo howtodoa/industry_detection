@@ -209,8 +209,15 @@ void CameraLabelWidget::onLearn()
 		ALLResult result;
 		g_detector->Process(1, *this->learnimage, result);
 		afterImagePtr = result.nyResult.dstImg;
-		std::string path = "../../../resources/images/Ny.jpg";
-		cv::imwrite(path, afterImagePtr);
+		QString path = "../../../resources/images/Ny.jpg";
+
+		QFileInfo fileInfo(path);
+		// 获取当前时间戳：日(dd)时(hh)分(mm)秒(ss)
+		QString timestamp = QDateTime::currentDateTime().toString("ddhhmmss");
+
+		// 重新拼接：绝对路径(或者路径前缀) + 文件名(不含后缀) + 时间戳 + 后缀
+		QString newPath = fileInfo.path() + "/" + fileInfo.baseName() + "_" + timestamp + "." + fileInfo.suffix();
+		cv::imwrite(newPath.toStdString(), afterImagePtr);
 		qDebug() << "Ny 原图尺寸:" << this->learnimage->cols << "x" << this->learnimage->rows;
 		qDebug() << "Ny 结果图(afterImagePtr)尺寸:" << afterImagePtr.cols << "x" << afterImagePtr.rows;
 		this->currentPixmap = convertMatToPixmap(afterImagePtr);
@@ -1132,7 +1139,7 @@ CameraLabelWidget::~CameraLabelWidget()
 {
 	qDebug() << "~CameraLabelWidget()析构函数调用";
 	thread_exit = true;
-	Sleep(100);
+	Sleep(50);
 	// if (m_imageProcessor)//线程父对象是当前对象时不需要手动调用子类的析构函数
 	// {
 

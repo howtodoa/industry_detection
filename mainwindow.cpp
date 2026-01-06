@@ -2311,7 +2311,7 @@ void MainWindow::CreateMenu()
         m_runtimeLabel->setStyleSheet(statusLabelStyle);
         m_roleLabel->setStyleSheet(statusLabelStyle);
 
-        // ★ 算法载入进度条和文字
+        //算法载入进度条和文字
         QLabel* algoLabel = new QLabel("算法载入中", centralContainer);
         algoLabel->setStyleSheet("color: white; font-size: 12pt;");
 
@@ -2360,8 +2360,8 @@ void MainWindow::CreateMenu()
     QAction* ActionSelfStart = menuTools->addAction("开机自启动（开启中）");
     QAction* actionLogout = menuUser->addAction("注销");
     QAction* loginAction = menuUser->addAction("登录");
-    LogAction = menuRecord->addAction("日志");   // ★ 改为类成员
-    DataAction = menuRecord->addAction("数据");  // ★ 改为类成员
+    LogAction = menuRecord->addAction("日志");   
+    DataAction = menuRecord->addAction("数据");
     QAction* SystemParaAction = menuTools->addAction("存图路径");
     QAction* CameralSetAction = menuTools->addAction("相机配置");
     QAction* DevToolAction = menuTools->addAction("开发者工具");
@@ -2388,7 +2388,7 @@ void MainWindow::CreateMenu()
         int value = m_algoProgressBar->value();
         if (!GlobalPara::AlogReady) {
             if (value < 99) {
-                value += 8;
+                value += 4;
                 if (value > 99) value = 99;
                 m_algoProgressBar->setValue(value);
             }
@@ -2460,7 +2460,8 @@ void MainWindow::CreateMenu()
         if (dlg.exec() == QDialog::Accepted) {
             QString result = lineEdit->text();
             qDebug() << "扫码确认：" << result;
-			GlobalPara::ClassifyStr = result;    
+			GlobalPara::ClassifyStr = result;   
+            RefreshDir();
 
         }
         });
@@ -3784,7 +3785,29 @@ void MainWindow::initSqlite3Db_Unify()
         return;
     }
 
-    // --- 2. 计算当前班次的表名 (与 update 逻辑保持一致) ---
+    // =========================================================
+    // 【新增】初始化 批次统计表 (Batch_Summary)
+    // =========================================================
+    // 这张表以 (批次号 + 相机名称) 为联合主键，记录该批次的累计数据
+    QString batchTableName = QString::fromUtf8(u8"Batch_Summary");
+
+    QString batchCols = QString::fromUtf8(u8"\"batch_id\" TEXT NOT NULL, "
+        u8"\"相机名称\" TEXT NOT NULL, "
+        u8"\"总数\" INT, "
+        u8"\"NG数\" INT, "
+        u8"\"良率\" REAL, "
+        u8"\"update_time\" DATETIME, "
+        u8"\"remark\" TEXT, "
+        u8"PRIMARY KEY(\"batch_id\", \"相机名称\")");
+
+    SqliteDB::DBOperation::CreateTable(batchTableName.toUtf8().constData(), batchCols.toUtf8().constData());
+
+
+    // =========================================================
+    // 原有的 早晚班表 初始化逻辑
+    // =========================================================
+
+    // --- 2. 计算当前班次的表名 ---
     QDateTime now = QDateTime::currentDateTime();
     int currentHour = now.time().hour();
     QDate logicalDate = now.date();
@@ -3805,7 +3828,7 @@ void MainWindow::initSqlite3Db_Unify()
     QString summaryTableName = datePrefix + "_All_summary" + suffix;
     QString detailTableName = datePrefix + "_NG_details" + suffix;
 
-    // 3. 确保当前班次的表都存在 (【强制 UTF-8】)
+    // 3. 确保当前班次的表都存在
     QString summaryCols = QString::fromUtf8(u8"\"相机名称\" TEXT PRIMARY KEY, \"总数\" INT, \"NG数\" INT, \"良率\" REAL");
     SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
 
@@ -3819,7 +3842,6 @@ void MainWindow::initSqlite3Db_Unify()
         const QString& cameraName = camera->cameral_name;
 
         // --- PART A: 加载总览表 (sum_count, error_count) ---
-        // 使用 u8 强制 UTF-8
         QString summaryCondition = QString::fromUtf8(u8"\"相机名称\" = '%1'").arg(cameraName);
         std::map<std::string, std::variant<int, double, std::string>> dbRecord;
         SqliteDB::DBOperation::GetFullRecord(
@@ -3829,10 +3851,8 @@ void MainWindow::initSqlite3Db_Unify()
         );
 
         if (!dbRecord.empty()) {
-            // 记录存在：继承
             long long totalFromDb = 0;
             long long ngFromDb = 0;
-            // Key 也要转 UTF-8
             if (dbRecord.count(QString::fromUtf8(u8"总数").toStdString()))
                 totalFromDb = std::get<int>(dbRecord.at(QString::fromUtf8(u8"总数").toStdString()));
             if (dbRecord.count(QString::fromUtf8(u8"NG数").toStdString()))
@@ -3842,7 +3862,6 @@ void MainWindow::initSqlite3Db_Unify()
             camera->error_count.store(ngFromDb);
         }
         else {
-            // 记录不存在：插入 0
             std::vector<std::variant<int, double, std::string>> valuesToInsert;
             valuesToInsert.push_back(cameraName.toUtf8().toStdString());
             valuesToInsert.push_back(0);
@@ -3851,13 +3870,9 @@ void MainWindow::initSqlite3Db_Unify()
             SqliteDB::DBOperation::InsertRecord(summaryTableName.toUtf8().constData(), valuesToInsert);
         }
 
-        // --- PART B: 加载 NG 细分表 (unifyParams) ---
-
-        // 【关键修复 1】必须检查 RI 指针
+        // --- PART B: 加载 NG 细分表 ---
         if (!camera->RI) continue;
 
-        // 【关键修复 2】必须遍历 RI->unifyParams (这就是之前数据为0的元凶)
-        // 使用迭代器以便修改 value
         for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
             UnifyParam& param = it.value();
             const QString& defectType = param.label;
@@ -3865,7 +3880,6 @@ void MainWindow::initSqlite3Db_Unify()
             QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'")
                 .arg(cameraName).arg(defectType);
 
-            // 初始化为空，防止 variant 默认 int(0) 导致误判
             std::variant<int, double, std::string> dbDefectCount = "";
 
             SqliteDB::DBOperation::GetRecordValue(
@@ -3876,11 +3890,9 @@ void MainWindow::initSqlite3Db_Unify()
             );
 
             if (std::holds_alternative<int>(dbDefectCount)) {
-                // 继承数据库的值
                 param.ng_count = static_cast<int64_t>(std::get<int>(dbDefectCount));
             }
             else {
-                // 数据库无记录：插入 0 并重置内存
                 std::vector<std::variant<int, double, std::string>> defectValuesToInsert;
                 defectValuesToInsert.push_back(cameraName.toUtf8().toStdString());
                 defectValuesToInsert.push_back(defectType.toUtf8().toStdString());
@@ -3890,15 +3902,14 @@ void MainWindow::initSqlite3Db_Unify()
                 param.ng_count = 0;
             }
         }
-
     }
 }
 
 void MainWindow::updateDB_Unify()
 {
-    qDebug() << "\n=== [DEBUG] 开始执行 updateDB_Unify (RI数据专注版) ===";
-
-    // --- 1. 计算班次和表名 (逻辑保持不变) ---
+    // =========================================================
+    // 1. 基础环境准备
+    // =========================================================
     QDateTime now = QDateTime::currentDateTime();
     int currentHour = now.time().hour();
     QDate logicalDate = now.date();
@@ -3925,51 +3936,73 @@ void MainWindow::updateDB_Unify()
     QString prevSummaryTableName = prevDateStr + "_All_summary" + prevSuffix;
     QString prevDetailTableName = prevDateStr + "_NG_details" + prevSuffix;
 
-    // --- 2. 确保表存在 (强制 UTF-8) ---
+    // 确保原有表存在
     QString summaryCols = QString::fromUtf8(u8"\"相机名称\" TEXT PRIMARY KEY, \"总数\" INT, \"NG数\" INT, \"良率\" REAL");
     SqliteDB::DBOperation::CreateTable(summaryTableName.toUtf8().constData(), summaryCols.toUtf8().constData());
-
     QString detailCols = QString::fromUtf8(u8"\"相机名称\" TEXT, \"缺陷类型\" TEXT, \"数量\" INT, PRIMARY KEY(\"相机名称\", \"缺陷类型\")");
     SqliteDB::DBOperation::CreateTable(detailTableName.toUtf8().constData(), detailCols.toUtf8().constData());
 
-    // --- 3. 遍历所有相机 ---
+    // 确保批次表存在
+    QString batchTableName = QString::fromUtf8(u8"Batch_Summary");
+
+    // =========================================================
+    // 3. 遍历所有相机进行更新
+    // =========================================================
     for (const auto& camera : cams) {
         if (!camera) continue;
+
         const QString& cameraName = camera->cameral_name;
-
-        // 【修正点 1】必须先检查 RI 指针是否有效
-        if (!camera->RI) {
-            qDebug() << ">>> [DEBUG] 警告: 相机 " << cameraName << " 的 RI 指针为空！跳过详情更新。";
-            continue;
-        }
-
-        // =========================================================
-        // 【调试步骤 0】: 只关注 camera->RI->unifyParams 的状态
-        // =========================================================
-        if (cameraName == QString::fromUtf8(u8"花瓣负极")) {
-            qDebug() << ">>> [DEBUG 目标] 相机: " << cameraName;
-            qDebug() << "    总数:" << camera->sum_count.load() << " NG总数:" << camera->error_count.load();
-
-            auto& targetParams = camera->RI->unifyParams;
-
-            if (targetParams.isEmpty()) {
-                qDebug() << "    !!! 严重警告: camera->RI->unifyParams 为空 !!!";
-                qDebug() << "    (请检查 Init 阶段是否正确加载了参数到这个 RI 对象)";
-            }
-            else {
-                for (auto it = targetParams.begin(); it != targetParams.end(); ++it) {
-                    if (it.value().ng_count > 0) {
-                        qDebug() << "    [内存原始值] 缺陷:" << it.value().label << " NG数:" << it.value().ng_count;
-                    }
-                }
-            }
-        }
-        // =========================================================
-
         long long currentAbsoluteTotal = camera->sum_count.load();
         long long currentAbsoluteNg = camera->error_count.load();
-        QString condition = QString::fromUtf8(u8"\"相机名称\" = '%1'").arg(cameraName);
 
+        // ---------------------------------------------------------
+        // 【新增逻辑】 更新批次表 (Batch_Summary)
+        // ---------------------------------------------------------
+        // 使用 GlobalPara::ClassifyStr 作为批次号
+        QString currentBatchID = GlobalPara::ClassifyStr;
+
+        if (!currentBatchID.isEmpty()) {
+            // 查询条件：同时匹配 批次号 和 相机名称
+            QString batchCondition = QString::fromUtf8(u8"\"batch_id\" = '%1' AND \"相机名称\" = '%2'")
+                .arg(currentBatchID).arg(cameraName);
+
+            double batchYield = (currentAbsoluteTotal > 0) ? (static_cast<double>(currentAbsoluteTotal - currentAbsoluteNg) / currentAbsoluteTotal) : 0.0;
+            QString currentTimeStr = now.toString("yyyy-MM-dd HH:mm:ss");
+
+            // 检查批次记录是否存在
+            std::map<std::string, std::variant<int, double, std::string>> batchRecord;
+            SqliteDB::DBOperation::GetFullRecord(batchTableName.toUtf8().constData(), batchCondition.toUtf8().constData(), batchRecord);
+
+            if (batchRecord.empty()) {
+                // [Insert] 不存在 -> 插入新记录
+                std::vector<std::variant<int, double, std::string>> batchValues;
+                batchValues.push_back(currentBatchID.toUtf8().toStdString()); // batch_id
+                batchValues.push_back(cameraName.toUtf8().toStdString());     // 相机名称
+                batchValues.push_back(static_cast<int>(currentAbsoluteTotal));// 总数
+                batchValues.push_back(static_cast<int>(currentAbsoluteNg));   // NG数
+                batchValues.push_back(batchYield);                            // 良率
+                batchValues.push_back(currentTimeStr.toUtf8().toStdString()); // update_time
+                batchValues.push_back(std::string(""));                       // remark
+
+                SqliteDB::DBOperation::InsertRecord(batchTableName.toUtf8().constData(), batchValues);
+            }
+            else {
+                // [Update] 存在 -> 更新记录
+                std::map<std::string, std::variant<int, double, std::string>> batchUpdateValues;
+                batchUpdateValues[QString::fromUtf8(u8"总数").toStdString()] = static_cast<int>(currentAbsoluteTotal);
+                batchUpdateValues[QString::fromUtf8(u8"NG数").toStdString()] = static_cast<int>(currentAbsoluteNg);
+                batchUpdateValues[QString::fromUtf8(u8"良率").toStdString()] = batchYield;
+                batchUpdateValues[QString::fromUtf8(u8"update_time").toStdString()] = currentTimeStr.toUtf8().toStdString();
+
+                SqliteDB::DBOperation::UpdateFullRecord(batchTableName.toUtf8().constData(), batchUpdateValues, batchCondition.toUtf8().constData());
+            }
+        }
+        // ---------------------------------------------------------
+
+
+        // ... (以下是原有的 早晚班表 逻辑，保持不变) ...
+
+        QString condition = QString::fromUtf8(u8"\"相机名称\" = '%1'").arg(cameraName);
         std::map<std::string, std::variant<int, double, std::string>> existingRecord;
         SqliteDB::DBOperation::GetFullRecord(summaryTableName.toUtf8().constData(), condition.toUtf8().constData(), existingRecord);
 
@@ -3998,71 +4031,69 @@ void MainWindow::updateDB_Unify()
             camera->sum_count.store(currentShiftTotal);
             camera->error_count.store(currentShiftNg);
 
-            for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
-                UnifyParam& param = it.value();
-                QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
+            if (camera->RI) {
+                for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
+                    UnifyParam& param = it.value();
+                    QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
 
-                std::variant<int, double, std::string> prevDefectCountVar = "";
-                SqliteDB::DBOperation::GetRecordValue(prevDetailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), prevDefectCountVar);
+                    std::variant<int, double, std::string> prevDefectCountVar = "";
+                    SqliteDB::DBOperation::GetRecordValue(prevDetailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), prevDefectCountVar);
 
-                long long prevDefectCount = 0;
-                if (std::holds_alternative<int>(prevDefectCountVar)) prevDefectCount = std::get<int>(prevDefectCountVar);
+                    long long prevDefectCount = 0;
+                    if (std::holds_alternative<int>(prevDefectCountVar)) prevDefectCount = std::get<int>(prevDefectCountVar);
 
-                long long currentShiftDefect = param.ng_count - prevDefectCount;
+                    long long currentShiftDefect = param.ng_count - prevDefectCount;
 
-                std::vector<std::variant<int, double, std::string>> detailValues;
-                detailValues.push_back(cameraName.toUtf8().toStdString());
-                detailValues.push_back(param.label.toUtf8().toStdString());
-                detailValues.push_back(static_cast<int>(currentShiftDefect));
-                SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
+                    std::vector<std::variant<int, double, std::string>> detailValues;
+                    detailValues.push_back(cameraName.toUtf8().toStdString());
+                    detailValues.push_back(param.label.toUtf8().toStdString());
+                    detailValues.push_back(static_cast<int>(currentShiftDefect));
+                    SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
 
-                param.ng_count = currentShiftDefect;
+                    param.ng_count = currentShiftDefect;
+                }
             }
 
         }
         else {
-            // [分支 B] 常规更新
+            // [分支 B] 班次内常更新
             double newYieldRate = (currentAbsoluteTotal > 0) ? (static_cast<double>(currentAbsoluteTotal - currentAbsoluteNg) / currentAbsoluteTotal) : 0.0;
 
             std::map<std::string, std::variant<int, double, std::string>> summaryValues;
-            summaryValues[QString::fromUtf8(u8"总数").toStdString()] = static_cast<int>(currentAbsoluteTotal);
-            summaryValues[QString::fromUtf8(u8"NG数").toStdString()] = static_cast<int>(currentAbsoluteNg);
-            summaryValues[QString::fromUtf8(u8"良率").toStdString()] = newYieldRate;
+            summaryValues[QString::fromUtf8(u8"总数").toUtf8().toStdString()] = static_cast<int>(currentAbsoluteTotal);
+            summaryValues[QString::fromUtf8(u8"NG数").toUtf8().toStdString()] = static_cast<int>(currentAbsoluteNg);
+            summaryValues[QString::fromUtf8(u8"良率").toUtf8().toStdString()] = newYieldRate;
+
             SqliteDB::DBOperation::UpdateFullRecord(summaryTableName.toUtf8().constData(), summaryValues, condition.toUtf8().constData());
 
-            for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
-                UnifyParam& param = it.value();
-                QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
+            if (camera->RI) {
+                for (auto it = camera->RI->unifyParams.begin(); it != camera->RI->unifyParams.end(); ++it) {
+                    UnifyParam& param = it.value();
+                    QString detailCondition = QString::fromUtf8(u8"\"相机名称\" = '%1' AND \"缺陷类型\" = '%2'").arg(cameraName).arg(param.label);
 
-                // 【调试点 2】: 打印写入前的值 (只针对目标相机和有数据的项)
-                if (cameraName == QString::fromUtf8(u8"花瓣负极") && param.ng_count > 0) {
-                    qDebug() << "    [即将更新数据库] " << param.label << " -> " << param.ng_count;
-                }
+                    std::variant<int, double, std::string> checkVal = "";
+                    SqliteDB::DBOperation::GetRecordValue(detailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), checkVal);
 
-                std::variant<int, double, std::string> checkVal = "";
-                SqliteDB::DBOperation::GetRecordValue(detailTableName.toUtf8().constData(), QString::fromUtf8(u8"数量").toUtf8().constData(), detailCondition.toUtf8().constData(), checkVal);
-
-                if (std::holds_alternative<int>(checkVal)) {
-                    SqliteDB::DBOperation::UpdateRecordValue(
-                        detailTableName.toUtf8().constData(),
-                        QString::fromUtf8(u8"数量").toUtf8().constData(),
-                        static_cast<int>(param.ng_count),
-                        detailCondition.toUtf8().constData()
-                    );
-                }
-                else {
-                    std::vector<std::variant<int, double, std::string>> detailValues;
-                    detailValues.push_back(cameraName.toUtf8().toStdString());
-                    detailValues.push_back(param.label.toUtf8().toStdString());
-                    detailValues.push_back(static_cast<int>(param.ng_count));
-                    SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
+                    if (std::holds_alternative<int>(checkVal)) {
+                        SqliteDB::DBOperation::UpdateRecordValue(
+                            detailTableName.toUtf8().constData(),
+                            QString::fromUtf8(u8"数量").toUtf8().constData(),
+                            static_cast<int>(param.ng_count),
+                            detailCondition.toUtf8().constData()
+                        );
+                    }
+                    else {
+                        std::vector<std::variant<int, double, std::string>> detailValues;
+                        detailValues.push_back(cameraName.toUtf8().toStdString());
+                        detailValues.push_back(param.label.toUtf8().toStdString());
+                        detailValues.push_back(static_cast<int>(param.ng_count));
+                        SqliteDB::DBOperation::InsertRecord(detailTableName.toUtf8().constData(), detailValues);
+                    }
                 }
             }
         }
     }
-    qDebug() << "=== updateDB_Unify 结束 ===\n";
 }
-
 void MainWindow::initSqlite3Db_Plater()
 {
     // 1. 初始化数据库连接
@@ -4186,6 +4217,7 @@ void MainWindow::updateDB_Plater()
     }
 }
 
+
 void MainWindow::setupUpdateTimer()
 {
 
@@ -4201,7 +4233,7 @@ void MainWindow::setupUpdateTimer()
     connect(m_databaseTimer, &QTimer::timeout, this, &MainWindow::updateDB_Plater);
 #endif
 
-    m_databaseTimer->start(10*60*10);
+    m_databaseTimer->start(10*60*1000);
 #elif  USE_MAIN_WINDOW_BRADER
     connect(m_updateTimer, &QTimer::timeout, m_rightControlPanel, &RightControlPanel::updateStatistics);
 
