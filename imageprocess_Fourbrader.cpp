@@ -108,16 +108,16 @@ void Imageprocess_FourBrader::run()
 			}
 
 
-			if (GlobalPara::envirment == GlobalPara::IPCEn) // 非本地运行的情况
-			{
-				// 先给复位信号false
-				bool outputSignalInvert = false;
-				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
+			//if (GlobalPara::envirment == GlobalPara::IPCEn) // 非本地运行的情况
+			//{
+			//	// 先给复位信号false
+			//	bool outputSignalInvert = false;
+			//	int durationMs = 100; // 脉冲持续时间
+			//	int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
 
-				QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			}
+			//	QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+			//	LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+			//}
 
 			QElapsedTimer timer;
 			timer.start();  // 开始计时

@@ -81,6 +81,7 @@ void Imageprocess_Flower::run()
 
 
 		if (GlobalPara::changed.load() == true && cam_instance->learn.load() == false) continue;
+		if (GlobalPara::AlogReady == false) continue;
 
 		std::shared_ptr<cv::Mat> afterImagePtr = std::make_shared<cv::Mat>();
 		std::shared_ptr<cv::Mat> backupImagePtr = std::make_shared<cv::Mat>(currentImagePtr->clone());

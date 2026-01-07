@@ -786,6 +786,15 @@ void MainWindow::startAlgoInitAsync_Brader()
 
 }
 
+void MainWindow::startAlgoInitAsync_Flower()
+{
+    QtConcurrent::run([this]() {
+        this->init_algo_Flower();
+        GlobalPara::AlogReady = true;
+        LOG_DEBUG(GlobalLog::logger, L"algo load successful");
+        });
+}
+
 void MainWindow::init_algo_Braider()
 {
     // 侧面 
@@ -1057,12 +1066,13 @@ MainWindow::MainWindow(QString str, QWidget * parent) :
         init_log();
         init_cap();
         initcams(caminfo.size());
-        init_algo_Flower();
+      //  init_algo_Flower();
         setupImageSaverThread();
         CreateMenu();
         CreateImageGrid_Braider(caminfo.size());
         setupMonitorThread();
         setupUpdateTimer();
+        startAlgoInitAsync_Flower();
         initSqlite3Db_Unify();
         init_SQLInfo();
         if (GlobalPara::MergePointNum > 0)
@@ -1086,7 +1096,7 @@ MainWindow::MainWindow(QString str, QWidget * parent) :
             setupOutPutThread();
         }
         initCameralPara();
-        if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
+       // if (GlobalPara::envirment == GlobalPara::IPCEn) this->onStartAllCamerasClicked();
     }
 
     void MainWindow::closeEvent(QCloseEvent* event)

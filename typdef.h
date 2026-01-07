@@ -1,8 +1,8 @@
 #ifndef TYPDEF_H
 #define TYPDEF_H
 
-//#define ADAPTATEION
-#define QIMAGE
+#define ADAPTATEION
+//#define QIMAGE
 //#define FOURBRADER
 
 #include <thread>

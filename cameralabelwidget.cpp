@@ -26,6 +26,7 @@
 #include "imageprocess_Fourbrader.h"
 #include "imageprocess_image.h"
 #include "common.h"
+#include <QDir>
 
 HImage CameraLabelWidget::convertQPixmapToHImage(const QPixmap& pixmap) {
 	HImage hImage;
@@ -1999,8 +2000,32 @@ void CameraLabelWidget::onImageProcessed_QImage(QImage image, DetectInfo info)
 	if (!m_cam->video)
 	{
 		if (info.ret != 0) {
-			dataToSave.work_path = dataToSave.savePath_NG;
 			this->ngcount->fetch_add(1);
+
+			// 1. 寻找第一个 NG 项目的名称
+			QString firstNgName = "";
+			for (const auto& item : info.paintDataSnapshot) {
+				if (item.check && item.result == 0) {
+					if (item.value.trimmed().isEmpty()) {
+						firstNgName = ""; // 强制进入后面的 "算法NG" 逻辑
+					}
+					else {
+						firstNgName = item.label; 
+					}
+					break; 
+				}
+			}
+
+			// 2. 根据查找结果拼接目录
+			QString subFolderName;
+			if (firstNgName.isEmpty()) {
+				subFolderName = "算法NG";
+			}
+			else {
+				subFolderName = firstNgName;
+			}
+			dataToSave.work_path = dataToSave.savePath_NG + "/" + subFolderName.toStdString();
+
 		}
 		else {
 			dataToSave.work_path = dataToSave.savePath_OK;
