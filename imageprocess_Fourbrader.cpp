@@ -108,17 +108,6 @@ void Imageprocess_FourBrader::run()
 			}
 
 
-			//if (GlobalPara::envirment == GlobalPara::IPCEn) // 非本地运行的情况
-			//{
-			//	// 先给复位信号false
-			//	bool outputSignalInvert = false;
-			//	int durationMs = 100; // 脉冲持续时间
-			//	int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
-
-			//	QString logMsg = QString("相机名称:%1,第一次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-			//	LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
-			//}
-
 			QElapsedTimer timer;
 			timer.start();  // 开始计时
 
@@ -451,14 +440,23 @@ void Imageprocess_FourBrader::run()
 		if (GlobalPara::envirment == GlobalPara::IPCEn && ret == 0 && cam_instance->photo.load() == false)//非本地运行的情况
 		{
 			QString camId = QString::fromStdString(cam_instance->indentify);
-			if (MergePointVec.contains(camId) == false)
+			if (GlobalPara::MergePointNum == 0)
 			{
 				bool outputSignalInvert = true;
 				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
-				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false);
+				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+				//	int result = PCI::pci().setoutput(cam_instance->pointNumber.load() , outputSignalInvert ? true : false);
+				int delayMs = 150;
 
-				QString logMsg = QString("相机名称:%1,第二次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+				PCI::pci().setOutputMode(
+					cam_instance->pointNumber.load(),
+					false,
+					200
+				);
+				LOG_DEBUG(GlobalLog::logger, QString("--- second Start Sleep (100ms) ---").toStdWString().c_str());
+
+				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
 				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else
@@ -488,13 +486,22 @@ void Imageprocess_FourBrader::run()
 			QString camId = QString::fromStdString(cam_instance->indentify);
 			if (GlobalPara::MergePointNum == 0)
 			{
-				bool outputSignalInvert = false;
-				int durationMs = 100; // 脉冲持续时间
-				int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load() - 1, outputSignalInvert ? true : false, durationMs);
-				//int result = PCI::pci().setoutput(cam_instance->pointNumber.load() , outputSignalInvert ? true : false);
+				//bool outputSignalInvert = false;
+				//int durationMs = 100; // 脉冲持续时间
+				//int result = PCI::pci().setOutputMode(cam_instance->pointNumber.load(), outputSignalInvert ? true : false, durationMs);
+				////	int result = PCI::pci().setoutput(cam_instance->pointNumber.load() , outputSignalInvert ? true : false);
+				//int delayMs = 150;
 
-				QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
-				LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
+				//std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+				//PCI::pci().setOutputMode(
+				//	cam_instance->pointNumber.load(),
+				//	true,
+				//	200
+				//);
+				//LOG_DEBUG(GlobalLog::logger, QString("--- second Start Sleep (100ms) ---").toStdWString().c_str());
+
+				//QString logMsg = QString("相机名称:%1,第三次setOutputMode() 返回值: %2").arg(cam_instance->cameral_name).arg(result);
+				//LOG_DEBUG(GlobalLog::logger, logMsg.toStdWString().c_str());
 			}
 			else
 			{
